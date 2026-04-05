@@ -1021,6 +1021,20 @@ ${purchaseOrderBlock}
       btn.disabled = false;
       btn.textContent = 'Pay with PayPal';
     });
+    (function() {
+      var paypalBtn = document.getElementById('paypal-pay-btn');
+      if (!paypalBtn) return;
+      var paypalUrl = ${safeJsonForScript(paypalCheckoutUrl)};
+      var paypalStatus = document.getElementById('paypal-status');
+      paypalBtn.addEventListener('click', function() {
+        if (paypalUrl) {
+          window.open(paypalUrl, '_blank', 'noopener,noreferrer');
+          if (paypalStatus) { paypalStatus.textContent = 'PayPal checkout opened.'; paypalStatus.style.color = '#166534'; }
+        } else {
+          if (paypalStatus) { paypalStatus.textContent = 'PayPal is not configured. Add your PayPal email in Settings → Financial.'; paypalStatus.style.color = '#991B1B'; }
+        }
+      });
+    })();
   </script>
 </div>
 </div>
