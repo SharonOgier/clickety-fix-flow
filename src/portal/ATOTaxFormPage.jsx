@@ -87,6 +87,7 @@ export default function ATOTaxFormPage({
   invoices = [],
   expenses = [],
   incomeSources = [],
+  assets = [],
   getClientById = () => null,
 }) {
   const [tab, setTab] = useState("income");
