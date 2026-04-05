@@ -2181,6 +2181,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     const errors = validateClientPayload(payload);
     if (errors.length) {
       summariseValidationErrors("Client", errors, toast);
+      setSavingClient(false);
       return;
     }
     try {
