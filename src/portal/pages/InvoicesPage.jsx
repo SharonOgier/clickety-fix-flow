@@ -469,7 +469,16 @@ export default function InvoicesPage(props) {
           )}
         </SectionCard>
 
-        <SectionCard title="Invoice List">
+        <SectionCard title="Invoice List" right={
+          <button style={buttonSecondary} onClick={() => exportToCSV(invoices, [
+            { key: "invoiceNumber", label: "Invoice" },
+            { key: "clientId", label: "Client", exportValue: (row) => getClientName(row.clientId) },
+            { key: "invoiceDate", label: "Date" },
+            { key: "dueDate", label: "Due" },
+            { key: "total", label: "Total" },
+            { key: "status", label: "Status", exportValue: (row) => row.status || "Draft" },
+          ], "invoices.csv")}>Export CSV</button>
+        }>
           <DataTable
             emptyState={{ icon: "", title: "No invoices yet", message: "Create your first invoice using the form above. Invoices can be emailed as a PDF with a Stripe payment link." }}
             columns={[

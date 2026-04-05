@@ -430,7 +430,16 @@ export default function QuotesPage(props) {
           )}
         </SectionCard>
 
-        <SectionCard title="Quote List">
+        <SectionCard title="Quote List" right={
+          <button style={buttonSecondary} onClick={() => exportToCSV(quotes, [
+            { key: "quoteNumber", label: "Quote" },
+            { key: "clientId", label: "Client", exportValue: (row) => getClientName(row.clientId) },
+            { key: "quoteDate", label: "Date" },
+            { key: "expiryDate", label: "Expiry" },
+            { key: "total", label: "Total" },
+            { key: "status", label: "Status", exportValue: (row) => row.status || "Draft" },
+          ], "quotes.csv")}>Export CSV</button>
+        }>
           <DataTable
             emptyState={{ icon: "", title: "No quotes yet", message: "Create your first quote using the form above. Quotes can be converted to invoices once accepted." }}
             columns={[
