@@ -1226,14 +1226,20 @@ export default function AccountingPortalPrototype() {
     const clientExample = "John Smith,Smith Farms Pty Ltd,john@smithfarms.com.au,0412 345 678,123 Farm Rd Dubbo NSW 2830,12 345 678 901,AUD $,Primary production";
     const supplierHeaders = "Name,Contact Person,Email,Phone,Address,ABN,Notes";
     const supplierExample = "AGL Energy,Jane Brown,accounts@agl.com.au,1800 123 456,72 Yeo St Neutral Bay NSW 2089,74 115 061 375,Monthly billing";
-    const csv = type === "clients"
-      ? `${clientHeaders}\n${clientExample}\n`
-      : `${supplierHeaders}\n${supplierExample}\n`;
+    const invoiceHeaders = "Invoice Number,Client Name,Date,Due Date,Description,Subtotal,GST,Total,Status";
+    const invoiceExample = "INV-001,Smith Farms Pty Ltd,2025-03-15,2025-04-15,Fencing repair and materials,1000.00,100.00,1100.00,Draft";
+    const expenseHeaders = "Supplier,Date,Due Date,Category,Description,Amount,GST,Is Paid";
+    const expenseExample = "AGL Energy,2025-03-10,2025-04-10,Utilities,Electricity - March quarter,450.00,45.00,No";
+    let csv, filename;
+    if (type === "clients") { csv = `${clientHeaders}\n${clientExample}\n`; filename = "clients_template.csv"; }
+    else if (type === "suppliers") { csv = `${supplierHeaders}\n${supplierExample}\n`; filename = "suppliers_template.csv"; }
+    else if (type === "invoices") { csv = `${invoiceHeaders}\n${invoiceExample}\n`; filename = "invoices_template.csv"; }
+    else { csv = `${expenseHeaders}\n${expenseExample}\n`; filename = "expenses_template.csv"; }
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = type === "clients" ? "clients_template.csv" : "suppliers_template.csv";
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -1249,26 +1255,92 @@ export default function AccountingPortalPrototype() {
       headers.forEach((h, idx) => { row[h] = vals[idx] || ""; });
       if (type === "clients") {
         rows.push({ name: row["name"] || row["clientname"] || "", businessName: row["businessname"] || "", email: row["email"] || "", phone: row["phone"] || "", address: row["address"] || "", abn: row["abn"] || "", defaultCurrency: row["currency"] || "AUD $", workType: row["worktype"] || "" });
-      } else {
+      } else if (type === "suppliers") {
         rows.push({ name: row["name"] || row["suppliername"] || "", contactPerson: row["contactperson"] || "", email: row["email"] || "", phone: row["phone"] || "", address: row["address"] || "", abn: row["abn"] || "", notes: row["notes"] || "" });
+      } else if (type === "invoices") {
+        const subtotal = Number(row["subtotal"] || row["amount"] || 0);
+        const gst = Number(row["gst"] || 0);
+        const total = Number(row["total"] || (subtotal + gst) || 0);
+        rows.push({
+          invoiceNumber: row["invoicenumber"] || row["invoice"] || "",
+          clientName: row["clientname"] || row["client"] || "",
+          invoiceDate: row["date"] || row["invoicedate"] || "",
+          dueDate: row["duedate"] || "",
+          description: row["description"] || row["notes"] || "",
+          subtotal, gst, total,
+          status: row["status"] || "Draft",
+        });
+      } else if (type === "expenses") {
+        const amount = Number(row["amount"] || row["total"] || 0);
+        const gst = Number(row["gst"] || 0);
+        const isPaidRaw = (row["ispaid"] || row["paid"] || "").toLowerCase();
+        rows.push({
+          supplier: row["supplier"] || row["suppliername"] || row["name"] || "",
+          date: row["date"] || "",
+          dueDate: row["duedate"] || "",
+          category: row["category"] || "",
+          description: row["description"] || row["notes"] || "",
+          amount, gst,
+          isPaid: isPaidRaw === "yes" || isPaidRaw === "true" || isPaidRaw === "1",
+        });
       }
     }
-    const valid = rows.filter((r) => r.name.trim());
-    if (!valid.length) return { rows: [], error: "No valid rows found. Make sure the Name column is filled in." };
+    const valid = type === "invoices"
+      ? rows.filter((r) => r.invoiceNumber || r.clientName || r.total)
+      : type === "expenses"
+      ? rows.filter((r) => r.supplier || r.amount)
+      : rows.filter((r) => r.name?.trim());
+    if (!valid.length) return { rows: [], error: "No valid rows found. Check required columns are filled in." };
     return { rows: valid, error: "" };
   };
 
   const confirmImport = async () => {
     if (!importRows.length) return;
     try {
-      const table = importType === "clients" ? SUPABASE_TABLES.clients : SUPABASE_TABLES.suppliers;
-      const existing = importType === "clients" ? clients : suppliers;
-      const existingNames = new Set(existing.map((r) => r.name.toLowerCase().trim()));
-      const newRows = importRows.filter((r) => !existingNames.has(r.name.toLowerCase().trim()));
-      const saved = await Promise.all(newRows.map((r) => upsertRecordInDatabase(table, { ...r })));
-      if (importType === "clients") setClients((prev) => [...prev, ...saved]);
-      else setSuppliers((prev) => [...prev, ...saved]);
-      toast.success(`Imported ${saved.length} ${importType}${newRows.length < importRows.length ? ` (${importRows.length - newRows.length} duplicates skipped)` : ""}!`);
+      if (importType === "clients" || importType === "suppliers") {
+        const table = importType === "clients" ? SUPABASE_TABLES.clients : SUPABASE_TABLES.suppliers;
+        const existing = importType === "clients" ? clients : suppliers;
+        const existingNames = new Set(existing.map((r) => r.name.toLowerCase().trim()));
+        const newRows = importRows.filter((r) => !existingNames.has(r.name.toLowerCase().trim()));
+        const saved = await Promise.all(newRows.map((r) => upsertRecordInDatabase(table, { ...r })));
+        if (importType === "clients") setClients((prev) => [...prev, ...saved]);
+        else setSuppliers((prev) => [...prev, ...saved]);
+        toast.success(`Imported ${saved.length} ${importType}${newRows.length < importRows.length ? ` (${importRows.length - newRows.length} duplicates skipped)` : ""}!`);
+      } else if (importType === "invoices") {
+        const saved = await Promise.all(importRows.map((r) => {
+          const clientMatch = clients.find(c => c.name?.toLowerCase() === r.clientName?.toLowerCase() || c.businessName?.toLowerCase() === r.clientName?.toLowerCase());
+          const inv = {
+            invoiceNumber: r.invoiceNumber || `IMP-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+            clientId: clientMatch?.id || "",
+            invoiceDate: r.invoiceDate || todayLocal(),
+            dueDate: r.dueDate || addDays(r.invoiceDate || todayLocal(), safeNumber(profile.paymentTermsDays) || 14),
+            lineItems: [{ id: crypto.randomUUID?.() || String(Date.now()), description: r.description || "Imported item", quantity: 1, unitPrice: String(r.subtotal || r.total || 0), gstType: r.gst > 0 ? "GST on Income (10%)" : "GST Free" }],
+            subtotal: r.subtotal || r.total || 0,
+            gst: r.gst || 0,
+            total: r.total || 0,
+            status: r.status || "Draft",
+          };
+          return upsertRecordInDatabase(SUPABASE_TABLES.invoices, inv);
+        }));
+        setInvoices((prev) => [...prev, ...saved]);
+        toast.success(`Imported ${saved.length} invoice${saved.length !== 1 ? "s" : ""}!`);
+      } else if (importType === "expenses") {
+        const saved = await Promise.all(importRows.map((r) => {
+          const exp = {
+            supplier: r.supplier || "",
+            date: r.date || todayLocal(),
+            dueDate: r.dueDate || "",
+            category: r.category || "Other",
+            description: r.description || "Imported expense",
+            amount: r.amount || 0,
+            gst: r.gst || 0,
+            isPaid: r.isPaid || false,
+          };
+          return upsertRecordInDatabase(SUPABASE_TABLES.expenses, exp);
+        }));
+        setExpenses((prev) => [...prev, ...saved]);
+        toast.success(`Imported ${saved.length} expense${saved.length !== 1 ? "s" : ""}!`);
+      }
       setShowImportModal(false);
       setImportRows([]);
       setImportError("");
@@ -4235,44 +4307,55 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       {/* -- Import Modal -- */}
       {showImportModal && (
         <div style={{ position: "fixed", inset: 0, zIndex: 99993, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 18, padding: 28, width: "100%", maxWidth: 580, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", fontFamily: "sans-serif", maxHeight: "90vh", overflowY: "auto" }}>
+          <div style={{ background: "#fff", borderRadius: 18, padding: 28, width: "100%", maxWidth: 620, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", fontFamily: "sans-serif", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: colours.text, marginBottom: 6 }}>
-              Import {importType === "clients" ? "Clients" : "Suppliers"}
+              Import {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : "Expenses / Bills"}
             </div>
 
             {/* Tab switcher */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-              {["clients", "suppliers"].map((t) => (
+            <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
+              {["clients", "suppliers", "invoices", "expenses"].map((t) => (
                 <button key={t} onClick={() => { setImportType(t); setImportRows([]); setImportError(""); }}
                   style={{ background: importType === t ? colours.purple : "#F1F5F9", color: importType === t ? "#fff" : colours.text, border: "none", borderRadius: 8, padding: "7px 16px", fontWeight: 700, cursor: "pointer", fontSize: 13, textTransform: "capitalize" }}>
-                  {t}
+                  {t === "expenses" ? "Bills / Expenses" : t}
                 </button>
               ))}
             </div>
 
             {/* How to section */}
             <div style={{ background: colours.lightPurple, borderRadius: 12, padding: 16, marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: colours.purple, marginBottom: 10 }}>[clipboard] How to import</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: colours.purple, marginBottom: 10 }}>📋 How to import</div>
               <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: colours.text, lineHeight: 2 }}>
-                <li>Click <strong>Download Template</strong> below to get the Excel/CSV file</li>
+                <li>Click <strong>Download Template</strong> below to get the CSV file</li>
                 <li>Open it in Excel or Google Sheets</li>
-                <li>Fill in your {importType} -- <strong>Name is required</strong>, all other columns are optional</li>
-                <li>Save as <strong>CSV</strong> (File - Save As - CSV)</li>
+                <li>Fill in your {importType === "expenses" ? "bills / expenses" : importType} — <strong>{importType === "invoices" ? "Invoice Number or Client Name" : importType === "expenses" ? "Supplier or Amount" : "Name"} is required</strong></li>
+                <li>Save as <strong>CSV</strong> (File → Save As → CSV)</li>
                 <li>Click <strong>Choose File</strong> below and select your saved CSV</li>
                 <li>Review the preview, then click <strong>Confirm Import</strong></li>
               </ol>
-              <div style={{ marginTop: 12, fontSize: 12, color: colours.muted }}>
-                (i) Duplicates are skipped automatically -- existing {importType} with the same name won't be overwritten.
-              </div>
+              {(importType === "clients" || importType === "suppliers") && (
+                <div style={{ marginTop: 12, fontSize: 12, color: colours.muted }}>
+                  ℹ️ Duplicates are skipped automatically — existing {importType} with the same name won't be overwritten.
+                </div>
+              )}
+              {importType === "invoices" && (
+                <div style={{ marginTop: 12, fontSize: 12, color: colours.muted }}>
+                  ℹ️ Client names are automatically matched to your existing clients. Unmatched clients will have a blank client field you can update later.
+                </div>
+              )}
             </div>
 
             {/* Column headings reference */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: colours.muted, textTransform: "uppercase", marginBottom: 8 }}>Required columns in your CSV</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: colours.muted, textTransform: "uppercase", marginBottom: 8 }}>Columns in your CSV</div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {(importType === "clients"
                   ? ["Name *", "Business Name", "Email", "Phone", "Address", "ABN", "Currency", "Work Type"]
-                  : ["Name *", "Contact Person", "Email", "Phone", "Address", "ABN", "Notes"]
+                  : importType === "suppliers"
+                  ? ["Name *", "Contact Person", "Email", "Phone", "Address", "ABN", "Notes"]
+                  : importType === "invoices"
+                  ? ["Invoice Number *", "Client Name *", "Date", "Due Date", "Description", "Subtotal", "GST", "Total", "Status"]
+                  : ["Supplier *", "Date", "Due Date", "Category", "Description", "Amount *", "GST", "Is Paid"]
                 ).map((col) => (
                   <span key={col} style={{ background: col.includes("*") ? colours.purple : "#F1F5F9", color: col.includes("*") ? "#fff" : colours.text, borderRadius: 6, padding: "4px 10px", fontSize: 12, fontWeight: 600 }}>
                     {col}
@@ -4284,7 +4367,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             {/* Download template button */}
             <button onClick={() => downloadTemplate(importType)}
               style={{ ...buttonSecondary, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-              Download {importType === "clients" ? "Clients" : "Suppliers"} Template
+              ⬇️ Download {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : "Expenses"} Template
             </button>
 
             {/* File upload */}
@@ -4312,14 +4395,35 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             {/* Preview */}
             {importRows.length > 0 && (
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: colours.text, marginBottom: 8 }}>Preview -- {importRows.length} row{importRows.length !== 1 ? "s" : ""} ready to import</div>
-                <div style={{ maxHeight: 200, overflowY: "auto", border: `1px solid ${colours.border}`, borderRadius: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: colours.text, marginBottom: 8 }}>Preview — {importRows.length} row{importRows.length !== 1 ? "s" : ""} ready to import</div>
+                <div style={{ maxHeight: 220, overflowY: "auto", border: `1px solid ${colours.border}`, borderRadius: 10 }}>
                   {importRows.slice(0, 10).map((row, i) => (
                     <div key={i} style={{ padding: "10px 14px", borderBottom: `1px solid ${colours.border}`, fontSize: 13 }}>
-                      <strong>{row.name}</strong>
-                      {row.businessName && <span style={{ color: colours.muted }}> -- {row.businessName}</span>}
-                      {row.email && <span style={{ color: colours.muted }}> . {row.email}</span>}
-                      {row.phone && <span style={{ color: colours.muted }}> . {row.phone}</span>}
+                      {(importType === "clients" || importType === "suppliers") && (
+                        <>
+                          <strong>{row.name}</strong>
+                          {row.businessName && <span style={{ color: colours.muted }}> — {row.businessName}</span>}
+                          {row.email && <span style={{ color: colours.muted }}> · {row.email}</span>}
+                        </>
+                      )}
+                      {importType === "invoices" && (
+                        <>
+                          <strong>{row.invoiceNumber || "No #"}</strong>
+                          <span style={{ color: colours.muted }}> — {row.clientName || "Unknown client"}</span>
+                          <span style={{ color: colours.muted }}> · {row.invoiceDate || "No date"}</span>
+                          <span style={{ fontWeight: 700, marginLeft: 8, color: colours.teal }}>${Number(row.total || 0).toFixed(2)}</span>
+                          <span style={{ marginLeft: 8, fontSize: 11, color: colours.purple, fontWeight: 600 }}>{row.status}</span>
+                        </>
+                      )}
+                      {importType === "expenses" && (
+                        <>
+                          <strong>{row.supplier || "Unknown"}</strong>
+                          <span style={{ color: colours.muted }}> — {row.category || "Uncategorised"}</span>
+                          <span style={{ color: colours.muted }}> · {row.date || "No date"}</span>
+                          <span style={{ fontWeight: 700, marginLeft: 8, color: colours.purple }}>${Number(row.amount || 0).toFixed(2)}</span>
+                          {row.isPaid && <span style={{ marginLeft: 8, fontSize: 11, color: colours.teal, fontWeight: 600 }}>Paid</span>}
+                        </>
+                      )}
                     </div>
                   ))}
                   {importRows.length > 10 && <div style={{ padding: "8px 14px", fontSize: 12, color: colours.muted }}>...and {importRows.length - 10} more</div>}
