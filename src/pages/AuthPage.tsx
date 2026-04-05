@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 
 export default function AuthPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const initialMode = searchParams.get("mode") === "signup" ? "signup" : "signin";
 
   const [authMode, setAuthMode] = useState<"signin" | "signup">(initialMode);
@@ -12,8 +13,8 @@ export default function AuthPage() {
   const [showResetModal, setShowResetModal] = useState(false);
 
   const handleSubmit = () => {
-    // Will be connected to Lovable Cloud auth later
-    alert(`${authMode === "signup" ? "Sign up" : "Sign in"} with ${email} — auth will be connected soon!`);
+    // Navigate to portal — real auth will be connected when Lovable Cloud is enabled
+    navigate("/portal");
   };
 
   const handlePasswordReset = () => {
