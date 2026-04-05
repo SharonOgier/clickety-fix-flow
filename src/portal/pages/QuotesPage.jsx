@@ -1,5 +1,9 @@
 import React from "react";
 import { exportToCSV } from "../PortalHelpers";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from "recharts";
 
 class QuotesErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null }; }
