@@ -4081,6 +4081,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               saveExpenseEdits={saveExpenseEdits}
               resetExpenseModal={resetExpenseModal} nextExpenseModalStep={nextExpenseModalStep}
               totals={totals} uploadReceiptToSupabase={uploadReceiptToSupabase}
+              setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
             />}
             {activePage === "bills / payables" && <BillsPage
               profile={profile} expenses={expenses} suppliers={suppliers} clients={clients}
