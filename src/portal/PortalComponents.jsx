@@ -245,15 +245,15 @@ export function DashboardHero({ title, subtitle, highlight, children }) {
     <div
       className="sas-dashboard-hero sas-hero-grid"
       style={{
-        background: `linear-gradient(135deg, ${colours.navy} 0%, ${colours.purple} 58%, ${colours.teal} 100%)`,
-        borderRadius: 26,
-        padding: 30,
+        background: `linear-gradient(135deg, ${colours.navy} 0%, ${colours.purple} 55%, ${colours.teal} 100%)`,
+        borderRadius: 22,
+        padding: 32,
         color: "#FFFFFF",
         display: "grid",
         gridTemplateColumns: "minmax(0, 1.7fr) minmax(280px, 1fr)",
         gap: 24,
         alignItems: "stretch",
-        boxShadow: "0 18px 40px rgba(43, 47, 107, 0.18)",
+        boxShadow: "0 12px 36px rgba(43, 47, 107, 0.20)",
       }}
     >
       <div className="sas-hero-content" style={{ minWidth: 0 }}>
@@ -262,38 +262,40 @@ export function DashboardHero({ title, subtitle, highlight, children }) {
             display: "inline-flex",
             alignItems: "center",
             gap: 8,
-            padding: "8px 12px",
+            padding: "6px 14px",
             borderRadius: 999,
-            background: "rgba(255,255,255,0.14)",
-            fontSize: 12,
+            background: "rgba(255,255,255,0.12)",
+            fontSize: 11,
             fontWeight: 700,
-            letterSpacing: 0.2,
+            letterSpacing: 0.3,
+            textTransform: "uppercase",
+            fontFamily: '"DM Sans", sans-serif',
           }}
         >
           Live financial reporting
         </div>
-        <div className="sas-hero-title" style={{ fontSize: 34, fontWeight: 900, lineHeight: 1.1, marginTop: 16, overflowWrap: "anywhere", wordBreak: "break-word" }}>{title}</div>
-        <div className="sas-hero-subtitle" style={{ fontSize: 15, lineHeight: 1.6, opacity: 0.92, marginTop: 12, maxWidth: 780 }}>{subtitle}</div>
+        <div className="sas-hero-title" style={{ fontSize: 32, fontWeight: 800, lineHeight: 1.1, marginTop: 16, overflowWrap: "anywhere", wordBreak: "break-word", fontFamily: '"Playfair Display", serif' }}>{title}</div>
+        <div className="sas-hero-subtitle" style={{ fontSize: 14, lineHeight: 1.65, opacity: 0.9, marginTop: 12, maxWidth: 780, fontFamily: '"DM Sans", sans-serif' }}>{subtitle}</div>
       </div>
       <div
         className="sas-hero-focus-card"
         style={{
-          background: "rgba(255,255,255,0.14)",
-          border: "1px solid rgba(255,255,255,0.16)",
-          borderRadius: 22,
+          background: "rgba(255,255,255,0.12)",
+          border: "1px solid rgba(255,255,255,0.14)",
+          borderRadius: 18,
           padding: 22,
           display: "grid",
-          gap: 16,
+          gap: 14,
           alignContent: "space-between",
-          minHeight: 200,
+          minHeight: 190,
           minWidth: 0,
         }}
       >
         <div>
-          <div style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, opacity: 0.82 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: 0.6, opacity: 0.75, fontFamily: '"DM Sans", sans-serif' }}>
             Current focus
           </div>
-          <div className="sas-hero-focus-value" style={{ fontSize: 30, fontWeight: 900, marginTop: 10, overflowWrap: "anywhere", wordBreak: "break-word" }}>{highlight}</div>
+          <div className="sas-hero-focus-value" style={{ fontSize: 28, fontWeight: 800, marginTop: 10, overflowWrap: "anywhere", wordBreak: "break-word", fontFamily: '"Playfair Display", serif' }}>{highlight}</div>
         </div>
         {children}
       </div>
