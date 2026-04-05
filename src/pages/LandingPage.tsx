@@ -201,7 +201,7 @@ export default function LandingPage() {
             <div className="absolute top-6 -right-8 bg-primary text-primary-foreground text-[10px] font-extrabold tracking-[1.5px] px-10 py-1.5 rotate-45">
               MOST POPULAR
             </div>
-            <div className="font-serif text-7xl font-black text-primary leading-none mb-1">$45</div>
+            <div className="font-serif text-7xl font-black text-primary leading-none mb-1">$27</div>
             <div className="text-base text-muted-foreground font-light mb-8">per month · cancel anytime</div>
             <div className="bg-teal-light text-accent rounded-lg p-3.5 text-sm font-semibold mb-6">
               🎉 Start with a 14-day free trial — no credit card needed
