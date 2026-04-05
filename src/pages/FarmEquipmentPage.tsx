@@ -34,16 +34,16 @@ const services = [
   },
   {
     icon: "📊",
-    title: "Insurance & Finance Reports",
+    title: "Sale & Purchase Reports",
     description:
-      "Formal valuation certificates accepted by major insurers and lenders. Suitable for asset-backed lending, agreed-value policies, and lease arrangements.",
+      "Detailed written reports to support buying or selling decisions. Includes market positioning, condition summary, and estimated value range.",
   },
 ];
 
 const reasons = [
   { icon: "✅", text: "Independent & unbiased reporting" },
   { icon: "📍", text: "On-site inspections across the region" },
-  { icon: "🏦", text: "Reports accepted by banks & insurers" },
+  { icon: "🔍", text: "Thorough mechanical & structural assessments" },
   { icon: "⚡", text: "Fast turnaround — typically 3–5 business days" },
 ];
 
@@ -94,13 +94,13 @@ export default function FarmEquipmentPage() {
           <div className="fade-in">
             <div className="inline-flex items-center gap-2 bg-secondary text-primary rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
               <span className="w-2 h-2 bg-primary rounded-full inline-block" />
-              Farm Equipment Evaluations
+              Farm Equipment Assessments
             </div>
             <h1 className="text-4xl lg:text-[54px] leading-[1.1] font-black text-foreground mb-5 tracking-tight">
-              Professional farm equipment <em className="not-italic text-primary">valuations</em>
+              Professional farm equipment <em className="not-italic text-primary">assessments</em>
             </h1>
             <p className="text-lg leading-relaxed text-muted-foreground font-light mb-9">
-              Mitchell provides independent, on-site evaluations for tractors, harvesters, implements, trucks, and fixed plant — trusted by lenders, insurers, and farmers across the region.
+              Mitchell provides independent, on-site assessments for tractors, harvesters, implements, trucks, and fixed plant — helping farmers make informed decisions about their equipment.
             </p>
             <div className="flex gap-3.5 flex-wrap items-center">
               <a href="#contact" className="inline-flex items-center justify-center rounded-md font-semibold bg-primary text-primary-foreground px-8 py-4 text-base hover:opacity-90 transition-opacity">
@@ -116,12 +116,12 @@ export default function FarmEquipmentPage() {
             <div className="bg-card rounded-[20px] shadow-brand overflow-hidden border border-border p-8 text-center">
               <div className="text-7xl mb-4">👨‍🌾</div>
               <h2 className="font-serif text-3xl font-black text-foreground mb-2">Mitchell</h2>
-              <p className="text-base text-primary font-semibold mb-4">Farm Equipment Evaluator</p>
+              <p className="text-base text-primary font-semibold mb-4">Farm Equipment Assessor</p>
               <p className="text-sm text-muted-foreground leading-relaxed font-light">
-                Extensive hands-on experience with agricultural machinery. Independent, professional, and thorough — every evaluation backed by real market data.
+                Extensive hands-on experience with agricultural machinery. Independent and thorough — every assessment backed by practical knowledge and real market awareness.
               </p>
               <div className="flex flex-wrap gap-2 justify-center mt-6">
-                {["Certified", "Independent", "On-Site"].map((tag) => (
+                {["Independent", "On-Site", "Practical"].map((tag) => (
                   <span key={tag} className="bg-teal-light text-accent rounded-full px-3.5 py-1 text-xs font-bold">
                     {tag}
                   </span>
@@ -144,7 +144,7 @@ export default function FarmEquipmentPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-10 items-start fade-in">
             <div>
               <p className="text-[15px] text-muted-foreground leading-relaxed font-light mb-4">
-                Mitchell is our specialist farm equipment evaluator with extensive hands-on experience in agricultural machinery. He provides independent, professional valuations for a wide range of farm equipment — from tractors and harvesters through to fixed plant and infrastructure.
+                Mitchell is our specialist farm equipment assessor with extensive hands-on experience in agricultural machinery. He provides independent assessments for a wide range of farm equipment — from tractors and harvesters through to fixed plant and infrastructure.
               </p>
               <p className="text-[15px] text-muted-foreground leading-relaxed font-light">
                 Whether you need a valuation for insurance, finance, buying, selling, or succession planning, Mitchell delivers thorough, well-documented reports that are trusted by lenders, insurers, and industry professionals across the region.
@@ -168,10 +168,10 @@ export default function FarmEquipmentPage() {
           <div className="fade-in text-center">
             <p className="text-xs font-bold tracking-[2px] uppercase text-primary mb-4">Services</p>
             <h2 className="text-3xl lg:text-[42px] font-black leading-tight text-foreground tracking-tight">
-              Evaluation services by <em className="not-italic text-primary">Mitchell</em>
+              Assessment services by <em className="not-italic text-primary">Mitchell</em>
             </h2>
             <p className="text-base text-muted-foreground leading-relaxed font-light mt-4 max-w-[560px] mx-auto">
-              Professional valuations and inspections for all types of farm equipment and agricultural assets.
+              Professional assessments and inspections for all types of farm equipment and agricultural assets.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-14">
@@ -196,10 +196,10 @@ export default function FarmEquipmentPage() {
       <section className="py-24 px-6 lg:px-10 text-center" id="contact" style={{ background: "var(--gradient-cta)" }}>
         <div className="fade-in">
           <h2 className="font-serif text-3xl lg:text-5xl font-black text-primary-foreground mb-4 tracking-tight">
-            Need a farm equipment evaluation?
+            Need a farm equipment assessment?
           </h2>
           <p className="text-lg text-primary-foreground/70 font-light mb-10 max-w-[600px] mx-auto">
-            Get in touch to arrange an on-site inspection with Mitchell. We provide formal valuation reports for insurance, finance, sale, or internal asset management purposes.
+            Get in touch to arrange an on-site inspection with Mitchell. He provides detailed written reports for buying, selling, or internal asset management purposes.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <a

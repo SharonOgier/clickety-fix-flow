@@ -153,11 +153,11 @@ export default function HomePage() {
                   </div>
                   <div>
                     <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-3">
-                      Farm Equipment Evaluations
+                      Farm Equipment Assessments
                     </span>
-                    <h3 className="text-xl font-black text-foreground mb-2">Mitchell — Equipment Evaluator</h3>
+                    <h3 className="text-xl font-black text-foreground mb-2">Mitchell — Equipment Assessor</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed mb-3">
-                      Mitchell provides independent, professional valuations for tractors, harvesters, implements, trucks, and fixed plant. Reports accepted by banks, insurers, and industry professionals.
+                      Mitchell provides independent assessments for tractors, harvesters, implements, trucks, and fixed plant. Thorough, practical reports to help you make informed equipment decisions.
                     </p>
                     <Link to="/farm-equipment" className="inline-flex px-5 py-2.5 rounded-md font-extrabold bg-primary text-primary-foreground text-sm">
                       View Services →
@@ -199,9 +199,9 @@ export default function HomePage() {
             <section>
               <div className="bg-card border border-border rounded-xl shadow-brand p-6 mb-5">
                 <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-4">Mitchell</span>
-                <h2 className="text-3xl font-black mb-3 text-foreground">Farm Equipment Evaluations</h2>
+                <h2 className="text-3xl font-black mb-3 text-foreground">Farm Equipment Assessments</h2>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Mitchell provides independent, professional valuations for a wide range of farm equipment — from tractors and harvesters through to fixed plant and infrastructure. His reports are trusted by lenders, insurers, and industry professionals.
+                  Mitchell provides independent assessments for a wide range of farm equipment — from tractors and harvesters through to fixed plant and infrastructure. Thorough, practical reports to support your equipment decisions.
                 </p>
                 <Link to="/farm-equipment" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-primary text-primary-foreground text-sm">
                   View Full Details →
@@ -214,7 +214,7 @@ export default function HomePage() {
                   { icon: "🚛", title: "Trucks & Transport", desc: "Valuations for farm trucks, trailers, grain bins, and livestock transport equipment." },
                   { icon: "🏗️", title: "Fixed Plant & Infrastructure", desc: "Silos, augers, irrigation systems, sheds, and other fixed assets." },
                   { icon: "📋", title: "Pre-Purchase Inspections", desc: "Independent inspections before buying or selling — mechanical, structural, and cosmetic." },
-                  { icon: "📊", title: "Insurance & Finance Reports", desc: "Formal valuation certificates accepted by major insurers and lenders." },
+                  { icon: "📊", title: "Sale & Purchase Reports", desc: "Detailed reports to support buying or selling decisions with market positioning and condition summary." },
                 ].map((svc) => (
                   <div key={svc.title} className="bg-card border border-border rounded-lg shadow-brand p-5">
                     <div className="text-2xl mb-3">{svc.icon}</div>
