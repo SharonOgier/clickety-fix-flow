@@ -117,7 +117,7 @@ export default function BASReportPage(props) {
             { code: "G1",  label: "Total sales",           value: g1TotalSales,      note: "All invoiced amounts incl. GST" },
             { code: "G2",  label: "GST-free sales",         value: 0,                 note: "Sales not subject to GST" },
             { code: "G3",  label: "Input-taxed sales",      value: 0,                 note: "e.g. financial supplies" },
-            { code: "G10", label: "Capital purchases",      value: 0,                 note: "Assets purchased this period" },
+            { code: "G10", label: "Capital purchases",      value: capitalPurchasesAmt, note: "Assets purchased this period" },
             { code: "G11", label: "Non-capital purchases",  value: totalExpensesAmt,  note: "Operating expenses incl. GST" },
             { code: "1A",  label: "GST on sales",           value: gstOnSales,        note: "GST collected -- pay to ATO" },
             { code: "1B",  label: "GST on purchases",       value: gstOnPurchases,    note: "GST credits -- claim back" },
