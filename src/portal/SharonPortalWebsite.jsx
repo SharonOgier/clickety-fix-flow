@@ -813,58 +813,57 @@ export default function AccountingPortalPrototype() {
       )
     );
 
-  const coerceRowId = (value, fallbackIndex = 0) => {
+  const isValidDbId = (value) => {
     const parsed = Number(value);
-    if (Number.isFinite(parsed) && parsed > 0) return parsed;
-    // Multiply by 1000 and add a random 0-999 offset so records created
-    // within the same millisecond (e.g. bulk import) don't collide.
-    return Date.now() * 1000 + Math.floor(Math.random() * 1000) + fallbackIndex;
+    return Number.isFinite(parsed) && parsed > 0;
   };
 
-  const buildSupabaseRow = (item, fallbackIndex = 0) => {
+  const buildSupabaseRow = (item) => {
     if (!authUser?.id) {
       throw new Error("Please sign in first.");
     }
 
-    const id = coerceRowId(item?.id, fallbackIndex);
-    return {
-      id,
+    const row = {
       user_id: authUser.id,
-      data: sanitiseForSupabase({ ...(item || {}),
-        id,
-      }),
+      data: sanitiseForSupabase({ ...(item || {}) }),
       updated_at: new Date().toISOString(),
     };
-  };
-
-  const fetchCollectionFromDatabase = async (tableName) => {
-    if (!authUser?.id) throw new Error("Please sign in first.");
-
-    const { data, error } = await supabase
-      .from(tableName)
-      .select("id, data, updated_at, user_id")
-      .eq("user_id", authUser.id)
-      .order("id", { ascending: true });
-    if (error) throw error;
-
-    return (data || []).map((row) => ({ ...(row.data || {}),
-      id: row.id,
-      user_id: row.user_id,
-    }));
+    // Only include id if the record already has a valid DB-assigned id
+    if (isValidDbId(item?.id)) {
+      row.id = Number(item.id);
+      // Also keep the id inside the data blob for consistency
+      row.data.id = Number(item.id);
+    }
+    return row;
   };
 
   const upsertRecordInDatabase = async (tableName, record) => {
     if (!authUser?.id) throw new Error("Please sign in first.");
     const row = buildSupabaseRow(record);
-    const { error } = await supabase
-      .from(tableName)
-      .upsert(row, { onConflict: "id" });
-    if (error) throw error;
 
-    return { ...(row.data || {}),
-      id: row.id,
-      user_id: row.user_id,
-    };
+    if (row.id) {
+      // Existing record — update by id
+      const { data, error } = await supabase
+        .from(tableName)
+        .update({ data: row.data, updated_at: row.updated_at })
+        .eq("id", row.id)
+        .eq("user_id", authUser.id)
+        .select("id, data, user_id")
+        .maybeSingle();
+      if (error) throw error;
+      if (data) return { ...(data.data || {}), id: data.id, user_id: data.user_id };
+      // If update matched nothing, fall through to insert
+    }
+
+    // New record — insert without id, let DB generate it
+    const { user_id, data: rowData, updated_at } = row;
+    const { data, error } = await supabase
+      .from(tableName)
+      .insert({ user_id, data: rowData, updated_at })
+      .select("id, data, user_id")
+      .single();
+    if (error) throw error;
+    return { ...(data.data || {}), id: data.id, user_id: data.user_id };
   };
 
   const deleteRecordFromDatabase = async (tableName, id) => {
