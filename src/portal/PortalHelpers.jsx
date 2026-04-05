@@ -699,11 +699,8 @@ export function getSubscriptionAccess(profile) {
 }
 
 // ── Export CSV helper ────────────────────────────────────────────────────────
-export function exportToCSV(rows, columns, filename = "export.csv", onEmpty) {
-  if (!rows || !rows.length) {
-    if (onEmpty) onEmpty(); 
-    return;
-  }
+export function exportToCSV(rows, columns, filename = "export.csv") {
+  if (!rows || !rows.length) return;
   const headers = columns.map((c) => c.label);
   const csvRows = [
     headers.join(","),
