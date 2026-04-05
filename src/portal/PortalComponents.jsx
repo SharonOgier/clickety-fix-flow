@@ -186,22 +186,24 @@ export function PaywallScreen({ profile, supabase }) {
 
 export function SectionCard({ title, children, right }) {
   return (
-    <div className="sas-section-card" style={{ ...cardStyle, padding: 22, overflow: "hidden" }}>
+    <div className="sas-section-card" style={{ ...cardStyle, padding: 24, overflow: "hidden" }}>
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           gap: 12,
           alignItems: "center",
-          marginBottom: 16,
+          marginBottom: 18,
         }}
       >
         <h2
           style={{
             margin: 0,
             fontSize: 18,
-            fontWeight: 800,
+            fontWeight: 700,
             color: colours.text,
+            fontFamily: '"Playfair Display", serif',
+            letterSpacing: "-0.01em",
           }}
         >
           {title}
