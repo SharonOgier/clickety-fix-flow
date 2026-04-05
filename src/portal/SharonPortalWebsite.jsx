@@ -4175,7 +4175,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                       "dashboard": "⬡", "financial insights": "📊", "invoices": "📄", "quotes": "📋",
                       "clients": "👥", "services": "⚙", "expenses": "💳", "bills / payables": "🧾",
                       "income sources": "💰", "documents": "📁", "bank reconciliation": "🏦",
-                      "bas report": "📑", "ato tax form": "🏛", "settings": "⚙",
+                      "bas report": "📑", "ato tax form": "🏛", "tax estimator": "🧮", "settings": "⚙",
                     };
                     return (
                       <button
