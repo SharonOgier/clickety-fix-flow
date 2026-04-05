@@ -3857,6 +3857,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               calculateFormGst={calculateFormGst} computeLineItemTotals={computeLineItemTotals}
               getDocumentBusinessName={getDocumentBusinessName} getDocumentAddress={getDocumentAddress}
               invoiceAllocations={invoiceAllocations} totals={totals}
+              sendInvoiceFromPreview={sendInvoiceFromPreview}
             />}
             {activePage === "quotes" && <QuotesPage
               profile={profile} clients={clients} invoices={invoices}
