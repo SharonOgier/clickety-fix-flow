@@ -844,7 +844,7 @@ export default function AccountingPortalPrototype() {
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
     const today = todayLocal();
     const businessSlug = String(profile?.businessName || "portal").toLowerCase().replace(/[^a-z0-9]/g, "-").replace(/-+/g, "-").slice(0, 40);
-    const folderPath = `${businessSlug}/documents/${today}`;
+    const folderPath = `${businessSlug}/${authUser.id}/documents/${today}`;
     const filePath = `${folderPath}/document-${Date.now()}-${safeName}`;
 
     const { error } = await supabase.storage
