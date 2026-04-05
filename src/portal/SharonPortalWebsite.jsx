@@ -4681,7 +4681,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                 <li>Click <strong>Choose File</strong> below and select your saved CSV</li>
                 <li>Review the preview, then click <strong>Confirm Import</strong></li>
               </ol>
-              {(importType === "clients" || importType === "suppliers" || importType === "income") && (
+              {(importType === "clients" || importType === "suppliers" || importType === "income" || importType === "assets") && (
                 <div style={{ marginTop: 12, fontSize: 12, color: colours.muted }}>
                   ℹ️ Duplicates are skipped automatically — existing {importType === "income" ? "income sources" : importType} with the same name won't be overwritten.
                 </div>
