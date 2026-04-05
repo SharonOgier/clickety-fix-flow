@@ -92,7 +92,6 @@ import IncomeSourcesPage    from "./pages/IncomeSourcesPage";
 import DocumentsPage        from "./pages/DocumentsPage";
 import SetupWizardPage      from "./pages/SetupWizardPage";
 import AuthPage             from "./pages/AuthPage";
-import AuthPage             from "./pages/AuthPage";
 import BASReportPage        from "./pages/BASReportPage";
 import SettingsPage         from "./pages/SettingsPage";
 import ATOTaxFormPage       from "./ATOTaxFormPage";
