@@ -364,6 +364,119 @@ export default function DashboardPage(props) {
             )}
           </div>
 
+          {/* Cash Movement Dropdown */}
+          <div>
+            <button
+              onClick={() => setShowCashMovement(!showCashMovement)}
+              style={{
+                ...resolvedButtonSecondary,
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px 16px",
+                fontSize: 14,
+                fontWeight: 700,
+                background: colours.bg || "#F8FAFC",
+                border: `1px solid ${colours.border || "#E2E8F0"}`,
+                borderRadius: 12,
+                cursor: "pointer",
+              }}
+            >
+              <span>💧 Cash Movement</span>
+              <span style={{ fontSize: 12, color: colours.muted }}>{showCashMovement ? "▲" : "▼"}</span>
+            </button>
+            {showCashMovement && (
+              <div style={{ marginTop: 8, overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 380 }}>
+                  <thead>
+                    <tr style={{ background: colours.bg || "#F8FAFC" }}>
+                      <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 800, fontSize: 13, color: colours.muted }}>Line item</th>
+                      <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 800, fontSize: 13, color: colours.muted }}>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { line: "Paid income received", amount: safeNumber(totals.paidIncome) },
+                      { line: "Less GST payable", amount: -safeNumber(totals.gstPayable) },
+                      { line: "Less estimated tax reserve", amount: -safeNumber(totals.estimatedTax) },
+                      { line: "Less fees", amount: -safeNumber(totals.totalFees) },
+                      { line: "Less tax withheld", amount: -safeNumber(totals.totalTaxWithheld) },
+                      { line: "Less operating expenses", amount: -safeNumber(totals.totalExpenses) },
+                      { line: "Less subscription", amount: -safeNumber(totals.monthlySubscriptionCost) },
+                      { line: "Safe to spend", amount: safeNumber(totals.safeToSpend) },
+                    ].map((row) => (
+                      <tr key={row.line}>
+                        <td style={{ padding: "10px 12px", borderBottom: `1px solid ${colours.border || "#E2E8F0"}`, fontSize: 14, fontWeight: 600 }}>{row.line}</td>
+                        <td style={{ padding: "10px 12px", borderBottom: `1px solid ${colours.border || "#E2E8F0"}`, fontSize: 14, fontWeight: 700, textAlign: "right" }}>{currency(row.amount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Cash Efficiency Dropdown */}
+          <div>
+            <button
+              onClick={() => setShowCashEfficiency(!showCashEfficiency)}
+              style={{
+                ...resolvedButtonSecondary,
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px 16px",
+                fontSize: 14,
+                fontWeight: 700,
+                background: colours.bg || "#F8FAFC",
+                border: `1px solid ${colours.border || "#E2E8F0"}`,
+                borderRadius: 12,
+                cursor: "pointer",
+              }}
+            >
+              <span>⚡ Cash Efficiency</span>
+              <span style={{ fontSize: 12, color: colours.muted }}>{showCashEfficiency ? "▲" : "▼"}</span>
+            </button>
+            {showCashEfficiency && (() => {
+              const paidIncome = safeNumber(totals.paidIncome);
+              const efficiencyRows = [
+                { line: "Paid income", amount: paidIncome },
+                { line: "Less GST payable", amount: -safeNumber(totals.gstPayable) },
+                { line: "Less tax reserve", amount: -safeNumber(totals.estimatedTax) },
+                { line: "Less expenses", amount: -safeNumber(totals.totalExpenses) },
+                { line: "Less subscription", amount: -safeNumber(totals.monthlySubscriptionCost) },
+                { line: "Safe to spend", amount: safeNumber(totals.safeToSpend) },
+              ];
+              const efficiencyPct = paidIncome > 0 ? ((safeNumber(totals.safeToSpend) / paidIncome) * 100).toFixed(1) : "0.0";
+              return (
+                <div style={{ marginTop: 8 }}>
+                  <div style={{ padding: "10px 12px", background: colours.bg || "#F8FAFC", borderRadius: 10, marginBottom: 8, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: colours.muted }}>Cash efficiency ratio</span>
+                    <span style={{ fontSize: 20, fontWeight: 900, color: colours.teal || "#006D6D" }}>{efficiencyPct}%</span>
+                  </div>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 380 }}>
+                      <thead>
+                        <tr style={{ background: colours.bg || "#F8FAFC" }}>
+                          <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 800, fontSize: 13, color: colours.muted }}>Line item</th>
+                          <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 800, fontSize: 13, color: colours.muted }}>Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {efficiencyRows.map((row) => (
+                          <tr key={row.line}>
+                            <td style={{ padding: "10px 12px", borderBottom: `1px solid ${colours.border || "#E2E8F0"}`, fontSize: 14, fontWeight: 600 }}>{row.line}</td>
+                            <td style={{ padding: "10px 12px", borderBottom: `1px solid ${colours.border || "#E2E8F0"}`, fontSize: 14, fontWeight: 700, textAlign: "right" }}>{currency(row.amount)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
           {/* Link to full insights */}
           <button
             onClick={() => setActivePage("financial insights")}
