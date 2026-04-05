@@ -81,6 +81,29 @@ function dlCSV(name,header,rows) {
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
+// Asset depreciation for tax
+function calcAssetAnnualDep(asset) {
+  const cost = Number(asset.purchasePrice) || 0;
+  const salvage = Number(asset.salvageValue) || 0;
+  const life = Number(asset.effectiveLife) || 0;
+  const method = asset.depreciationMethod || "none";
+  const status = asset.status || "Active";
+  if (!cost || method === "none" || status !== "Active") return 0;
+  if (method === "instant") return cost;
+  if (method === "prime_cost" && life > 0) return (cost - salvage) / life;
+  if (method === "diminishing" && life > 0) {
+    const purchaseDate = asset.purchaseDate ? new Date(asset.purchaseDate) : null;
+    if (!purchaseDate) return 0;
+    const now = new Date();
+    const yearsHeld = Math.max(0, (now.getFullYear() - purchaseDate.getFullYear()) + ((now.getMonth() - purchaseDate.getMonth()) / 12));
+    const rate = 2 / life;
+    let wdv = cost;
+    for (let y = 0; y < Math.floor(yearsHeld); y++) { wdv -= Math.max(0, Math.min(wdv * rate, wdv - salvage)); }
+    return Math.max(0, Math.min(wdv * rate, wdv - salvage));
+  }
+  return 0;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function ATOTaxFormPage({
   profile = {},
