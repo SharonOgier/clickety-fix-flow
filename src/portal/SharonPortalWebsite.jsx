@@ -498,7 +498,16 @@ export default function AccountingPortalPrototype() {
       setActivePage("dashboard");
 
       if (supabase && authUser) {
-        await saveProfileToSupabase(nextProfile);
+        const savedProfile = await saveProfileToSupabase(nextProfile);
+        if (savedProfile) {
+          await supabase.auth.updateUser({
+            data: {
+              ...authUser.user_metadata,
+              needs_setup: false,
+              needsSetup: false,
+            },
+          });
+        }
       }
     } finally {
       setWizardSaving(false);
@@ -939,7 +948,16 @@ export default function AccountingPortalPrototype() {
     setAuthLoading(true);
     try {
       if (authMode === "signup") {
-        const { data: signUpData, error } = await supabase.auth.signUp({ email, password });
+        const { data: signUpData, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              needs_setup: true,
+              needsSetup: true,
+            },
+          },
+        });
         if (error) throw error;
         // If email confirmation is off, user is signed in immediately
         if (signUpData?.session) {
@@ -1224,7 +1242,7 @@ export default function AccountingPortalPrototype() {
   };
 
   const saveProfileToSupabase = async (profilePayload) => {
-    if (!supabase || !authUser?.id) return;
+    if (!supabase || !authUser?.id) return null;
     try {
       setSupabaseSyncStatus("Saving profile to Supabase database...");
       const savedProfile = await upsertRecordInDatabase(SUPABASE_TABLES.profile, profilePayload);
@@ -1238,9 +1256,11 @@ export default function AccountingPortalPrototype() {
       setSetupComplete(Boolean(savedProfile?.setupComplete));
       lastSavedProfileRef.current = JSON.stringify(profilePayload);
       setSupabaseSyncStatus("Profile saved to Supabase database");
+      return savedProfile;
     } catch (error) {
       console.error("SUPABASE PROFILE SAVE ERROR:", error);
       setSupabaseSyncStatus(error.message || "Supabase profile save failed");
+      return null;
     }
   };
 
@@ -1341,6 +1361,8 @@ export default function AccountingPortalPrototype() {
         nextProfile.paymentTermsDays = 14;
       }
       const nextSetupComplete = Boolean(nextProfile.setupComplete);
+      const shouldShowSetupWizard =
+        Boolean(authUser?.user_metadata?.needs_setup || authUser?.user_metadata?.needsSetup) && !nextSetupComplete;
 
       setProfile(nextProfile);
       lastSavedProfileRef.current = JSON.stringify(nextProfile);
@@ -1367,15 +1389,15 @@ export default function AccountingPortalPrototype() {
         gstRegistered: nextProfile.gstRegistered ?? true,
       }));
 
-      if (nextSetupComplete) {
-        setActivePage("dashboard");
-      } else {
+      if (shouldShowSetupWizard) {
         setActivePage("settings");
         setActiveSettingsTab("Profile");
+      } else {
+        setActivePage("dashboard");
       }
 
       setSupabaseSyncStatus(
-        nextSetupComplete ? "Loaded from Supabase database" : "Setup required for this user"
+        shouldShowSetupWizard ? "Setup required for this user" : "Loaded from Supabase database"
       );
     } catch (error) {
       console.error("SUPABASE DATABASE RESTORE ERROR:", error);
@@ -3459,7 +3481,10 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     );
     }
 
-    if (!setupComplete) {
+    const shouldShowSetupWizard =
+      Boolean(authUser?.user_metadata?.needs_setup || authUser?.user_metadata?.needsSetup) && !setupComplete;
+
+    if (shouldShowSetupWizard) {
     return (
       <SetupWizardPage
         wizardForm={wizardForm}
