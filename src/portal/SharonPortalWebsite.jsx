@@ -4307,44 +4307,55 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       {/* -- Import Modal -- */}
       {showImportModal && (
         <div style={{ position: "fixed", inset: 0, zIndex: 99993, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-          <div style={{ background: "#fff", borderRadius: 18, padding: 28, width: "100%", maxWidth: 580, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", fontFamily: "sans-serif", maxHeight: "90vh", overflowY: "auto" }}>
+          <div style={{ background: "#fff", borderRadius: 18, padding: 28, width: "100%", maxWidth: 620, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", fontFamily: "sans-serif", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: colours.text, marginBottom: 6 }}>
-              Import {importType === "clients" ? "Clients" : "Suppliers"}
+              Import {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : "Expenses / Bills"}
             </div>
 
             {/* Tab switcher */}
-            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-              {["clients", "suppliers"].map((t) => (
+            <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
+              {["clients", "suppliers", "invoices", "expenses"].map((t) => (
                 <button key={t} onClick={() => { setImportType(t); setImportRows([]); setImportError(""); }}
                   style={{ background: importType === t ? colours.purple : "#F1F5F9", color: importType === t ? "#fff" : colours.text, border: "none", borderRadius: 8, padding: "7px 16px", fontWeight: 700, cursor: "pointer", fontSize: 13, textTransform: "capitalize" }}>
-                  {t}
+                  {t === "expenses" ? "Bills / Expenses" : t}
                 </button>
               ))}
             </div>
 
             {/* How to section */}
             <div style={{ background: colours.lightPurple, borderRadius: 12, padding: 16, marginBottom: 20 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: colours.purple, marginBottom: 10 }}>[clipboard] How to import</div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: colours.purple, marginBottom: 10 }}>📋 How to import</div>
               <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: colours.text, lineHeight: 2 }}>
-                <li>Click <strong>Download Template</strong> below to get the Excel/CSV file</li>
+                <li>Click <strong>Download Template</strong> below to get the CSV file</li>
                 <li>Open it in Excel or Google Sheets</li>
-                <li>Fill in your {importType} -- <strong>Name is required</strong>, all other columns are optional</li>
-                <li>Save as <strong>CSV</strong> (File - Save As - CSV)</li>
+                <li>Fill in your {importType === "expenses" ? "bills / expenses" : importType} — <strong>{importType === "invoices" ? "Invoice Number or Client Name" : importType === "expenses" ? "Supplier or Amount" : "Name"} is required</strong></li>
+                <li>Save as <strong>CSV</strong> (File → Save As → CSV)</li>
                 <li>Click <strong>Choose File</strong> below and select your saved CSV</li>
                 <li>Review the preview, then click <strong>Confirm Import</strong></li>
               </ol>
-              <div style={{ marginTop: 12, fontSize: 12, color: colours.muted }}>
-                (i) Duplicates are skipped automatically -- existing {importType} with the same name won't be overwritten.
-              </div>
+              {(importType === "clients" || importType === "suppliers") && (
+                <div style={{ marginTop: 12, fontSize: 12, color: colours.muted }}>
+                  ℹ️ Duplicates are skipped automatically — existing {importType} with the same name won't be overwritten.
+                </div>
+              )}
+              {importType === "invoices" && (
+                <div style={{ marginTop: 12, fontSize: 12, color: colours.muted }}>
+                  ℹ️ Client names are automatically matched to your existing clients. Unmatched clients will have a blank client field you can update later.
+                </div>
+              )}
             </div>
 
             {/* Column headings reference */}
             <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: colours.muted, textTransform: "uppercase", marginBottom: 8 }}>Required columns in your CSV</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: colours.muted, textTransform: "uppercase", marginBottom: 8 }}>Columns in your CSV</div>
               <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 {(importType === "clients"
                   ? ["Name *", "Business Name", "Email", "Phone", "Address", "ABN", "Currency", "Work Type"]
-                  : ["Name *", "Contact Person", "Email", "Phone", "Address", "ABN", "Notes"]
+                  : importType === "suppliers"
+                  ? ["Name *", "Contact Person", "Email", "Phone", "Address", "ABN", "Notes"]
+                  : importType === "invoices"
+                  ? ["Invoice Number *", "Client Name *", "Date", "Due Date", "Description", "Subtotal", "GST", "Total", "Status"]
+                  : ["Supplier *", "Date", "Due Date", "Category", "Description", "Amount *", "GST", "Is Paid"]
                 ).map((col) => (
                   <span key={col} style={{ background: col.includes("*") ? colours.purple : "#F1F5F9", color: col.includes("*") ? "#fff" : colours.text, borderRadius: 6, padding: "4px 10px", fontSize: 12, fontWeight: 600 }}>
                     {col}
@@ -4356,7 +4367,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             {/* Download template button */}
             <button onClick={() => downloadTemplate(importType)}
               style={{ ...buttonSecondary, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-              Download {importType === "clients" ? "Clients" : "Suppliers"} Template
+              ⬇️ Download {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : "Expenses"} Template
             </button>
 
             {/* File upload */}
@@ -4384,14 +4395,35 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             {/* Preview */}
             {importRows.length > 0 && (
               <div style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: colours.text, marginBottom: 8 }}>Preview -- {importRows.length} row{importRows.length !== 1 ? "s" : ""} ready to import</div>
-                <div style={{ maxHeight: 200, overflowY: "auto", border: `1px solid ${colours.border}`, borderRadius: 10 }}>
+                <div style={{ fontSize: 13, fontWeight: 800, color: colours.text, marginBottom: 8 }}>Preview — {importRows.length} row{importRows.length !== 1 ? "s" : ""} ready to import</div>
+                <div style={{ maxHeight: 220, overflowY: "auto", border: `1px solid ${colours.border}`, borderRadius: 10 }}>
                   {importRows.slice(0, 10).map((row, i) => (
                     <div key={i} style={{ padding: "10px 14px", borderBottom: `1px solid ${colours.border}`, fontSize: 13 }}>
-                      <strong>{row.name}</strong>
-                      {row.businessName && <span style={{ color: colours.muted }}> -- {row.businessName}</span>}
-                      {row.email && <span style={{ color: colours.muted }}> . {row.email}</span>}
-                      {row.phone && <span style={{ color: colours.muted }}> . {row.phone}</span>}
+                      {(importType === "clients" || importType === "suppliers") && (
+                        <>
+                          <strong>{row.name}</strong>
+                          {row.businessName && <span style={{ color: colours.muted }}> — {row.businessName}</span>}
+                          {row.email && <span style={{ color: colours.muted }}> · {row.email}</span>}
+                        </>
+                      )}
+                      {importType === "invoices" && (
+                        <>
+                          <strong>{row.invoiceNumber || "No #"}</strong>
+                          <span style={{ color: colours.muted }}> — {row.clientName || "Unknown client"}</span>
+                          <span style={{ color: colours.muted }}> · {row.invoiceDate || "No date"}</span>
+                          <span style={{ fontWeight: 700, marginLeft: 8, color: colours.teal }}>${Number(row.total || 0).toFixed(2)}</span>
+                          <span style={{ marginLeft: 8, fontSize: 11, color: colours.purple, fontWeight: 600 }}>{row.status}</span>
+                        </>
+                      )}
+                      {importType === "expenses" && (
+                        <>
+                          <strong>{row.supplier || "Unknown"}</strong>
+                          <span style={{ color: colours.muted }}> — {row.category || "Uncategorised"}</span>
+                          <span style={{ color: colours.muted }}> · {row.date || "No date"}</span>
+                          <span style={{ fontWeight: 700, marginLeft: 8, color: colours.purple }}>${Number(row.amount || 0).toFixed(2)}</span>
+                          {row.isPaid && <span style={{ marginLeft: 8, fontSize: 11, color: colours.teal, fontWeight: 600 }}>Paid</span>}
+                        </>
+                      )}
                     </div>
                   ))}
                   {importRows.length > 10 && <div style={{ padding: "8px 14px", fontSize: 12, color: colours.muted }}>...and {importRows.length - 10} more</div>}
