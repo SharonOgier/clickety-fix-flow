@@ -94,6 +94,7 @@ import DocumentsPage        from "./pages/DocumentsPage";
 import SetupWizardPage      from "./pages/SetupWizardPage";
 import AuthPage             from "./pages/AuthPage";
 import BASReportPage        from "./pages/BASReportPage";
+import TaxEstimatorPage     from "./pages/TaxEstimatorPage";
 import SettingsPage         from "./pages/SettingsPage";
 import ATOTaxFormPage       from "./ATOTaxFormPage";
 import BankReconciliationPage from "./pages/BankReconciliationPage";
