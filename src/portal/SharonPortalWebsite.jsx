@@ -1336,11 +1336,14 @@ export default function AccountingPortalPrototype() {
     const expenseExample = "AGL Energy,2025-03-10,2025-04-10,Utilities,Electricity - March quarter,450.00,45.00,No";
     const incomeHeaders = "Name,Income Type,Before Tax,Frequency,Started After Jul 2025,Has End Date";
     const incomeExample = "Smith Farms Employment,Casual employment,1200.00,Weekly,No,No";
+    const assetHeaders = "Asset Name,Asset Type,Serial/Rego,Location,Purchase Date,Purchase Price,Depreciation Method,Effective Life (years),Salvage Value,Status,Previous Owners,Notes";
+    const assetExample = "John Deere 6120M,Tractor,ABC123,North paddock shed,2022-06-15,185000,diminishing,15,20000,Active,Purchased from Smith Family Farm (2018),Annual service due March";
     let csv, filename;
     if (type === "clients") { csv = `${clientHeaders}\n${clientExample}\n`; filename = "clients_template.csv"; }
     else if (type === "suppliers") { csv = `${supplierHeaders}\n${supplierExample}\n`; filename = "suppliers_template.csv"; }
     else if (type === "invoices") { csv = `${invoiceHeaders}\n${invoiceExample}\n`; filename = "invoices_template.csv"; }
     else if (type === "income") { csv = `${incomeHeaders}\n${incomeExample}\n`; filename = "income_sources_template.csv"; }
+    else if (type === "assets") { csv = `${assetHeaders}\n${assetExample}\n`; filename = "assets_template.csv"; }
     else { csv = `${expenseHeaders}\n${expenseExample}\n`; filename = "expenses_template.csv"; }
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -1401,12 +1404,31 @@ export default function AccountingPortalPrototype() {
           startedAfterDate: startedRaw === "yes" || startedRaw === "true" || startedRaw === "1",
           hasEndDate: endRaw === "yes" || endRaw === "true" || endRaw === "1",
         });
+      } else if (type === "assets") {
+        const methodRaw = (row["depreciationmethod"] || row["method"] || "prime_cost").toLowerCase().replace(/\s+/g, "_");
+        const validMethods = ["instant", "prime_cost", "diminishing", "none"];
+        rows.push({
+          name: row["assetname"] || row["name"] || "",
+          assetType: row["assettype"] || row["type"] || "Other",
+          serialNumber: row["serial/rego"] || row["serialrego"] || row["serial"] || row["rego"] || "",
+          location: row["location"] || "",
+          purchaseDate: row["purchasedate"] || row["date"] || "",
+          purchasePrice: row["purchaseprice"] || row["price"] || row["cost"] || "",
+          depreciationMethod: validMethods.includes(methodRaw) ? methodRaw : "prime_cost",
+          effectiveLife: row["effectivelife(years)"] || row["effectivelife"] || row["life"] || "",
+          salvageValue: row["salvagevalue"] || row["residual"] || "0",
+          status: row["status"] || "Active",
+          previousOwners: row["previousowners"] || row["ownership"] || "",
+          notes: row["notes"] || "",
+        });
       }
     }
     const valid = type === "invoices"
       ? rows.filter((r) => r.invoiceNumber || r.clientName || r.total)
       : type === "expenses"
       ? rows.filter((r) => r.supplier || r.amount)
+      : type === "assets"
+      ? rows.filter((r) => r.name?.trim())
       : rows.filter((r) => r.name?.trim());
     if (!valid.length) return { rows: [], error: "No valid rows found. Check required columns are filled in." };
     return { rows: valid, error: "" };
@@ -1465,6 +1487,13 @@ export default function AccountingPortalPrototype() {
         const saved = await Promise.all(newRows.map((r) => upsertRecordInDatabase(SUPABASE_TABLES.incomeSources, { ...r })));
         setIncomeSources((prev) => [...prev, ...saved]);
         toast.success(`Imported ${saved.length} income source${saved.length !== 1 ? "s" : ""}${newRows.length < importRows.length ? ` (${importRows.length - newRows.length} duplicates skipped)` : ""}!`);
+      } else if (importType === "assets") {
+        const existing = assets;
+        const existingNames = new Set(existing.map((r) => (r.name || "").toLowerCase().trim()));
+        const newRows = importRows.filter((r) => !existingNames.has((r.name || "").toLowerCase().trim()));
+        const saved = await Promise.all(newRows.map((r) => upsertRecordInDatabase(SUPABASE_TABLES.assets, { ...r, id: Date.now() + Math.random() })));
+        setAssets((prev) => [...prev, ...saved]);
+        toast.success(`Imported ${saved.length} asset${saved.length !== 1 ? "s" : ""}${newRows.length < importRows.length ? ` (${importRows.length - newRows.length} duplicates skipped)` : ""}!`);
       }
       setShowImportModal(false);
       setImportRows([]);
@@ -4365,6 +4394,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveAsset={saveAsset} deleteAsset={deleteAsset} confirm={confirm}
+              setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
             />}
             {activePage === "bills / payables" && <BillsPage
               profile={profile} expenses={expenses} suppliers={suppliers} clients={clients}
@@ -4628,12 +4658,12 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         <div style={{ position: "fixed", inset: 0, zIndex: 99993, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: "#fff", borderRadius: 18, padding: 28, width: "100%", maxWidth: 620, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", fontFamily: "sans-serif", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: colours.text, marginBottom: 6 }}>
-              Import {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : importType === "income" ? "Income Sources" : "Expenses / Bills"}
+              Import {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : importType === "income" ? "Income Sources" : importType === "assets" ? "Assets" : "Expenses / Bills"}
             </div>
 
             {/* Tab switcher */}
             <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
-              {["clients", "suppliers", "invoices", "expenses", "income"].map((t) => (
+              {["clients", "suppliers", "invoices", "expenses", "income", "assets"].map((t) => (
                 <button key={t} onClick={() => { setImportType(t); setImportRows([]); setImportError(""); }}
                   style={{ background: importType === t ? colours.purple : "#F1F5F9", color: importType === t ? "#fff" : colours.text, border: "none", borderRadius: 8, padding: "7px 16px", fontWeight: 700, cursor: "pointer", fontSize: 13, textTransform: "capitalize" }}>
                   {t === "expenses" ? "Bills / Expenses" : t === "income" ? "Income Sources" : t}
@@ -4647,12 +4677,12 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: colours.text, lineHeight: 2 }}>
                 <li>Click <strong>Download Template</strong> below to get the CSV file</li>
                 <li>Open it in Excel or Google Sheets</li>
-                <li>Fill in your {importType === "expenses" ? "bills / expenses" : importType === "income" ? "income sources" : importType} — <strong>{importType === "invoices" ? "Invoice Number or Client Name" : importType === "expenses" ? "Supplier or Amount" : "Name"} is required</strong></li>
+                <li>Fill in your {importType === "expenses" ? "bills / expenses" : importType === "income" ? "income sources" : importType === "assets" ? "assets" : importType} — <strong>{importType === "invoices" ? "Invoice Number or Client Name" : importType === "expenses" ? "Supplier or Amount" : importType === "assets" ? "Asset Name" : "Name"} is required</strong></li>
                 <li>Save as <strong>CSV</strong> (File → Save As → CSV)</li>
                 <li>Click <strong>Choose File</strong> below and select your saved CSV</li>
                 <li>Review the preview, then click <strong>Confirm Import</strong></li>
               </ol>
-              {(importType === "clients" || importType === "suppliers" || importType === "income") && (
+              {(importType === "clients" || importType === "suppliers" || importType === "income" || importType === "assets") && (
                 <div style={{ marginTop: 12, fontSize: 12, color: colours.muted }}>
                   ℹ️ Duplicates are skipped automatically — existing {importType === "income" ? "income sources" : importType} with the same name won't be overwritten.
                 </div>
@@ -4688,7 +4718,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             {/* Download template button */}
             <button onClick={() => downloadTemplate(importType)}
               style={{ ...buttonSecondary, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-              ⬇️ Download {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : importType === "income" ? "Income Sources" : "Expenses"} Template
+              ⬇️ Download {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : importType === "income" ? "Income Sources" : importType === "assets" ? "Assets" : "Expenses"} Template
             </button>
 
             {/* File upload */}
@@ -4751,6 +4781,14 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                           <span style={{ color: colours.muted }}> — {row.incomeType || "Unspecified"}</span>
                           <span style={{ fontWeight: 700, marginLeft: 8, color: colours.teal }}>${Number(row.beforeTax || 0).toFixed(2)}</span>
                           <span style={{ marginLeft: 8, fontSize: 11, color: colours.muted }}>{row.frequency || ""}</span>
+                        </>
+                      )}
+                      {importType === "assets" && (
+                        <>
+                          <strong>{row.name || "Unknown"}</strong>
+                          <span style={{ color: colours.muted }}> — {row.assetType || "Other"}</span>
+                          <span style={{ fontWeight: 700, marginLeft: 8, color: colours.teal }}>${Number(row.purchasePrice || 0).toFixed(2)}</span>
+                          <span style={{ marginLeft: 8, fontSize: 11, color: colours.purple, fontWeight: 600 }}>{row.depreciationMethod || "prime_cost"}</span>
                         </>
                       )}
                     </div>
