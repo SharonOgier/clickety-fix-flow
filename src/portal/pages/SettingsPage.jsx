@@ -248,7 +248,7 @@ export default function SettingsPage(props) {
               />
               <div style={{ fontSize: 12, color: colours.muted, marginTop: 4 }}>
                 {isOwner
-                  ? "Fixed monthly subscription cost ($45 default). Deducted from Safe to Spend on the dashboard."
+                  ? "Fixed monthly subscription cost ($27 default). Deducted from Safe to Spend on the dashboard."
                   : "This fee is set by your account administrator and cannot be changed."}
               </div>
             </div>
