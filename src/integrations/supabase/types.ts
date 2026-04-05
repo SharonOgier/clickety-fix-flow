@@ -14,7 +14,195 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      sas_clients: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sas_documents: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sas_expenses: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sas_income_sources: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sas_invoices: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sas_profile: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sas_quotes: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sas_services: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      sas_suppliers: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
