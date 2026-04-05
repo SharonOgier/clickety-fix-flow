@@ -52,6 +52,8 @@ export default function DashboardPage(props) {
     getClientName = () => "",
   } = props;
 
+  const [showPL, setShowPL] = useState(false);
+  const [showGST, setShowGST] = useState(false);
   const resolvedDashboardInsights = dashboardInsights || { collectionRate: 0 };
   const resolvedMonthlyFinance = Array.isArray(monthlyFinance) ? monthlyFinance : [];
   const resolvedClientRevenueRows = Array.isArray(clientRevenueRows) ? clientRevenueRows : [];
