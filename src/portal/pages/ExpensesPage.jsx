@@ -230,16 +230,19 @@ export default function ExpensesPage(props) {
       </SectionCard>
 
       <SectionCard title="Expense List" right={
-        <button style={buttonSecondary} onClick={() => exportToCSV(expenses, [
-          { key: "date", label: "Date" },
-          { key: "supplier", label: "Supplier" },
-          { key: "category", label: "Category" },
-          { key: "description", label: "Description" },
-          { key: "amount", label: "Amount" },
-          { key: "gst", label: "GST" },
-          { key: "expenseType", label: "Type" },
-          { key: "workType", label: "Work Type" },
-        ], "expenses.csv")}>Export CSV</button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button style={buttonSecondary} onClick={() => exportToCSV(expenses, [
+            { key: "date", label: "Date" },
+            { key: "supplier", label: "Supplier" },
+            { key: "category", label: "Category" },
+            { key: "description", label: "Description" },
+            { key: "amount", label: "Amount" },
+            { key: "gst", label: "GST" },
+            { key: "expenseType", label: "Type" },
+            { key: "workType", label: "Work Type" },
+          ], "expenses.csv")}>Export CSV</button>
+          <button style={buttonSecondary} onClick={() => { setImportType("expenses"); setImportRows([]); setImportError(""); setShowImportModal(true); }}>Import CSV</button>
+        </div>
       }>
         <DataTable
           emptyState={{ icon: "[money]", title: "No expenses yet", message: "Record your first expense using the form above. GST credits are calculated automatically and your Safe to Spend updates in real time." }}
