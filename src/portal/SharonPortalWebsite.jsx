@@ -769,6 +769,27 @@ export default function AccountingPortalPrototype() {
     }
   }, [authUser, hasLoadedUserProfile, invoices]);
 
+  // Check Stripe subscription status on load and after checkout return
+  useEffect(() => {
+    if (!authUser || !hasLoadedUserProfile || !supabase) return;
+    const checkSub = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke("check-subscription");
+        if (error) { console.error("check-subscription error:", error); return; }
+        if (data?.subscribed) {
+          setProfile((prev) => ({ ...prev, subscriptionStatus: "active" }));
+        }
+      } catch (e) { console.error("check-subscription fetch error:", e); }
+    };
+    checkSub();
+    // Also handle ?subscribed=1 return from Stripe checkout
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("subscribed") === "1") {
+      window.history.replaceState({}, "", window.location.pathname);
+      checkSub();
+    }
+  }, [authUser, hasLoadedUserProfile]);
+
   useEffect(() => {
     if (!authUser) return;
     if (profile?.setupComplete) {
