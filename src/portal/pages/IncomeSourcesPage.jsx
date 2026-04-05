@@ -74,13 +74,14 @@ export default function IncomeSourcesPage(props) {
         </div>
       </div>
       <SectionCard title="Income Sources" right={
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button style={buttonSecondary} onClick={() => exportToCSV(incomeSources, [
             { key: "name", label: "Name" },
             { key: "incomeType", label: "Income Type" },
             { key: "beforeTax", label: "Before Tax" },
             { key: "frequency", label: "Frequency" },
           ], "income-sources.csv")}>Export CSV</button>
+          <button style={buttonSecondary} onClick={() => { setImportType("income"); setImportRows([]); setImportError(""); setShowImportModal(true); }}>Import CSV</button>
           <button style={buttonPrimary} onClick={() => setShowIncomeSourceModal(true)}>New Income Source</button>
         </div>
       }>
