@@ -1,4 +1,5 @@
 import React from "react";
+import { exportToCSV } from "../PortalHelpers";
 
 // -----------------------------------------------------------------------------
 // IncomeSourcesPage
@@ -68,7 +69,17 @@ export default function IncomeSourcesPage(props) {
           <MiniBarChart data={typeData} height={90} accent={colours.teal} />
         </div>
       </div>
-      <SectionCard title="Income Sources" right={<button style={buttonPrimary} onClick={() => setShowIncomeSourceModal(true)}>New Income Source</button>}>
+      <SectionCard title="Income Sources" right={
+        <div style={{ display: "flex", gap: 8 }}>
+          <button style={buttonSecondary} onClick={() => exportToCSV(incomeSources, [
+            { key: "name", label: "Name" },
+            { key: "incomeType", label: "Income Type" },
+            { key: "beforeTax", label: "Before Tax" },
+            { key: "frequency", label: "Frequency" },
+          ], "income-sources.csv")}>Export CSV</button>
+          <button style={buttonPrimary} onClick={() => setShowIncomeSourceModal(true)}>New Income Source</button>
+        </div>
+      }>
         <DataTable
           emptyState={{ icon: "", title: "No income sources yet", message: "Add your income sources for your ATO export -- employment, freelance, rental income and other earnings.", action: { label: "Add income source", onClick: () => {} } }}
           columns={[

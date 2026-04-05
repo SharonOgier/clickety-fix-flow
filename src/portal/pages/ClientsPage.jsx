@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { exportToCSV } from "../PortalHelpers";
 
 // -----------------------------------------------------------------------------
 // ClientsPage
@@ -415,7 +416,17 @@ export default function ClientsPage(props) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Client List">
+      <SectionCard title="Client List" right={
+        <button style={buttonSecondary} onClick={() => exportToCSV(clients, [
+          { key: "name", label: "Client" },
+          { key: "contactPerson", label: "Contact" },
+          { key: "email", label: "Email" },
+          { key: "phone", label: "Phone" },
+          { key: "workType", label: "Work Type" },
+          { key: "defaultCurrency", label: "Currency" },
+          { key: "abn", label: "ABN" },
+        ], "clients.csv")}>Export CSV</button>
+      }>
         <DataTable
           emptyState={{ icon: "[clients]", title: "No clients yet", message: "Add your first client above to start creating invoices and quotes." }}
           columns={[

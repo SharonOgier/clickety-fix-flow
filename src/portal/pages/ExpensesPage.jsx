@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { exportToCSV } from "../PortalHelpers";
 
 // -----------------------------------------------------------------------------
 // ExpensesPage
@@ -224,7 +225,18 @@ export default function ExpensesPage(props) {
         </div>
       </SectionCard>
 
-      <SectionCard title="Expense List">
+      <SectionCard title="Expense List" right={
+        <button style={buttonSecondary} onClick={() => exportToCSV(expenses, [
+          { key: "date", label: "Date" },
+          { key: "supplier", label: "Supplier" },
+          { key: "category", label: "Category" },
+          { key: "description", label: "Description" },
+          { key: "amount", label: "Amount" },
+          { key: "gst", label: "GST" },
+          { key: "expenseType", label: "Type" },
+          { key: "workType", label: "Work Type" },
+        ], "expenses.csv")}>Export CSV</button>
+      }>
         <DataTable
           emptyState={{ icon: "[money]", title: "No expenses yet", message: "Record your first expense using the form above. GST credits are calculated automatically and your Safe to Spend updates in real time." }}
           columns={[

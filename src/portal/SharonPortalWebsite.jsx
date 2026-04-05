@@ -3874,6 +3874,11 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               getDocumentBusinessName={getDocumentBusinessName} getDocumentAddress={getDocumentAddress}
               invoiceAllocations={invoiceAllocations} totals={totals}
               sendInvoiceFromPreview={sendInvoiceFromPreview}
+              setClientModalForm={setClientModalForm} setEditingClientId={setEditingClientId}
+              setShowClientModal={setShowClientModal}
+              setImportType={setImportType} setImportRows={setImportRows}
+              setImportError={setImportError} setShowImportModal={setShowImportModal}
+              payInvoiceWithPayPal={payInvoiceWithPayPal}
             />}
             {activePage === "quotes" && <QuotesPage
               profile={profile} clients={clients} invoices={invoices}
@@ -3900,6 +3905,11 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               sendQuoteFromPreview={sendQuoteFromPreview}
               clientIsGstExempt={clientIsGstExempt} gstAppliesToClient={gstAppliesToClient}
               calculateFormGst={calculateFormGst} computeLineItemTotals={computeLineItemTotals}
+              setClientModalForm={setClientModalForm} setEditingClientId={setEditingClientId}
+              setShowClientModal={setShowClientModal}
+              setImportType={setImportType} setImportRows={setImportRows}
+              setImportError={setImportError} setShowImportModal={setShowImportModal}
+              convertQuoteToInvoice={convertQuoteToInvoice} openQuotePreview={openQuotePreview}
             />}
             {activePage === "clients" && <ClientsPage
               profile={profile} clients={clients} invoices={invoices}

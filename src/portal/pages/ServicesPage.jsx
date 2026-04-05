@@ -1,4 +1,5 @@
 import React from "react";
+import { exportToCSV } from "../PortalHelpers";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ServicesPage
@@ -75,6 +76,13 @@ export default function ServicesPage(props) {
                 value={serviceSearch}
                 onChange={(e) => setServiceSearch(e.target.value)}
               />
+              <button style={buttonSecondary} onClick={() => exportToCSV(services, [
+                { key: "name", label: "Service" },
+                { key: "gstType", label: "GST Type" },
+                { key: "price", label: "Price" },
+                { key: "gst", label: "GST" },
+                { key: "total", label: "Total" },
+              ], "services.csv")}>Export CSV</button>
               <button style={buttonPrimary} onClick={openNewServiceModal}>
                 New Service
               </button>
