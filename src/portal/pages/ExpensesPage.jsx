@@ -63,6 +63,10 @@ export default function ExpensesPage(props) {
     totals,
     uploadReceiptToSupabase,
     openReceiptFile = null,
+    setImportType = () => {},
+    setImportRows = () => {},
+    setImportError = () => {},
+    setShowImportModal = () => {},
   } = props;
 
     const totalExpenseAmt = expenses.reduce((s, e) => s + safeNumber(e.amount), 0);
