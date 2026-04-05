@@ -1,25 +1,30 @@
-## Plan: Rebuild Sharon's Accounting Service
 
-### Phase 1 — Design System & Routing (this session)
-1. **Update design system** — Purple/teal/navy color palette from the uploaded files
-2. **Create Homepage** (`/`) — Based on index-3.html (portal preview page with sidebar)
-3. **Create Landing Page** (`/landing`) — Based on landing.html (marketing page with features, pricing, testimonials)
-4. **Create Auth Page** (`/auth`) — Based on AuthPage.jsx (login/signup form)
-5. **Wire routing** — Homepage login buttons → Landing page → Auth page login buttons → Auth form
+## Portal Design Unification Plan
 
-### Phase 2 — Backend & Portal (future)
-- Enable Lovable Cloud for Supabase auth
-- Build the full accounting portal (dashboard, invoices, clients, expenses, etc.)
-- Connect data persistence
+### 1. Add Brand Fonts (Playfair Display + DM Sans)
+- Import Google Fonts in `index.html`
+- Update the portal's global `<style>` block in `SharonPortalWebsite.jsx` to use DM Sans as the base font and Playfair Display for headings (hero titles, section titles, page headers)
 
-### Flow:
-```
-/ (Homepage) → click "Login" → /landing → click "Sign in" → /auth → login form
-```
+### 2. Unify Buttons & Form Inputs
+- Standardise `buttonPrimary` and `buttonSecondary` in `PortalHelpers.jsx` with consistent font-size (14px), height, border-radius (12px), and transitions
+- Add a `buttonDanger` style for delete buttons (currently each page hardcodes red styling differently)
+- Ensure `inputStyle` has consistent padding, border-radius, and focus states across all pages
 
-### Design tokens:
-- Primary: #6A1B9A (purple)
-- Primary dark: #4A1270
-- Accent/teal: #006D6D
-- Navy: #2B2F6B
-- Fonts: Playfair Display (headings), DM Sans (body)
+### 3. Polish Page Headers & Hero Banners
+- Ensure all pages use the `DashboardHero` component consistently (same gradient, same layout)
+- Apply Playfair Display to hero titles
+- Standardise the `InsightChip` sizing and spacing in hero sections
+
+### 4. Uniform Tables & Data Lists
+- Refine `DataTable` component in `PortalComponents.jsx` with better row hover states, consistent font sizing, and cleaner action button alignment
+- Add alternating row backgrounds for better readability
+- Ensure all action button groups in table rows use uniform styling (gap, size, wrapping)
+
+### 5. Sidebar & Navigation Polish
+- Refine sidebar styling with brand colours: active item gets a left accent bar, smoother transitions
+- Add nav icons using Lucide icons for each section
+- Polish the mobile hamburger menu appearance
+- Add a subtle footer to the sidebar with app branding
+
+### Impact
+All changes are visual/CSS only — no business logic changes. The design tokens and shared styles in `PortalHelpers.jsx` and `PortalComponents.jsx` will be updated so all pages automatically inherit the improvements.
