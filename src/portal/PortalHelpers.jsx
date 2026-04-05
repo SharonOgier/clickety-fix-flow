@@ -41,7 +41,7 @@ export const navSections = [
   },
   {
     title: "Admin",
-    items: ["bas report", "ato tax form", "settings"],
+    items: ["bank reconciliation", "bas report", "ato tax form", "settings"],
   },
 ];
 
