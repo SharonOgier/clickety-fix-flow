@@ -116,7 +116,7 @@ export default function FarmEquipmentPage() {
             <div className="bg-card rounded-[20px] shadow-brand overflow-hidden border border-border p-8 text-center">
               <div className="text-7xl mb-4">👨‍🌾</div>
               <h2 className="font-serif text-3xl font-black text-foreground mb-2">Mitchell</h2>
-              <p className="text-base text-primary font-semibold mb-4">Farm Equipment Evaluator</p>
+              <p className="text-base text-primary font-semibold mb-4">Farm Equipment Assessor</p>
               <p className="text-sm text-muted-foreground leading-relaxed font-light">
                 Extensive hands-on experience with agricultural machinery. Independent, professional, and thorough — every evaluation backed by real market data.
               </p>
