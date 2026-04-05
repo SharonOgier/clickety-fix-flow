@@ -1893,35 +1893,31 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     stripeCheckoutUrl: stripeCheckoutUrl || emailDocumentRecord?.stripeCheckoutUrl || "",
   };
 
-  const endpoint = `${serverBaseUrl}/api/send-document-email`;
-
   let response;
+  let data = null;
 
   try {
-    response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+    const { data: fnData, error: fnError } = await supabase.functions.invoke("send-document-email", {
+      body: payload,
     });
+
+    if (fnError) {
+      console.error("EMAIL FUNCTION ERROR:", fnError);
+      throw new Error(fnError.message || "Email function failed");
+    }
+
+    data = fnData;
   } catch (error) {
     console.error("EMAIL NETWORK ERROR:", {
-      endpoint,
       documentType,
       error,
     });
-    throw new Error(`Could not reach the email server at ${endpoint}. Check the Stripe Server URL setting and your backend CORS configuration.`);
+    throw new Error(error.message || "Could not send email. Please try again.");
   }
 
-  let data = null;
-  try {
-    data = await response.json();
-  } catch (error) {
-    console.error("EMAIL RESPONSE PARSE ERROR:", error);
-  }
-
-  if (!response.ok) {
+  if (!data?.ok) {
     console.error("EMAIL ERROR:", data);
-    throw new Error(data?.error || data?.details || "Email failed");
+    throw new Error(data?.error || data?.message || "Email failed");
   }
 
   return {
