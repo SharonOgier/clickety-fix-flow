@@ -4355,6 +4355,17 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               totals={totals} uploadReceiptToSupabase={uploadReceiptToSupabase}
               setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
             />}
+            {activePage === "assets" && <AssetsPage
+              assets={assets}
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              inputStyle={inputStyle} labelStyle={labelStyle}
+              currency={currency} formatDateAU={formatDateAU} safeNumber={safeNumber}
+              todayLocal={todayLocal}
+              DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
+              SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
+              saveAsset={saveAsset} deleteAsset={deleteAsset} confirm={confirm}
+            />}
             {activePage === "bills / payables" && <BillsPage
               profile={profile} expenses={expenses} suppliers={suppliers} clients={clients}
               expenseForm={expenseForm} setExpenseForm={setExpenseForm}
