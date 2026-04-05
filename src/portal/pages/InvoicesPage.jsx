@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { exportToCSV } from "../PortalHelpers";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from "recharts";
 
 class InvoicesErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null }; }
