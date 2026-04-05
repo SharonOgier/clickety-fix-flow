@@ -214,8 +214,8 @@ export default function AuthPage(props) {
               </div>
             </div>
 
-            <div style={{ background: colours.bg, borderRadius: 16, padding: 16, fontSize: 13, color: colours.muted, lineHeight: 1.7 }}>
-              <strong style={{ color: colours.text }}>Preview note:</strong> this login card is now part of the landing experience, so you can see the portal entry point immediately instead of having it hidden.
+            <div style={{ background: colours.bg, borderRadius: 16, padding: 16, fontSize: 13, color: colours.muted, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
+              <strong style={{ color: colours.text }}>✨ New here?</strong> Create an account and our guided setup wizard will help you configure your business name, ABN, contact details, and preferences in just a few minutes.
             </div>
           </div>
         </div>
