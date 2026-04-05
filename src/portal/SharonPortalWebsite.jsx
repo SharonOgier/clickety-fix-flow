@@ -188,7 +188,8 @@ export default function AccountingPortalPrototype() {
   const [recurringSelected, setRecurringSelected] = useState([]);
   const recurringShownRef = useRef(false);
   const [quoteWizardStep, setQuoteWizardStep] = useState(1);
-  const [activePage, setActivePage] = useState("dashboard");
+  const [activePage, setActivePageRaw] = useState("dashboard");
+  const isPopstateRef = useRef(false);
   const [showQuickAddMenu, setShowQuickAddMenu] = useState(false);
   const [showMobileWizard, setShowMobileWizard] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(() => (typeof window !== "undefined" ? window.innerWidth <= 768 : false));
@@ -528,6 +529,31 @@ export default function AccountingPortalPrototype() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  // Wrap setActivePage to push browser history
+  const setActivePage = React.useCallback((page) => {
+    setActivePageRaw((prev) => {
+      if (page !== prev && !isPopstateRef.current) {
+        window.history.pushState({ portalPage: page }, "", window.location.pathname + window.location.search);
+      }
+      isPopstateRef.current = false;
+      return page;
+    });
+  }, []);
+
+  // Listen for browser back/forward
+  useEffect(() => {
+    const onPopState = (e) => {
+      if (e.state && e.state.portalPage) {
+        isPopstateRef.current = true;
+        setActivePage(e.state.portalPage);
+      }
+    };
+    // Set initial state
+    window.history.replaceState({ portalPage: activePage }, "", window.location.pathname + window.location.search);
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     setShowQuickAddMenu(false);
@@ -4007,10 +4033,10 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               DEFAULT_MONTHLY_SUBSCRIPTION={DEFAULT_MONTHLY_SUBSCRIPTION}
               settingsTabs={settingsTabs}
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
-              SectionCard={SectionCard} DataTable={DataTable}
+              SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveProfileToSupabase={saveProfileToSupabase}
               handleCloseAccount={handleCloseAccount} handleSignOut={handleSignOut}
-              toast={toast}
+              toast={toast} confirm={confirm}
             />}
             </div>
           </div>
