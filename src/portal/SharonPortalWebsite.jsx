@@ -4014,7 +4014,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                   buttonPrimary={buttonPrimary} inputStyle={inputStyle} labelStyle={labelStyle}
                   currency={currency} formatDateAU={formatDateAU} safeNumber={safeNumber}
                   DashboardHero={DashboardHero} InsightChip={InsightChip}
-                  SectionCard={SectionCard} SummaryBox={SummaryBox}
+                  MetricCard={MetricCard} SectionCard={SectionCard} SummaryBox={SummaryBox}
                   setActivePage={setActivePage}
                 />
               </div>
