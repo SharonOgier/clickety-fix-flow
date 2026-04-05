@@ -34,9 +34,9 @@ const services = [
   },
   {
     icon: "📊",
-    title: "Insurance & Finance Reports",
+    title: "Sale & Purchase Reports",
     description:
-      "Formal valuation certificates accepted by major insurers and lenders. Suitable for asset-backed lending, agreed-value policies, and lease arrangements.",
+      "Detailed written reports to support buying or selling decisions. Includes market positioning, condition summary, and estimated value range.",
   },
 ];
 
