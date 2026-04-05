@@ -232,8 +232,8 @@ export default function ATOTaxFormPage({
     const fc      = sumKey(allInc,"franking");
     const mapped  = wages+biz+int_+for_+div;
     const other   = Math.max(0,sumKey(allInc,"gross")-mapped);
-    const ded     = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
-    setItr(p=>({...p,salary:wages||"",business:biz||"",interest:int_||"",foreign:for_||"",other:other||"",payg:payg||"",franked:franked||"",fc:fc||"",dWork:ded||""}));
+    const ded     = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
+    setItr(p=>({...p,salary:wages||"",business:biz||"",interest:int_||"",foreign:for_||"",other:other||"",payg:payg||"",franked:franked||"",fc:fc||"",dWork:ded||"",dOther:totalDepreciation?"":""}));
   };
 
   const applyCGT = () => {
