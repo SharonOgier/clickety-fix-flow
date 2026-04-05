@@ -943,55 +943,6 @@ ${purchaseOrderBlock}
           return;
         }
 
-        stripeBtn.disabled = true;
-        stripeBtn.textContent = 'Opening...';
-        if (status) {
-          status.textContent = '';
-        }
-
-        try {
-          var headers = { 'Content-Type': 'application/json' };
-          if (publishableKey) {
-            headers.apikey = publishableKey;
-          }
-
-          var res = await fetch(checkoutEndpoint, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(payload)
-          });
-          var data = await res.json().catch(function() { return {}; });
-
-          if (res.ok && data && data.url) {
-            checkoutUrl = data.url;
-            openCheckout(checkoutUrl);
-            if (status) {
-              status.textContent = 'Card checkout opened.';
-              status.style.color = '#166534';
-            }
-          } else if (status) {
-            status.textContent = (data && data.error) || 'Card payment failed. Please try again.';
-            status.style.color = '#991B1B';
-          }
-        } catch (e) {
-          if (status) {
-            status.textContent = 'Could not connect to card payment.';
-            status.style.color = '#991B1B';
-          }
-      stripeBtn.addEventListener('click', async function() {
-        if (checkoutUrl) {
-          openCheckout(checkoutUrl);
-          return;
-        }
-
-        if (!checkoutEndpoint) {
-          if (status) {
-            status.textContent = 'Card payment is not available yet.';
-            status.style.color = '#991B1B';
-          }
-          return;
-        }
-
         // Open window synchronously to avoid popup blocker
         var popupWin = window.open('about:blank', '_blank');
 
