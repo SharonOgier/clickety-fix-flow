@@ -144,7 +144,7 @@ export default function FarmEquipmentPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mt-10 items-start fade-in">
             <div>
               <p className="text-[15px] text-muted-foreground leading-relaxed font-light mb-4">
-                Mitchell is our specialist farm equipment evaluator with extensive hands-on experience in agricultural machinery. He provides independent, professional valuations for a wide range of farm equipment — from tractors and harvesters through to fixed plant and infrastructure.
+                Mitchell is our specialist farm equipment assessor with extensive hands-on experience in agricultural machinery. He provides independent assessments for a wide range of farm equipment — from tractors and harvesters through to fixed plant and infrastructure.
               </p>
               <p className="text-[15px] text-muted-foreground leading-relaxed font-light">
                 Whether you need a valuation for insurance, finance, buying, selling, or succession planning, Mitchell delivers thorough, well-documented reports that are trusted by lenders, insurers, and industry professionals across the region.
