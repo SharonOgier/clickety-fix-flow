@@ -446,6 +446,43 @@ export default function SettingsPage(props) {
           </div>
         )}
 
+        {activeSettingsTab === "Notifications" && (
+          <div style={{ display: "grid", gap: 16 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 4 }}>Payment Reminders</div>
+            <div style={{ fontSize: 13, color: colours.muted, lineHeight: 1.6, marginBottom: 8 }}>
+              Automatically send email reminders to clients when their invoices are overdue. Reminders are sent at 7, 14, and 30 days overdue.
+            </div>
+            <label style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer" }}>
+              <input
+                type="checkbox"
+                checked={!profile.remindersDisabled}
+                onChange={(e) => setProfile({ ...profile, remindersDisabled: !e.target.checked })}
+                style={{ width: 20, height: 20, accentColor: colours.purple }}
+              />
+              <span style={{ fontSize: 14, fontWeight: 600, color: colours.text }}>
+                Enable automated payment reminders
+              </span>
+            </label>
+            <div style={{ background: colours.lightPurple, borderRadius: 10, padding: 16, marginTop: 8 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: colours.purple, marginBottom: 8 }}>Reminder Schedule</div>
+              <div style={{ display: "grid", gap: 6, fontSize: 13, color: colours.text }}>
+                <div>📧 <strong>7 days overdue</strong> — Friendly first reminder</div>
+                <div>📧 <strong>14 days overdue</strong> — Second reminder</div>
+                <div>📧 <strong>30 days overdue</strong> — Final notice</div>
+              </div>
+            </div>
+            <div style={{ marginTop: 12 }}>
+              <button style={buttonPrimary} onClick={async () => {
+                try {
+                  await persistProfile(profile, "Notification settings saved!");
+                } catch (err) { toast.error(err.message || "Failed to save settings"); }
+              }}>
+                Save Notification Settings
+              </button>
+            </div>
+          </div>
+        )}
+
         {activeSettingsTab === "Security" && (
           <div style={{ display: "grid", gap: 16 }}>
             <div style={{ borderTop: `1px solid ${colours.border}`, paddingTop: 20, marginTop: 8 }}>
