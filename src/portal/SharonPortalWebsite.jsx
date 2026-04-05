@@ -3060,13 +3060,31 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       )}&invoiceId=${encodeURIComponent(String(invoice?.id || ""))}`,
     };
 
-    const { data, error: fnError } = await supabase.functions.invoke("create-invoice-checkout", {
-      body: payload,
-    });
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
 
-    if (fnError) {
-      console.error("STRIPE CHECKOUT ERROR:", fnError);
-      throw new Error("Could not create Stripe checkout. Please try again.");
+    if (!accessToken) {
+      throw new Error("No active session. Please sign in again.");
+    }
+
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/create-invoice-checkout`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      console.error("STRIPE CHECKOUT ERROR:", data);
+      throw new Error(data?.error || "Could not create Stripe checkout. Please try again.");
     }
 
     if (!data?.url) {
