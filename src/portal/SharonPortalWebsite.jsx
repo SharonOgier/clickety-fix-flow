@@ -1336,11 +1336,14 @@ export default function AccountingPortalPrototype() {
     const expenseExample = "AGL Energy,2025-03-10,2025-04-10,Utilities,Electricity - March quarter,450.00,45.00,No";
     const incomeHeaders = "Name,Income Type,Before Tax,Frequency,Started After Jul 2025,Has End Date";
     const incomeExample = "Smith Farms Employment,Casual employment,1200.00,Weekly,No,No";
+    const assetHeaders = "Asset Name,Asset Type,Serial/Rego,Location,Purchase Date,Purchase Price,Depreciation Method,Effective Life (years),Salvage Value,Status,Previous Owners,Notes";
+    const assetExample = "John Deere 6120M,Tractor,ABC123,North paddock shed,2022-06-15,185000,diminishing,15,20000,Active,Purchased from Smith Family Farm (2018),Annual service due March";
     let csv, filename;
     if (type === "clients") { csv = `${clientHeaders}\n${clientExample}\n`; filename = "clients_template.csv"; }
     else if (type === "suppliers") { csv = `${supplierHeaders}\n${supplierExample}\n`; filename = "suppliers_template.csv"; }
     else if (type === "invoices") { csv = `${invoiceHeaders}\n${invoiceExample}\n`; filename = "invoices_template.csv"; }
     else if (type === "income") { csv = `${incomeHeaders}\n${incomeExample}\n`; filename = "income_sources_template.csv"; }
+    else if (type === "assets") { csv = `${assetHeaders}\n${assetExample}\n`; filename = "assets_template.csv"; }
     else { csv = `${expenseHeaders}\n${expenseExample}\n`; filename = "expenses_template.csv"; }
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
