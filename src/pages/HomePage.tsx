@@ -194,6 +194,38 @@ export default function HomePage() {
             </section>
           )}
 
+          {/* FARM EQUIPMENT */}
+          {activePage === "farm-equipment" && (
+            <section>
+              <div className="bg-card border border-border rounded-xl shadow-brand p-6 mb-5">
+                <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-4">Mitchell</span>
+                <h2 className="text-3xl font-black mb-3 text-foreground">Farm Equipment Evaluations</h2>
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  Mitchell provides independent, professional valuations for a wide range of farm equipment — from tractors and harvesters through to fixed plant and infrastructure. His reports are trusted by lenders, insurers, and industry professionals.
+                </p>
+                <Link to="/farm-equipment" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-primary text-primary-foreground text-sm">
+                  View Full Details →
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { icon: "🚜", title: "Tractor & Harvester Valuations", desc: "Market-value assessments including condition grading, hours-of-use analysis, and comparable sales data." },
+                  { icon: "🔧", title: "Implements & Attachments", desc: "Evaluations for ploughs, seeders, sprayers, balers, and all bolt-on implements." },
+                  { icon: "🚛", title: "Trucks & Transport", desc: "Valuations for farm trucks, trailers, grain bins, and livestock transport equipment." },
+                  { icon: "🏗️", title: "Fixed Plant & Infrastructure", desc: "Silos, augers, irrigation systems, sheds, and other fixed assets." },
+                  { icon: "📋", title: "Pre-Purchase Inspections", desc: "Independent inspections before buying or selling — mechanical, structural, and cosmetic." },
+                  { icon: "📊", title: "Insurance & Finance Reports", desc: "Formal valuation certificates accepted by major insurers and lenders." },
+                ].map((svc) => (
+                  <div key={svc.title} className="bg-card border border-border rounded-lg shadow-brand p-5">
+                    <div className="text-2xl mb-3">{svc.icon}</div>
+                    <h3 className="text-base font-bold mb-1 text-foreground font-sans">{svc.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{svc.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* ABOUT */}
           {activePage === "about" && (
             <section>
