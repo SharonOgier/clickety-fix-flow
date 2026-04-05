@@ -4394,6 +4394,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveAsset={saveAsset} deleteAsset={deleteAsset} confirm={confirm}
+              setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
             />}
             {activePage === "bills / payables" && <BillsPage
               profile={profile} expenses={expenses} suppliers={suppliers} clients={clients}
