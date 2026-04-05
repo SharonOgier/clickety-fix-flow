@@ -3881,6 +3881,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               openQuoteEditor={openQuoteEditor} closeQuoteEditor={closeQuoteEditor}
               deleteQuote={deleteQuote} openSavedQuotePreview={openSavedQuotePreview}
               getClientName={getClientName} getClientById={getClientById}
+              sendQuoteFromPreview={sendQuoteFromPreview}
               clientIsGstExempt={clientIsGstExempt} gstAppliesToClient={gstAppliesToClient}
               calculateFormGst={calculateFormGst} computeLineItemTotals={computeLineItemTotals}
             />}
