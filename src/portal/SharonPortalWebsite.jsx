@@ -199,6 +199,12 @@ export default function AccountingPortalPrototype() {
   const [authUser, setAuthUser] = useState(null);
   const [authMode, setAuthMode] = useState("signin");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  // Multi-user state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [viewingAsUserId, setViewingAsUserId] = useState(null);
+  const [allPortalUsers, setAllPortalUsers] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [teamInvitations, setTeamInvitations] = useState([]);
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const [showResetSentModal, setShowResetSentModal] = useState(false);
