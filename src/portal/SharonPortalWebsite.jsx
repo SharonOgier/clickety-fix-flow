@@ -4177,6 +4177,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               saveSupplier={saveSupplier} deleteSupplier={deleteSupplier}
               saveAPCreditNote={saveAPCreditNote}
               getClientName={getClientName} totals={totals}
+              saveBill={saveBill}
             />}
             {activePage === "income sources" && <IncomeSourcesPage
               incomeSources={incomeSources}
