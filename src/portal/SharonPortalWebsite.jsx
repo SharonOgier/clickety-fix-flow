@@ -1255,12 +1255,42 @@ export default function AccountingPortalPrototype() {
       headers.forEach((h, idx) => { row[h] = vals[idx] || ""; });
       if (type === "clients") {
         rows.push({ name: row["name"] || row["clientname"] || "", businessName: row["businessname"] || "", email: row["email"] || "", phone: row["phone"] || "", address: row["address"] || "", abn: row["abn"] || "", defaultCurrency: row["currency"] || "AUD $", workType: row["worktype"] || "" });
-      } else {
+      } else if (type === "suppliers") {
         rows.push({ name: row["name"] || row["suppliername"] || "", contactPerson: row["contactperson"] || "", email: row["email"] || "", phone: row["phone"] || "", address: row["address"] || "", abn: row["abn"] || "", notes: row["notes"] || "" });
+      } else if (type === "invoices") {
+        const subtotal = Number(row["subtotal"] || row["amount"] || 0);
+        const gst = Number(row["gst"] || 0);
+        const total = Number(row["total"] || (subtotal + gst) || 0);
+        rows.push({
+          invoiceNumber: row["invoicenumber"] || row["invoice"] || "",
+          clientName: row["clientname"] || row["client"] || "",
+          invoiceDate: row["date"] || row["invoicedate"] || "",
+          dueDate: row["duedate"] || "",
+          description: row["description"] || row["notes"] || "",
+          subtotal, gst, total,
+          status: row["status"] || "Draft",
+        });
+      } else if (type === "expenses") {
+        const amount = Number(row["amount"] || row["total"] || 0);
+        const gst = Number(row["gst"] || 0);
+        const isPaidRaw = (row["ispaid"] || row["paid"] || "").toLowerCase();
+        rows.push({
+          supplier: row["supplier"] || row["suppliername"] || row["name"] || "",
+          date: row["date"] || "",
+          dueDate: row["duedate"] || "",
+          category: row["category"] || "",
+          description: row["description"] || row["notes"] || "",
+          amount, gst,
+          isPaid: isPaidRaw === "yes" || isPaidRaw === "true" || isPaidRaw === "1",
+        });
       }
     }
-    const valid = rows.filter((r) => r.name.trim());
-    if (!valid.length) return { rows: [], error: "No valid rows found. Make sure the Name column is filled in." };
+    const valid = type === "invoices"
+      ? rows.filter((r) => r.invoiceNumber || r.clientName || r.total)
+      : type === "expenses"
+      ? rows.filter((r) => r.supplier || r.amount)
+      : rows.filter((r) => r.name?.trim());
+    if (!valid.length) return { rows: [], error: "No valid rows found. Check required columns are filled in." };
     return { rows: valid, error: "" };
   };
 
