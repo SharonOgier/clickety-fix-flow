@@ -4007,10 +4007,10 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               DEFAULT_MONTHLY_SUBSCRIPTION={DEFAULT_MONTHLY_SUBSCRIPTION}
               settingsTabs={settingsTabs}
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
-              SectionCard={SectionCard} DataTable={DataTable}
+              SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveProfileToSupabase={saveProfileToSupabase}
               handleCloseAccount={handleCloseAccount} handleSignOut={handleSignOut}
-              toast={toast}
+              toast={toast} confirm={confirm}
             />}
             </div>
           </div>
