@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { exportToCSV } from "../PortalHelpers";
+import { supabase } from "@/integrations/supabase/client";
 
 // -----------------------------------------------------------------------------
 // ExpensesPage
@@ -69,6 +70,47 @@ export default function ExpensesPage(props) {
     setShowImportModal = () => {},
   } = props;
 
+    const [scanning, setScanning] = useState(false);
+    const scanInputRef = useRef(null);
+
+    const handleScanReceipt = async (file) => {
+      if (!file) return;
+      setScanning(true);
+      try {
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result.split(",")[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        const { data, error } = await supabase.functions.invoke("scan-receipt", {
+          body: { imageBase64: base64, mimeType: file.type },
+        });
+
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+
+        const extracted = data.data;
+        setExpenseForm((prev) => ({
+          ...prev,
+          date: extracted.date || prev.date,
+          supplier: extracted.supplier || prev.supplier,
+          amount: extracted.amount ? String(extracted.amount) : prev.amount,
+          category: extracted.category || prev.category,
+          description: extracted.description || prev.description,
+        }));
+        setReceiptFile(file);
+        setExpenseForm((prev) => ({ ...prev, receiptFileName: file.name }));
+      } catch (err) {
+        console.error("Receipt scan error:", err);
+        alert("Could not scan receipt: " + (err.message || "Unknown error"));
+      } finally {
+        setScanning(false);
+        if (scanInputRef.current) scanInputRef.current.value = "";
+      }
+    };
+
     const totalExpenseAmt = expenses.reduce((s, e) => s + safeNumber(e.amount), 0);
     const totalGstCredit = expenses.reduce((s, e) => s + safeNumber(e.gst), 0);
     const thisMonth = new Date().toISOString().slice(0, 7);
@@ -95,15 +137,34 @@ export default function ExpensesPage(props) {
       <SectionCard
         title="Expense Details"
         right={
-          <button
-            style={buttonPrimary}
-            onClick={() => {
-              setExpenseModalOpen(true);
-              setExpenseTypeStep(1);
-            }}
-          >
-            Add Expense
-          </button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input
+              ref={scanInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleScanReceipt(file);
+              }}
+            />
+            <button
+              style={{ ...buttonSecondary, display: "flex", alignItems: "center", gap: 6 }}
+              onClick={() => scanInputRef.current?.click()}
+              disabled={scanning}
+            >
+              {scanning ? "Scanning..." : "📷 Scan Receipt"}
+            </button>
+            <button
+              style={buttonPrimary}
+              onClick={() => {
+                setExpenseModalOpen(true);
+                setExpenseTypeStep(1);
+              }}
+            >
+              Add Expense
+            </button>
+          </div>
         }
       >
         <div
