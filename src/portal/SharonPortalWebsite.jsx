@@ -1297,14 +1297,50 @@ export default function AccountingPortalPrototype() {
   const confirmImport = async () => {
     if (!importRows.length) return;
     try {
-      const table = importType === "clients" ? SUPABASE_TABLES.clients : SUPABASE_TABLES.suppliers;
-      const existing = importType === "clients" ? clients : suppliers;
-      const existingNames = new Set(existing.map((r) => r.name.toLowerCase().trim()));
-      const newRows = importRows.filter((r) => !existingNames.has(r.name.toLowerCase().trim()));
-      const saved = await Promise.all(newRows.map((r) => upsertRecordInDatabase(table, { ...r })));
-      if (importType === "clients") setClients((prev) => [...prev, ...saved]);
-      else setSuppliers((prev) => [...prev, ...saved]);
-      toast.success(`Imported ${saved.length} ${importType}${newRows.length < importRows.length ? ` (${importRows.length - newRows.length} duplicates skipped)` : ""}!`);
+      if (importType === "clients" || importType === "suppliers") {
+        const table = importType === "clients" ? SUPABASE_TABLES.clients : SUPABASE_TABLES.suppliers;
+        const existing = importType === "clients" ? clients : suppliers;
+        const existingNames = new Set(existing.map((r) => r.name.toLowerCase().trim()));
+        const newRows = importRows.filter((r) => !existingNames.has(r.name.toLowerCase().trim()));
+        const saved = await Promise.all(newRows.map((r) => upsertRecordInDatabase(table, { ...r })));
+        if (importType === "clients") setClients((prev) => [...prev, ...saved]);
+        else setSuppliers((prev) => [...prev, ...saved]);
+        toast.success(`Imported ${saved.length} ${importType}${newRows.length < importRows.length ? ` (${importRows.length - newRows.length} duplicates skipped)` : ""}!`);
+      } else if (importType === "invoices") {
+        const saved = await Promise.all(importRows.map((r) => {
+          const clientMatch = clients.find(c => c.name?.toLowerCase() === r.clientName?.toLowerCase() || c.businessName?.toLowerCase() === r.clientName?.toLowerCase());
+          const inv = {
+            invoiceNumber: r.invoiceNumber || `IMP-${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+            clientId: clientMatch?.id || "",
+            invoiceDate: r.invoiceDate || todayLocal(),
+            dueDate: r.dueDate || addDays(r.invoiceDate || todayLocal(), safeNumber(profile.paymentTermsDays) || 14),
+            lineItems: [{ id: crypto.randomUUID?.() || String(Date.now()), description: r.description || "Imported item", quantity: 1, unitPrice: String(r.subtotal || r.total || 0), gstType: r.gst > 0 ? "GST on Income (10%)" : "GST Free" }],
+            subtotal: r.subtotal || r.total || 0,
+            gst: r.gst || 0,
+            total: r.total || 0,
+            status: r.status || "Draft",
+          };
+          return upsertRecordInDatabase(SUPABASE_TABLES.invoices, inv);
+        }));
+        setInvoices((prev) => [...prev, ...saved]);
+        toast.success(`Imported ${saved.length} invoice${saved.length !== 1 ? "s" : ""}!`);
+      } else if (importType === "expenses") {
+        const saved = await Promise.all(importRows.map((r) => {
+          const exp = {
+            supplier: r.supplier || "",
+            date: r.date || todayLocal(),
+            dueDate: r.dueDate || "",
+            category: r.category || "Other",
+            description: r.description || "Imported expense",
+            amount: r.amount || 0,
+            gst: r.gst || 0,
+            isPaid: r.isPaid || false,
+          };
+          return upsertRecordInDatabase(SUPABASE_TABLES.expenses, exp);
+        }));
+        setExpenses((prev) => [...prev, ...saved]);
+        toast.success(`Imported ${saved.length} expense${saved.length !== 1 ? "s" : ""}!`);
+      }
       setShowImportModal(false);
       setImportRows([]);
       setImportError("");
