@@ -850,7 +850,9 @@ ${purchaseOrderBlock}
   <div style="font-size:13px; color:#555; margin-bottom:10px;">Choose your preferred payment method below.</div>
   ${stripeCheckoutUrl
     ? `<a href="${safeHref(stripeCheckoutUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-right:10px; background:#6A1B9A; color:#FFFFFF; text-decoration:none; padding:10px 16px; border-radius:10px; font-weight:700;">Pay with Card</a>`
-    : ""
+    : (profile.stripePaymentLink
+      ? `<a href="${safeHref(profile.stripePaymentLink)}" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-right:10px; background:#6A1B9A; color:#FFFFFF; text-decoration:none; padding:10px 16px; border-radius:10px; font-weight:700;">Pay with Card</a>`
+      : "")
   }
   <button id="paypal-pay-btn"
     style="display:inline-block; background:#003087; color:#FFFFFF; border:none; padding:10px 16px; border-radius:10px; font-weight:700; cursor:pointer;">Pay with PayPal</button>
