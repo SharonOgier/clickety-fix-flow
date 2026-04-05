@@ -1,6 +1,6 @@
 import React from "react";
 
-const DEFAULT_MONTHLY_SUBSCRIPTION = 45;
+const DEFAULT_MONTHLY_SUBSCRIPTION = 27;
 
 // ── Toast notification system ──────────────────────────────
 export function ToastContainer({ toasts, onRemove }) {

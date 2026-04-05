@@ -134,7 +134,7 @@ export const getApiBaseUrl = (preferredValue = "") => {
 };
 
 export const LOCKED_FEE_RATE_PERCENT = 1;
-export const DEFAULT_MONTHLY_SUBSCRIPTION = 45;
+export const DEFAULT_MONTHLY_SUBSCRIPTION = 27;
 
 export const STORAGE_SIGNED_URL_TTL_SECONDS = 60 * 30;
 
