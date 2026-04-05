@@ -157,6 +157,107 @@ function QuotesPageInner(props) {
             <MiniBarChart data={statusData} height={90} accent={colours.purple} />
           </div>
         </div>
+
+        {/* ── Quote Analytics Charts ── */}
+        {(() => {
+          const today = new Date();
+          const acceptedVal = acceptedQuotes.reduce((s, q) => s + safeNumber(q.total), 0);
+          const pendingVal = pendingQuotes.reduce((s, q) => s + safeNumber(q.total), 0);
+          const expiredVal = expiredQuotes.reduce((s, q) => s + safeNumber(q.total), 0);
+          const avgQuoteValue = quotes.length > 0 ? totalQuoted / quotes.length : 0;
+          const avgDaysToAccept = acceptedQuotes.length > 0
+            ? Math.round(acceptedQuotes.reduce((s, q) => {
+                const created = new Date(q.quoteDate || q.createdAt || today);
+                const accepted = new Date(q.acceptedDate || q.updatedAt || today);
+                return s + Math.max(0, (accepted - created) / (1000*60*60*24));
+              }, 0) / acceptedQuotes.length)
+            : 0;
+
+          // Aging of pending quotes
+          const quoteAging = { week1: 0, week2: 0, week3: 0, month: 0 };
+          pendingQuotes.forEach(q => {
+            const created = new Date(q.quoteDate || q.createdAt || today);
+            const daysOld = Math.max(0, Math.floor((today - created) / (1000*60*60*24)));
+            const amt = safeNumber(q.total);
+            if (daysOld <= 7) quoteAging.week1 += amt;
+            else if (daysOld <= 14) quoteAging.week2 += amt;
+            else if (daysOld <= 21) quoteAging.week3 += amt;
+            else quoteAging.month += amt;
+          });
+          const quoteAgingData = [
+            { name: "0-7 days", amount: quoteAging.week1 },
+            { name: "8-14 days", amount: quoteAging.week2 },
+            { name: "15-21 days", amount: quoteAging.week3 },
+            { name: "22+ days", amount: quoteAging.month },
+          ];
+
+          const statusValPie = [
+            { name: "Accepted", value: acceptedVal },
+            { name: "Pending", value: pendingVal },
+            { name: "Expired", value: expiredVal },
+          ].filter(r => r.value > 0);
+          const PIE_COLORS = [colours.teal || "#006D6D", colours.purple || "#6A1B9A", "#F59E0B"];
+          const tooltipStyle = { background: "#fff", border: "1px solid #E2E8F0", borderRadius: 10, padding: "10px 14px", fontSize: 13 };
+
+          return (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
+              <div style={{ ...cardStyle, padding: 20 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: colours.text, marginBottom: 4 }}>Quote Pipeline Aging</div>
+                <div style={{ fontSize: 12, color: colours.muted, marginBottom: 16 }}>How long pending quotes have been waiting</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
+                  <div style={{ background: colours.bg || "#F8FAFC", borderRadius: 10, padding: 12, textAlign: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: colours.muted, textTransform: "uppercase" }}>Win rate</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: colours.teal }}>{conversionRate.toFixed(1)}%</div>
+                  </div>
+                  <div style={{ background: colours.bg || "#F8FAFC", borderRadius: 10, padding: 12, textAlign: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: colours.muted, textTransform: "uppercase" }}>Avg value</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: colours.purple }}>{currency(avgQuoteValue)}</div>
+                  </div>
+                  <div style={{ background: colours.bg || "#F8FAFC", borderRadius: 10, padding: 12, textAlign: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: colours.muted, textTransform: "uppercase" }}>Days to win</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: colours.navy }}>{avgDaysToAccept} days</div>
+                  </div>
+                </div>
+                {quoteAgingData.some(r => r.amount > 0) ? (
+                  <div style={{ width: "100%", height: 220 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={quoteAgingData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                        <XAxis dataKey="name" tick={{ fontSize: 11, fill: colours.muted }} />
+                        <YAxis tick={{ fontSize: 11, fill: colours.muted }} tickFormatter={v => currency(v)} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={v => currency(v)} />
+                        <Bar dataKey="amount" fill={colours.purple} radius={[6,6,0,0]} name="Pending value" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div style={{ padding: 20, textAlign: "center", color: colours.muted, fontSize: 13 }}>No pending quotes to age.</div>
+                )}
+              </div>
+
+              <div style={{ ...cardStyle, padding: 20 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: colours.text, marginBottom: 4 }}>Quote Value by Status</div>
+                <div style={{ fontSize: 12, color: colours.muted, marginBottom: 16 }}>Dollar value breakdown across statuses</div>
+                {statusValPie.length > 0 ? (
+                  <div style={{ width: "100%", height: 280 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={statusValPie} cx="50%" cy="50%" innerRadius={55} outerRadius={100} paddingAngle={3} dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}
+                          labelLine={{ stroke: colours.muted, strokeWidth: 1 }}>
+                          {statusValPie.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip contentStyle={tooltipStyle} formatter={v => currency(v)} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div style={{ padding: 20, textAlign: "center", color: colours.muted, fontSize: 13 }}>Create quotes to see value breakdown.</div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
         <SectionCard title="Create Quote">
           {/* -- Wizard progress bar -- */}
           <div style={{ display: "flex", alignItems: "center", marginBottom: 28 }}>
