@@ -4086,7 +4086,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             {activePage === "bills / payables" && <BillsPage
               profile={profile} expenses={expenses} suppliers={suppliers} clients={clients}
               expenseForm={expenseForm} setExpenseForm={setExpenseForm}
-              billLineItems={billLineItems} setBillLineItems={setBillLineItems}
+              billLineItems={billLineItems} setBillLineItems={setBillLineItems} blankBillLine={blankBillLine}
               billWizardStep={billWizardStep} setBillWizardStep={setBillWizardStep}
               savingBill={savingBill} receiptFile={receiptFile} setReceiptFile={setReceiptFile}
               showSupplierModal={showSupplierModal} setShowSupplierModal={setShowSupplierModal}
