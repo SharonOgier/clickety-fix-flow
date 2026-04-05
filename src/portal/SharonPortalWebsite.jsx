@@ -95,6 +95,7 @@ import AuthPage             from "./pages/AuthPage";
 import BASReportPage        from "./pages/BASReportPage";
 import SettingsPage         from "./pages/SettingsPage";
 import ATOTaxFormPage       from "./ATOTaxFormPage";
+import BankReconciliationPage from "./pages/BankReconciliationPage";
 // -----------------------------------------------------------------------------
 
 
