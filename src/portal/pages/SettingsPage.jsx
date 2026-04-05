@@ -73,8 +73,12 @@ export default function SettingsPage(props) {
   };
 
   const persistProfile = async (nextProfile, successMessage) => {
-    await saveProfileToSupabase(nextProfile);
+    const savedProfile = await saveProfileToSupabase(nextProfile);
+    if (!savedProfile) {
+      throw new Error("Failed to save to the database.");
+    }
     toast.success(successMessage);
+    return savedProfile;
   };
 
   return (
