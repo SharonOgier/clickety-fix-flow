@@ -37,7 +37,7 @@ export const navSections = [
   },
   {
     title: "Workspace",
-    items: ["clients", "services", "bills / payables", "income sources", "documents"],
+    items: ["clients", "services", "assets", "bills / payables", "income sources", "documents"],
   },
   {
     title: "Admin",
@@ -56,6 +56,7 @@ export const navLabels = {
   "bills / payables": "Bills & Payables",
   "income sources": "Income Sources",
   documents: "Documents",
+  assets: "Assets & Depreciation",
   "bank reconciliation": "Bank Reconciliation",
   "bas report": "BAS Report",
   "ato tax form": "ATO Tax Form",
@@ -183,6 +184,7 @@ export const SUPABASE_TABLES = {
   services: "sas_services",
   documents: "sas_documents",
   suppliers: "sas_suppliers",
+  assets: "sas_assets",
 };
 
 export const SUPABASE_SCHEMA_SQL = `-- Run this once in Supabase SQL Editor

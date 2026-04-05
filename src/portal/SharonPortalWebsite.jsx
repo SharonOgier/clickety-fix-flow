@@ -88,6 +88,7 @@ import QuotesPage           from "./pages/QuotesPage";
 import ServicesPage         from "./pages/ServicesPage";
 import BillsPage            from "./pages/BillsPage";
 import ExpensesPage         from "./pages/ExpensesPage";
+import AssetsPage           from "./pages/AssetsPage";
 import IncomeSourcesPage    from "./pages/IncomeSourcesPage";
 import DocumentsPage        from "./pages/DocumentsPage";
 import SetupWizardPage      from "./pages/SetupWizardPage";
@@ -168,6 +169,7 @@ export default function AccountingPortalPrototype() {
   const [creditNoteForm, setCreditNoteForm] = useState({ amount: "", reason: "", date: todayLocal() });
   const [knownSuppliers, setKnownSuppliers] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [assets, setAssets] = useState([]);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -787,10 +789,11 @@ export default function AccountingPortalPrototype() {
     try {
       const uid = targetUserId;
       const safeF = (table) => fetchCollectionFromDatabase(table, uid).catch(() => []);
-      const [rProfile, rClients, rInvoices, rQuotes, rExpenses, rIncome, rServices, rDocs, rSuppliers] = await Promise.all([
+      const [rProfile, rClients, rInvoices, rQuotes, rExpenses, rIncome, rServices, rDocs, rSuppliers, rAssets] = await Promise.all([
         safeF(SUPABASE_TABLES.profile), safeF(SUPABASE_TABLES.clients), safeF(SUPABASE_TABLES.invoices),
         safeF(SUPABASE_TABLES.quotes), safeF(SUPABASE_TABLES.expenses), safeF(SUPABASE_TABLES.incomeSources),
         safeF(SUPABASE_TABLES.services), safeF(SUPABASE_TABLES.documents), safeF(SUPABASE_TABLES.suppliers),
+        safeF(SUPABASE_TABLES.assets),
       ]);
       const remoteProfile = Array.isArray(rProfile) && rProfile.length
         ? [...rProfile].reverse().find(r => Boolean(r?.setupComplete ?? r?.data?.setupComplete)) || rProfile[rProfile.length - 1]
@@ -805,6 +808,7 @@ export default function AccountingPortalPrototype() {
       setServices(Array.isArray(rServices) ? rServices : []);
       setDocuments(Array.isArray(rDocs) ? rDocs : []);
       setSuppliers(Array.isArray(rSuppliers) ? rSuppliers : []);
+      setAssets(Array.isArray(rAssets) ? rAssets : []);
       setActivePage("dashboard");
     } catch (err) { console.error("Switch user failed:", err); }
     setIsSupabaseRestoring(false);
@@ -1281,6 +1285,31 @@ export default function AccountingPortalPrototype() {
     });
   };
 
+  const saveAsset = async (payload) => {
+    try {
+      const saved = await upsertRecordInDatabase(SUPABASE_TABLES.assets, payload);
+      setAssets((prev) => {
+        const exists = prev.find((a) => a.id === payload.id);
+        return exists ? prev.map((a) => a.id === payload.id ? saved : a) : [...prev, saved];
+      });
+      toast.success(payload.id && assets.find(a => a.id === payload.id) ? "Asset updated!" : "Asset saved!");
+    } catch (err) { toast.error(err.message || "Failed to save asset"); }
+  };
+
+  const deleteAsset = (id) => {
+    confirm({
+      title: "Delete Asset",
+      message: "Are you sure you want to delete this asset?",
+      onConfirm: async () => {
+        try {
+          await deleteRecordFromDatabase(SUPABASE_TABLES.assets, id);
+          setAssets((prev) => prev.filter((a) => a.id !== id));
+          toast.success("Asset deleted");
+        } catch (err) { toast.error(err.message || "Failed to delete asset"); }
+      },
+    });
+  };
+
   const saveClientFromModal = async () => {
     if (!clientModalForm.name.trim()) { toast.warning("Client name is required"); return; }
     try {
@@ -1569,6 +1598,7 @@ export default function AccountingPortalPrototype() {
         remoteServices,
         remoteDocuments,
         remoteSuppliers,
+        remoteAssets,
       ] = await Promise.all([
         safeF(SUPABASE_TABLES.profile),
         safeF(SUPABASE_TABLES.clients),
@@ -1579,6 +1609,7 @@ export default function AccountingPortalPrototype() {
         safeF(SUPABASE_TABLES.services),
         safeF(SUPABASE_TABLES.documents),
         safeF(SUPABASE_TABLES.suppliers),
+        safeF(SUPABASE_TABLES.assets),
       ]);
       hasHydratedSupabaseState.current = true;
 
@@ -1610,6 +1641,7 @@ export default function AccountingPortalPrototype() {
       setServices(Array.isArray(remoteServices) ? remoteServices : []);
       setDocuments(Array.isArray(remoteDocuments) ? remoteDocuments : []);
       setSuppliers(Array.isArray(remoteSuppliers) ? remoteSuppliers : []);
+      setAssets(Array.isArray(remoteAssets) ? remoteAssets : []);
       setSetupComplete(nextSetupComplete);
       setWizardForm((prev) => ({ ...prev,
         firstName: nextProfile.firstName || "",
@@ -4322,6 +4354,17 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               resetExpenseModal={resetExpenseModal} nextExpenseModalStep={nextExpenseModalStep}
               totals={totals} uploadReceiptToSupabase={uploadReceiptToSupabase}
               setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
+            />}
+            {activePage === "assets" && <AssetsPage
+              assets={assets}
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              inputStyle={inputStyle} labelStyle={labelStyle}
+              currency={currency} formatDateAU={formatDateAU} safeNumber={safeNumber}
+              todayLocal={todayLocal}
+              DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
+              SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
+              saveAsset={saveAsset} deleteAsset={deleteAsset} confirm={confirm}
             />}
             {activePage === "bills / payables" && <BillsPage
               profile={profile} expenses={expenses} suppliers={suppliers} clients={clients}
