@@ -872,6 +872,27 @@ export default function AccountingPortalPrototype() {
     return row;
   };
 
+  const fetchCollectionFromDatabase = async (tableName) => {
+    if (!supabase || !authUser?.id) return [];
+
+    const { data, error } = await supabase
+      .from(tableName)
+      .select("id, data, user_id, updated_at")
+      .eq("user_id", authUser.id)
+      .order("updated_at", { ascending: true });
+
+    if (error) throw error;
+
+    return Array.isArray(data)
+      ? data.map((row) => ({
+          ...((row?.data && typeof row.data === "object" && !Array.isArray(row.data)) ? row.data : {}),
+          id: row.id,
+          user_id: row.user_id,
+          updated_at: row.updated_at,
+        }))
+      : [];
+  };
+
   const upsertRecordInDatabase = async (tableName, record) => {
     if (!authUser?.id) throw new Error("Please sign in first.");
     const row = buildSupabaseRow(record);
@@ -1374,7 +1395,7 @@ export default function AccountingPortalPrototype() {
 
       const remoteProfile =
         Array.isArray(remoteProfileRows) && remoteProfileRows.length
-          ? [...remoteProfileRows].reverse().find((row) => Boolean(row?.setupComplete)) ||
+          ? [...remoteProfileRows].reverse().find((row) => Boolean(row?.setupComplete ?? row?.data?.setupComplete)) ||
             remoteProfileRows[remoteProfileRows.length - 1]
           : null;
       const nextProfile = remoteProfile?.data
