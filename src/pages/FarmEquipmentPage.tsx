@@ -94,13 +94,13 @@ export default function FarmEquipmentPage() {
           <div className="fade-in">
             <div className="inline-flex items-center gap-2 bg-secondary text-primary rounded-full px-4 py-1.5 text-sm font-semibold mb-6">
               <span className="w-2 h-2 bg-primary rounded-full inline-block" />
-              Farm Equipment Evaluations
+              Farm Equipment Assessments
             </div>
             <h1 className="text-4xl lg:text-[54px] leading-[1.1] font-black text-foreground mb-5 tracking-tight">
-              Professional farm equipment <em className="not-italic text-primary">valuations</em>
+              Professional farm equipment <em className="not-italic text-primary">assessments</em>
             </h1>
             <p className="text-lg leading-relaxed text-muted-foreground font-light mb-9">
-              Mitchell provides independent, on-site evaluations for tractors, harvesters, implements, trucks, and fixed plant — trusted by lenders, insurers, and farmers across the region.
+              Mitchell provides independent, on-site assessments for tractors, harvesters, implements, trucks, and fixed plant — helping farmers make informed decisions about their equipment.
             </p>
             <div className="flex gap-3.5 flex-wrap items-center">
               <a href="#contact" className="inline-flex items-center justify-center rounded-md font-semibold bg-primary text-primary-foreground px-8 py-4 text-base hover:opacity-90 transition-opacity">
