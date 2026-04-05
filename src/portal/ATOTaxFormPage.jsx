@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { safeNumber, todayLocal } from "./PortalHelpers";
 
 // ── Colours matching the HTML ─────────────────────────────────────────────────
@@ -81,12 +81,36 @@ function dlCSV(name,header,rows) {
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
+// Asset depreciation for tax
+function calcAssetAnnualDep(asset) {
+  const cost = Number(asset.purchasePrice) || 0;
+  const salvage = Number(asset.salvageValue) || 0;
+  const life = Number(asset.effectiveLife) || 0;
+  const method = asset.depreciationMethod || "none";
+  const status = asset.status || "Active";
+  if (!cost || method === "none" || status !== "Active") return 0;
+  if (method === "instant") return cost;
+  if (method === "prime_cost" && life > 0) return (cost - salvage) / life;
+  if (method === "diminishing" && life > 0) {
+    const purchaseDate = asset.purchaseDate ? new Date(asset.purchaseDate) : null;
+    if (!purchaseDate) return 0;
+    const now = new Date();
+    const yearsHeld = Math.max(0, (now.getFullYear() - purchaseDate.getFullYear()) + ((now.getMonth() - purchaseDate.getMonth()) / 12));
+    const rate = 2 / life;
+    let wdv = cost;
+    for (let y = 0; y < Math.floor(yearsHeld); y++) { wdv -= Math.max(0, Math.min(wdv * rate, wdv - salvage)); }
+    return Math.max(0, Math.min(wdv * rate, wdv - salvage));
+  }
+  return 0;
+}
+
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function ATOTaxFormPage({
   profile = {},
   invoices = [],
   expenses = [],
   incomeSources = [],
+  assets = [],
   getClientById = () => null,
 }) {
   const [tab, setTab] = useState("income");
@@ -122,6 +146,10 @@ export default function ATOTaxFormPage({
     return Object.values(groups);
   })();
   const portalExp = expenses.map(e=>({date:e.date||"",type:e.category||e.expenseType||"Other",supplier:e.supplier||e.description||"",amount:safeNumber(e.amount),gstIncl:e.gstIncluded!==false?"yes":"no"}));
+
+  // Asset depreciation totals
+  const totalDepreciation = assets.filter(a => (a.status || "Active") === "Active").reduce((s, a) => s + calcAssetAnnualDep(a), 0);
+  const capitalPurchases = assets.reduce((s, a) => s + (Number(a.purchasePrice) || 0), 0);
 
   // Manually added records
   const [extraInc, setExtraInc] = useState([]);
@@ -159,8 +187,9 @@ export default function ATOTaxFormPage({
   const totInc = sumKey(allInc,"gross");
   const totWH  = sumKey(allInc,"withheld");
   const totFC  = sumKey(allInc,"franking");
-  const deduct = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
+  const deduct = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
   const taxableSum = Math.max(0,totInc-deduct);
+  const capitalG10 = g10 + capitalPurchases; // Capital purchases including assets
 
   // ITR state
   const [itr, setItr] = useState({
@@ -203,8 +232,8 @@ export default function ATOTaxFormPage({
     const fc      = sumKey(allInc,"franking");
     const mapped  = wages+biz+int_+for_+div;
     const other   = Math.max(0,sumKey(allInc,"gross")-mapped);
-    const ded     = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
-    setItr(p=>({...p,salary:wages||"",business:biz||"",interest:int_||"",foreign:for_||"",other:other||"",payg:payg||"",franked:franked||"",fc:fc||"",dWork:ded||""}));
+    const ded     = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
+    setItr(p=>({...p,salary:wages||"",business:biz||"",interest:int_||"",foreign:for_||"",other:other||"",payg:payg||"",franked:franked||"",fc:fc||"",dWork:ded||"",dOther:totalDepreciation?"":""}));
   };
 
   const applyCGT = () => {

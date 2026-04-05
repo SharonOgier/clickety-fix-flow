@@ -4480,13 +4480,14 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                 <ATOTaxFormPage
                   profile={profile} invoices={invoices} expenses={expenses}
                   incomeSources={incomeSources} getClientById={getClientById}
+                  assets={assets}
                 />
               </div>
             )}
             {activePage === "bas report" && (
               <div className="sas-inline-page-card">
                 <BASReportPage
-                  profile={profile} invoices={invoices} expenses={expenses}
+                  profile={profile} invoices={invoices} expenses={expenses} assets={assets}
                   invoiceAllocations={invoiceAllocations} totals={totals}
                   basQuarter={basQuarter} setBasQuarter={setBasQuarter}
                   basNotes={basNotes} setBasNotes={setBasNotes}

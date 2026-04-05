@@ -10,6 +10,7 @@ export default function BASReportPage(props) {
     profile = {},
     invoices = [],
     expenses = [],
+    assets = [],
     invoiceAllocations = [],
     totals = {},
     basQuarter,
@@ -57,9 +58,14 @@ export default function BASReportPage(props) {
   const filteredInvoices = invoices.filter((inv) => inRange(inv.invoiceDate));
   const filteredExpenses = expenses.filter((exp) => inRange(exp.date));
 
+  // Capital asset purchases (filtered by purchase date in quarter)
+  const filteredAssets = assets.filter((a) => inRange(a.purchaseDate));
+  const capitalPurchasesAmt = filteredAssets.reduce((s, a) => s + safeNumber(a.purchasePrice), 0);
+  const capitalGst = capitalPurchasesAmt / 11; // Estimate GST on capital purchases
+
   const g1TotalSales = filteredInvoices.reduce((s, inv) => s + safeNumber(inv.total), 0);
   const gstOnSales = filteredInvoices.reduce((s, inv) => s + safeNumber(inv.gst), 0);
-  const gstOnPurchases = filteredExpenses.reduce((s, exp) => s + safeNumber(exp.gst), 0);
+  const gstOnPurchases = filteredExpenses.reduce((s, exp) => s + safeNumber(exp.gst), 0) + capitalGst;
   const netGst = gstOnSales - gstOnPurchases;
   const totalExpensesAmt = filteredExpenses.reduce((s, exp) => s + safeNumber(exp.amount), 0);
 
@@ -111,7 +117,7 @@ export default function BASReportPage(props) {
             { code: "G1",  label: "Total sales",           value: g1TotalSales,      note: "All invoiced amounts incl. GST" },
             { code: "G2",  label: "GST-free sales",         value: 0,                 note: "Sales not subject to GST" },
             { code: "G3",  label: "Input-taxed sales",      value: 0,                 note: "e.g. financial supplies" },
-            { code: "G10", label: "Capital purchases",      value: 0,                 note: "Assets purchased this period" },
+            { code: "G10", label: "Capital purchases",      value: capitalPurchasesAmt, note: "Assets purchased this period" },
             { code: "G11", label: "Non-capital purchases",  value: totalExpensesAmt,  note: "Operating expenses incl. GST" },
             { code: "1A",  label: "GST on sales",           value: gstOnSales,        note: "GST collected -- pay to ATO" },
             { code: "1B",  label: "GST on purchases",       value: gstOnPurchases,    note: "GST credits -- claim back" },
