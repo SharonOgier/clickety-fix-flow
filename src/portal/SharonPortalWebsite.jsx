@@ -1404,12 +1404,31 @@ export default function AccountingPortalPrototype() {
           startedAfterDate: startedRaw === "yes" || startedRaw === "true" || startedRaw === "1",
           hasEndDate: endRaw === "yes" || endRaw === "true" || endRaw === "1",
         });
+      } else if (type === "assets") {
+        const methodRaw = (row["depreciationmethod"] || row["method"] || "prime_cost").toLowerCase().replace(/\s+/g, "_");
+        const validMethods = ["instant", "prime_cost", "diminishing", "none"];
+        rows.push({
+          name: row["assetname"] || row["name"] || "",
+          assetType: row["assettype"] || row["type"] || "Other",
+          serialNumber: row["serial/rego"] || row["serialrego"] || row["serial"] || row["rego"] || "",
+          location: row["location"] || "",
+          purchaseDate: row["purchasedate"] || row["date"] || "",
+          purchasePrice: row["purchaseprice"] || row["price"] || row["cost"] || "",
+          depreciationMethod: validMethods.includes(methodRaw) ? methodRaw : "prime_cost",
+          effectiveLife: row["effectivelife(years)"] || row["effectivelife"] || row["life"] || "",
+          salvageValue: row["salvagevalue"] || row["residual"] || "0",
+          status: row["status"] || "Active",
+          previousOwners: row["previousowners"] || row["ownership"] || "",
+          notes: row["notes"] || "",
+        });
       }
     }
     const valid = type === "invoices"
       ? rows.filter((r) => r.invoiceNumber || r.clientName || r.total)
       : type === "expenses"
       ? rows.filter((r) => r.supplier || r.amount)
+      : type === "assets"
+      ? rows.filter((r) => r.name?.trim())
       : rows.filter((r) => r.name?.trim());
     if (!valid.length) return { rows: [], error: "No valid rows found. Check required columns are filled in." };
     return { rows: valid, error: "" };
