@@ -731,6 +731,7 @@ const paypalCheckoutUrl = buildPayPalInvoiceUrl({
   currencyCode,
   invoiceNumber: invoice.invoiceNumber || paymentReference,
 });
+const cardPaymentUrl = safeHref(stripeCheckoutUrl) || safeHref(profile.stripePaymentLink);
 
 const clientDetails =
   previewClient?.includeAddressDetails && previewClient?.addressDetails
