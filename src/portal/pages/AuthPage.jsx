@@ -118,7 +118,7 @@ export default function AuthPage(props) {
               {[
                 ["Invoices & quotes", "Create, send and review client billing documents."],
                 ["Financial reporting", "View live insights, receivables, cash flow and BAS support."],
-                ["Secure access", "Supabase sign-in with password reset and account setup flow."],
+                ["Guided setup wizard", "New accounts are walked through a step-by-step wizard to configure your business profile."],
               ].map(([title, copy]) => (
                 <div key={title} style={{ background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 18, padding: 16 }}>
                   <div style={{ fontSize: 15, fontWeight: 800 }}>{title}</div>
