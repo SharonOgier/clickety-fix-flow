@@ -329,24 +329,26 @@ export function MetricCard({ title, value, subtitle, accent = colours.purple }) 
       className="sas-metric-card"
       style={{
         ...cardStyle,
-        padding: 18,
+        padding: 20,
         position: "relative",
         overflow: "hidden",
-        minHeight: 144,
+        minHeight: 140,
       }}
     >
       <div
         style={{
           position: "absolute",
-          inset: 0,
-          background: `linear-gradient(180deg, ${accent}12 0%, rgba(255,255,255,0) 76%)`,
-          pointerEvents: "none",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: `linear-gradient(90deg, ${accent} 0%, ${accent}44 100%)`,
         }}
       />
       <div style={{ position: "relative" }}>
-        <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: 0.2, color: colours.muted, textTransform: "uppercase" }}>{title}</div>
-        <div style={{ fontSize: 30, fontWeight: 900, color: colours.text, marginTop: 10 }}>{value}</div>
-        <div style={{ fontSize: 12, color: colours.muted, marginTop: 10, lineHeight: 1.5 }}>{subtitle}</div>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 0.3, color: colours.muted, textTransform: "uppercase", fontFamily: '"DM Sans", sans-serif' }}>{title}</div>
+        <div style={{ fontSize: 28, fontWeight: 800, color: colours.text, marginTop: 10, fontFamily: '"Playfair Display", serif' }}>{value}</div>
+        <div style={{ fontSize: 12, color: colours.muted, marginTop: 10, lineHeight: 1.5, fontFamily: '"DM Sans", sans-serif' }}>{subtitle}</div>
       </div>
     </div>
   );
