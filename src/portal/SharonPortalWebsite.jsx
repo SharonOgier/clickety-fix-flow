@@ -1230,10 +1230,13 @@ export default function AccountingPortalPrototype() {
     const invoiceExample = "INV-001,Smith Farms Pty Ltd,2025-03-15,2025-04-15,Fencing repair and materials,1000.00,100.00,1100.00,Draft";
     const expenseHeaders = "Supplier,Date,Due Date,Category,Description,Amount,GST,Is Paid";
     const expenseExample = "AGL Energy,2025-03-10,2025-04-10,Utilities,Electricity - March quarter,450.00,45.00,No";
+    const incomeHeaders = "Name,Income Type,Before Tax,Frequency,Started After Jul 2025,Has End Date";
+    const incomeExample = "Smith Farms Employment,Casual employment,1200.00,Weekly,No,No";
     let csv, filename;
     if (type === "clients") { csv = `${clientHeaders}\n${clientExample}\n`; filename = "clients_template.csv"; }
     else if (type === "suppliers") { csv = `${supplierHeaders}\n${supplierExample}\n`; filename = "suppliers_template.csv"; }
     else if (type === "invoices") { csv = `${invoiceHeaders}\n${invoiceExample}\n`; filename = "invoices_template.csv"; }
+    else if (type === "income") { csv = `${incomeHeaders}\n${incomeExample}\n`; filename = "income_sources_template.csv"; }
     else { csv = `${expenseHeaders}\n${expenseExample}\n`; filename = "expenses_template.csv"; }
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -1282,6 +1285,17 @@ export default function AccountingPortalPrototype() {
           description: row["description"] || row["notes"] || "",
           amount, gst,
           isPaid: isPaidRaw === "yes" || isPaidRaw === "true" || isPaidRaw === "1",
+        });
+      } else if (type === "income") {
+        const startedRaw = (row["startedafterjul2025"] || row["startedafter"] || "").toLowerCase();
+        const endRaw = (row["hasenddate"] || row["enddate"] || "").toLowerCase();
+        rows.push({
+          name: row["name"] || row["source"] || "",
+          incomeType: row["incometype"] || row["type"] || "Casual employment",
+          beforeTax: row["beforetax"] || row["amount"] || "",
+          frequency: row["frequency"] || "",
+          startedAfterDate: startedRaw === "yes" || startedRaw === "true" || startedRaw === "1",
+          hasEndDate: endRaw === "yes" || endRaw === "true" || endRaw === "1",
         });
       }
     }
@@ -1340,6 +1354,13 @@ export default function AccountingPortalPrototype() {
         }));
         setExpenses((prev) => [...prev, ...saved]);
         toast.success(`Imported ${saved.length} expense${saved.length !== 1 ? "s" : ""}!`);
+      } else if (importType === "income") {
+        const existing = incomeSources;
+        const existingNames = new Set(existing.map((r) => (r.name || "").toLowerCase().trim()));
+        const newRows = importRows.filter((r) => !existingNames.has((r.name || "").toLowerCase().trim()));
+        const saved = await Promise.all(newRows.map((r) => upsertRecordInDatabase(SUPABASE_TABLES.income_sources, { ...r })));
+        setIncomeSources((prev) => [...prev, ...saved]);
+        toast.success(`Imported ${saved.length} income source${saved.length !== 1 ? "s" : ""}${newRows.length < importRows.length ? ` (${importRows.length - newRows.length} duplicates skipped)` : ""}!`);
       }
       setShowImportModal(false);
       setImportRows([]);
@@ -4060,6 +4081,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               saveExpenseEdits={saveExpenseEdits}
               resetExpenseModal={resetExpenseModal} nextExpenseModalStep={nextExpenseModalStep}
               totals={totals} uploadReceiptToSupabase={uploadReceiptToSupabase}
+              setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
             />}
             {activePage === "bills / payables" && <BillsPage
               profile={profile} expenses={expenses} suppliers={suppliers} clients={clients}
@@ -4107,6 +4129,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               MiniBarChart={MiniBarChart} IncomeSourceModal={IncomeSourceModal}
               saveIncomeSource={saveIncomeSource} deleteIncomeSource={deleteIncomeSource}
+              setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
             />}
             {activePage === "documents" && <DocumentsPage
               documents={documents} documentFile={documentFile} setDocumentFile={setDocumentFile}
@@ -4309,15 +4332,15 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         <div style={{ position: "fixed", inset: 0, zIndex: 99993, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: "#fff", borderRadius: 18, padding: 28, width: "100%", maxWidth: 620, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", fontFamily: "sans-serif", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: colours.text, marginBottom: 6 }}>
-              Import {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : "Expenses / Bills"}
+              Import {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : importType === "income" ? "Income Sources" : "Expenses / Bills"}
             </div>
 
             {/* Tab switcher */}
             <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
-              {["clients", "suppliers", "invoices", "expenses"].map((t) => (
+              {["clients", "suppliers", "invoices", "expenses", "income"].map((t) => (
                 <button key={t} onClick={() => { setImportType(t); setImportRows([]); setImportError(""); }}
                   style={{ background: importType === t ? colours.purple : "#F1F5F9", color: importType === t ? "#fff" : colours.text, border: "none", borderRadius: 8, padding: "7px 16px", fontWeight: 700, cursor: "pointer", fontSize: 13, textTransform: "capitalize" }}>
-                  {t === "expenses" ? "Bills / Expenses" : t}
+                  {t === "expenses" ? "Bills / Expenses" : t === "income" ? "Income Sources" : t}
                 </button>
               ))}
             </div>
@@ -4328,14 +4351,14 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: colours.text, lineHeight: 2 }}>
                 <li>Click <strong>Download Template</strong> below to get the CSV file</li>
                 <li>Open it in Excel or Google Sheets</li>
-                <li>Fill in your {importType === "expenses" ? "bills / expenses" : importType} — <strong>{importType === "invoices" ? "Invoice Number or Client Name" : importType === "expenses" ? "Supplier or Amount" : "Name"} is required</strong></li>
+                <li>Fill in your {importType === "expenses" ? "bills / expenses" : importType === "income" ? "income sources" : importType} — <strong>{importType === "invoices" ? "Invoice Number or Client Name" : importType === "expenses" ? "Supplier or Amount" : "Name"} is required</strong></li>
                 <li>Save as <strong>CSV</strong> (File → Save As → CSV)</li>
                 <li>Click <strong>Choose File</strong> below and select your saved CSV</li>
                 <li>Review the preview, then click <strong>Confirm Import</strong></li>
               </ol>
-              {(importType === "clients" || importType === "suppliers") && (
+              {(importType === "clients" || importType === "suppliers" || importType === "income") && (
                 <div style={{ marginTop: 12, fontSize: 12, color: colours.muted }}>
-                  ℹ️ Duplicates are skipped automatically — existing {importType} with the same name won't be overwritten.
+                  ℹ️ Duplicates are skipped automatically — existing {importType === "income" ? "income sources" : importType} with the same name won't be overwritten.
                 </div>
               )}
               {importType === "invoices" && (
@@ -4355,6 +4378,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                   ? ["Name *", "Contact Person", "Email", "Phone", "Address", "ABN", "Notes"]
                   : importType === "invoices"
                   ? ["Invoice Number *", "Client Name *", "Date", "Due Date", "Description", "Subtotal", "GST", "Total", "Status"]
+                  : importType === "income"
+                  ? ["Name *", "Income Type", "Before Tax", "Frequency", "Started After Jul 2025", "Has End Date"]
                   : ["Supplier *", "Date", "Due Date", "Category", "Description", "Amount *", "GST", "Is Paid"]
                 ).map((col) => (
                   <span key={col} style={{ background: col.includes("*") ? colours.purple : "#F1F5F9", color: col.includes("*") ? "#fff" : colours.text, borderRadius: 6, padding: "4px 10px", fontSize: 12, fontWeight: 600 }}>
@@ -4367,7 +4392,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             {/* Download template button */}
             <button onClick={() => downloadTemplate(importType)}
               style={{ ...buttonSecondary, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-              ⬇️ Download {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : "Expenses"} Template
+              ⬇️ Download {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : importType === "income" ? "Income Sources" : "Expenses"} Template
             </button>
 
             {/* File upload */}
@@ -4422,6 +4447,14 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                           <span style={{ color: colours.muted }}> · {row.date || "No date"}</span>
                           <span style={{ fontWeight: 700, marginLeft: 8, color: colours.purple }}>${Number(row.amount || 0).toFixed(2)}</span>
                           {row.isPaid && <span style={{ marginLeft: 8, fontSize: 11, color: colours.teal, fontWeight: 600 }}>Paid</span>}
+                        </>
+                      )}
+                      {importType === "income" && (
+                        <>
+                          <strong>{row.name || "Unknown"}</strong>
+                          <span style={{ color: colours.muted }}> — {row.incomeType || "Unspecified"}</span>
+                          <span style={{ fontWeight: 700, marginLeft: 8, color: colours.teal }}>${Number(row.beforeTax || 0).toFixed(2)}</span>
+                          <span style={{ marginLeft: 8, fontSize: 11, color: colours.muted }}>{row.frequency || ""}</span>
                         </>
                       )}
                     </div>
