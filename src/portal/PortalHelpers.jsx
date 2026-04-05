@@ -60,6 +60,7 @@ export const navLabels = {
   "bank reconciliation": "Bank Reconciliation",
   "bas report": "BAS Report",
   "ato tax form": "ATO Tax Form",
+  "tax estimator": "Tax Estimator",
   settings: "Settings",
 };
 
