@@ -94,6 +94,7 @@ import DocumentsPage        from "./pages/DocumentsPage";
 import SetupWizardPage      from "./pages/SetupWizardPage";
 import AuthPage             from "./pages/AuthPage";
 import BASReportPage        from "./pages/BASReportPage";
+import TaxEstimatorPage     from "./pages/TaxEstimatorPage";
 import SettingsPage         from "./pages/SettingsPage";
 import ATOTaxFormPage       from "./ATOTaxFormPage";
 import BankReconciliationPage from "./pages/BankReconciliationPage";
@@ -4175,7 +4176,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                       "dashboard": "⬡", "financial insights": "📊", "invoices": "📄", "quotes": "📋",
                       "clients": "👥", "services": "⚙", "expenses": "💳", "bills / payables": "🧾",
                       "income sources": "💰", "documents": "📁", "bank reconciliation": "🏦",
-                      "bas report": "📑", "ato tax form": "🏛", "settings": "⚙",
+                      "bas report": "📑", "ato tax form": "🏛", "tax estimator": "🧮", "settings": "⚙",
                     };
                     return (
                       <button
@@ -4496,6 +4497,21 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                   currency={currency} formatDateAU={formatDateAU} safeNumber={safeNumber}
                   DashboardHero={DashboardHero} InsightChip={InsightChip}
                   MetricCard={MetricCard} SectionCard={SectionCard} SummaryBox={SummaryBox}
+                  setActivePage={setActivePage}
+                />
+              </div>
+            )}
+            {activePage === "tax estimator" && (
+              <div className="sas-inline-page-card">
+                <TaxEstimatorPage
+                  profile={profile} invoices={invoices} expenses={expenses}
+                  assets={assets} incomeSources={incomeSources}
+                  colours={colours} cardStyle={cardStyle}
+                  buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+                  inputStyle={inputStyle} labelStyle={labelStyle}
+                  currency={currency} formatDateAU={formatDateAU} safeNumber={safeNumber}
+                  DashboardHero={DashboardHero} InsightChip={InsightChip}
+                  MetricCard={MetricCard} SectionCard={SectionCard}
                   setActivePage={setActivePage}
                 />
               </div>
