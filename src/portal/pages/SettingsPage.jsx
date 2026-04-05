@@ -1,5 +1,4 @@
-import React from "react";
-
+import React, { useState } from "react";
 // ─────────────────────────────────────────────────────────────────────────────
 // SettingsPage
 // All state and handlers come from SharonPortalWebsite via props.
@@ -40,7 +39,16 @@ export default function SettingsPage(props) {
     toast = { success: () => {}, error: () => {} },
     confirm = ({ onConfirm }) => typeof onConfirm === "function" && onConfirm(),
     authUserEmail = "",
+    teamMembers = [],
+    setTeamMembers = () => {},
+    teamInvitations = [],
+    setTeamInvitations = () => {},
+    supabase = null,
+    authUser = null,
   } = props;
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [invitePermission, setInvitePermission] = useState("viewer");
+  const [sendingInvite, setSendingInvite] = useState(false);
 
   const MASTER_EMAILS = ["info@sharonogier.com", "sharon@sharonogier.com"];
   const isOwner = MASTER_EMAILS.includes((authUserEmail || "").toLowerCase().trim());
@@ -443,6 +451,87 @@ export default function SettingsPage(props) {
                 Save Branding
               </button>
             </div>
+          </div>
+        )}
+
+        {activeSettingsTab === "Team" && (
+          <div style={{ display: "grid", gap: 16 }}>
+            <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 4 }}>Team Members</div>
+            <div style={{ fontSize: 13, color: colours.muted, lineHeight: 1.6, marginBottom: 8 }}>
+              Invite team members to access your portal. Viewers can see data; Editors can also make changes.
+            </div>
+
+            {/* Invite form */}
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "flex-end" }}>
+              <div style={{ flex: 1, minWidth: 200 }}>
+                <label style={labelStyle}>Email</label>
+                <input style={inputStyle} type="email" placeholder="team@example.com" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} />
+              </div>
+              <div style={{ minWidth: 120 }}>
+                <label style={labelStyle}>Permission</label>
+                <select style={inputStyle} value={invitePermission} onChange={e => setInvitePermission(e.target.value)}>
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                </select>
+              </div>
+              <button style={{ ...buttonPrimary, padding: "10px 20px", whiteSpace: "nowrap" }} disabled={sendingInvite} onClick={async () => {
+                if (!inviteEmail.trim() || !isValidEmail(inviteEmail)) { toast.error("Please enter a valid email."); return; }
+                setSendingInvite(true);
+                try {
+                  const { error } = await supabase.from("sas_team_invitations").insert({ inviter_user_id: authUser.id, email: inviteEmail.trim().toLowerCase(), permission: invitePermission });
+                  if (error) throw error;
+                  // Send invite email
+                  await supabase.functions.invoke("send-document-email", { body: { to: [inviteEmail.trim()], subject: `You've been invited to ${profile.businessName || "a portal"}`, html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px;"><h2 style="color:#6A1B9A;">Team Invitation</h2><p>${profile.businessName || "A business"} has invited you to join their accounting portal as a <strong>${invitePermission}</strong>.</p><p>Sign up or log in at <a href="https://sharonogier.com/portal">sharonogier.com/portal</a> to get started.</p></div>` } });
+                  const { data: updated } = await supabase.from("sas_team_invitations").select("*").eq("inviter_user_id", authUser.id);
+                  setTeamInvitations(updated || []);
+                  setInviteEmail("");
+                  toast.success("Invitation sent!");
+                } catch (err) { toast.error(err.message || "Failed to send invitation"); }
+                setSendingInvite(false);
+              }}>
+                {sendingInvite ? "Sending..." : "Send Invite"}
+              </button>
+            </div>
+
+            {/* Pending invitations */}
+            {teamInvitations.filter(i => i.status === "pending").length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: colours.text, marginBottom: 8 }}>Pending Invitations</div>
+                {teamInvitations.filter(i => i.status === "pending").map(inv => (
+                  <div key={inv.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", borderRadius: 8, border: `1px solid ${colours.border}`, marginBottom: 6 }}>
+                    <div>
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>{inv.email}</span>
+                      <span style={{ fontSize: 11, color: colours.muted, marginLeft: 8, background: colours.lightPurple, padding: "2px 8px", borderRadius: 4 }}>{inv.permission}</span>
+                    </div>
+                    <button style={{ ...buttonSecondary, padding: "4px 12px", fontSize: 11 }} onClick={async () => {
+                      await supabase.from("sas_team_invitations").delete().eq("id", inv.id);
+                      setTeamInvitations(prev => prev.filter(i => i.id !== inv.id));
+                      toast.success("Invitation cancelled");
+                    }}>Cancel</button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Active members */}
+            {teamMembers.length > 0 && (
+              <div style={{ marginTop: 12 }}>
+                <div style={{ fontSize: 13, fontWeight: 700, color: colours.text, marginBottom: 8 }}>Active Members</div>
+                {teamMembers.map(m => (
+                  <div key={m.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 12px", borderRadius: 8, border: `1px solid ${colours.border}`, marginBottom: 6 }}>
+                    <div>
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>{m.member_user_id.slice(0, 8)}...</span>
+                      <span style={{ fontSize: 11, color: colours.muted, marginLeft: 8, background: colours.lightTeal, padding: "2px 8px", borderRadius: 4 }}>{m.permission}</span>
+                    </div>
+                    <button style={{ ...buttonSecondary, padding: "4px 12px", fontSize: 11, color: "#EF4444", borderColor: "#FECACA" }} onClick={async () => {
+                      await supabase.from("sas_team_members").delete().eq("id", m.id);
+                      setTeamMembers(prev => prev.filter(tm => tm.id !== m.id));
+                      toast.success("Member removed");
+                    }}>Remove</button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

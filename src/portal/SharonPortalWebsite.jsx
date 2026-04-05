@@ -199,6 +199,12 @@ export default function AccountingPortalPrototype() {
   const [authUser, setAuthUser] = useState(null);
   const [authMode, setAuthMode] = useState("signin");
   const [isResettingPassword, setIsResettingPassword] = useState(false);
+  // Multi-user state
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [viewingAsUserId, setViewingAsUserId] = useState(null);
+  const [allPortalUsers, setAllPortalUsers] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
+  const [teamInvitations, setTeamInvitations] = useState([]);
   const [newPassword, setNewPassword] = useState("");
   const [newPasswordConfirm, setNewPasswordConfirm] = useState("");
   const [showResetSentModal, setShowResetSentModal] = useState(false);
@@ -738,6 +744,72 @@ export default function AccountingPortalPrototype() {
     };
   }, [invoices, quotes, profile, clients]);
 
+  // Check admin role and load all portal users for admin
+  useEffect(() => {
+    if (!authUser || !supabase) return;
+    (async () => {
+      try {
+        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", authUser.id);
+        const adminRole = (roles || []).some(r => r.role === "admin");
+        setIsAdmin(adminRole);
+        if (adminRole) {
+          const { data: profiles } = await supabase.from("sas_profile").select("id, data, user_id");
+          setAllPortalUsers((profiles || []).map(p => ({
+            userId: p.user_id,
+            businessName: p.data?.businessName || p.data?.name || "Unknown",
+            email: p.data?.email || "",
+          })));
+        }
+        // Load team members and invitations
+        const { data: members } = await supabase.from("sas_team_members").select("*").eq("owner_user_id", authUser.id);
+        setTeamMembers(members || []);
+        const { data: invites } = await supabase.from("sas_team_invitations").select("*").eq("inviter_user_id", authUser.id);
+        setTeamInvitations(invites || []);
+        // Check for pending invitations for this user and auto-accept
+        const { data: pendingInvites } = await supabase.from("sas_team_invitations").select("*").eq("email", authUser.email).eq("status", "pending");
+        if (pendingInvites?.length) {
+          for (const inv of pendingInvites) {
+            await supabase.from("sas_team_members").insert({ owner_user_id: inv.inviter_user_id, member_user_id: authUser.id, permission: inv.permission }).select();
+            await supabase.from("sas_team_invitations").update({ status: "accepted", accepted_at: new Date().toISOString() }).eq("id", inv.id);
+          }
+          const { data: updatedMembers } = await supabase.from("sas_team_members").select("*").eq("owner_user_id", authUser.id);
+          setTeamMembers(updatedMembers || []);
+        }
+      } catch (err) { console.warn("Multi-user check failed:", err); }
+    })();
+  }, [authUser]);
+
+  const switchToUser = async (targetUserId) => {
+    if (!supabase || !authUser) return;
+    setViewingAsUserId(targetUserId === authUser.id ? null : targetUserId);
+    // Re-fetch all data for the target user
+    setIsSupabaseRestoring(true);
+    try {
+      const uid = targetUserId;
+      const safeF = (table) => fetchCollectionFromDatabase(table, uid).catch(() => []);
+      const [rProfile, rClients, rInvoices, rQuotes, rExpenses, rIncome, rServices, rDocs, rSuppliers] = await Promise.all([
+        safeF(SUPABASE_TABLES.profile), safeF(SUPABASE_TABLES.clients), safeF(SUPABASE_TABLES.invoices),
+        safeF(SUPABASE_TABLES.quotes), safeF(SUPABASE_TABLES.expenses), safeF(SUPABASE_TABLES.incomeSources),
+        safeF(SUPABASE_TABLES.services), safeF(SUPABASE_TABLES.documents), safeF(SUPABASE_TABLES.suppliers),
+      ]);
+      const remoteProfile = Array.isArray(rProfile) && rProfile.length
+        ? [...rProfile].reverse().find(r => Boolean(r?.setupComplete ?? r?.data?.setupComplete)) || rProfile[rProfile.length - 1]
+        : null;
+      const nextProfile = remoteProfile?.data ? { ...initialProfile, ...remoteProfile.data, id: remoteProfile.id } : remoteProfile ? { ...initialProfile, ...remoteProfile } : initialProfile;
+      setProfile(nextProfile);
+      setClients(Array.isArray(rClients) ? rClients : []);
+      setInvoices(Array.isArray(rInvoices) ? rInvoices : []);
+      setQuotes(Array.isArray(rQuotes) ? rQuotes : []);
+      setExpenses(Array.isArray(rExpenses) ? rExpenses : []);
+      setIncomeSources(Array.isArray(rIncome) ? rIncome : []);
+      setServices(Array.isArray(rServices) ? rServices : []);
+      setDocuments(Array.isArray(rDocs) ? rDocs : []);
+      setSuppliers(Array.isArray(rSuppliers) ? rSuppliers : []);
+      setActivePage("dashboard");
+    } catch (err) { console.error("Switch user failed:", err); }
+    setIsSupabaseRestoring(false);
+  };
+
   useEffect(() => {
     if (authUser) {
       restorePortalStateFromSupabase();
@@ -895,13 +967,14 @@ export default function AccountingPortalPrototype() {
     return row;
   };
 
-  const fetchCollectionFromDatabase = async (tableName) => {
+  const fetchCollectionFromDatabase = async (tableName, overrideUserId = null) => {
     if (!supabase || !authUser?.id) return [];
+    const targetUserId = overrideUserId || viewingAsUserId || authUser.id;
 
     const { data, error } = await supabase
       .from(tableName)
       .select("id, data, user_id, updated_at")
-      .eq("user_id", authUser.id)
+      .eq("user_id", targetUserId)
       .order("updated_at", { ascending: true });
 
     if (error) throw error;
@@ -3988,9 +4061,45 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             {profile.businessName || "My Portal"}
           </div>
 
-          <div style={{ fontSize: 12, color: colours.muted, marginBottom: 24, paddingBottom: 16, borderBottom: `1px solid ${colours.border}` }}>
+          <div style={{ fontSize: 12, color: colours.muted, marginBottom: isAdmin ? 8 : 24, paddingBottom: isAdmin ? 8 : 16, borderBottom: isAdmin ? "none" : `1px solid ${colours.border}` }}>
             {authUser.email || "user"}
           </div>
+
+          {/* Admin client switcher */}
+          {isAdmin && allPortalUsers.length > 0 && (
+            <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: `1px solid ${colours.border}` }}>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase", color: colours.muted, marginBottom: 6 }}>
+                👤 Viewing As
+              </div>
+              <select
+                value={viewingAsUserId || authUser.id}
+                onChange={(e) => switchToUser(e.target.value)}
+                style={{
+                  width: "100%", padding: "8px 10px", borderRadius: 8,
+                  border: `1px solid ${viewingAsUserId ? colours.purple : colours.border}`,
+                  fontSize: 12, fontWeight: 600,
+                  background: viewingAsUserId ? colours.lightPurple : colours.white,
+                  color: colours.text, cursor: "pointer",
+                }}
+              >
+                <option value={authUser.id}>🔑 My Portal</option>
+                {allPortalUsers
+                  .filter(u => u.userId !== authUser.id)
+                  .sort((a, b) => (a.businessName || "").localeCompare(b.businessName || ""))
+                  .map(u => (
+                    <option key={u.userId} value={u.userId}>
+                      {u.businessName || u.email || "Unknown"}
+                    </option>
+                  ))
+                }
+              </select>
+              {viewingAsUserId && (
+                <div style={{ fontSize: 11, color: colours.purple, fontWeight: 700, marginTop: 4, textAlign: "center" }}>
+                  ⚠ Viewing client data
+                </div>
+              )}
+            </div>
+          )}
 
           <div style={{ display: "grid", gap: 16, flex: 1 }}>
             {navSections.map((section) => (
@@ -4336,6 +4445,9 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               handleCloseAccount={handleCloseAccount} handleSignOut={handleSignOut}
               toast={toast} confirm={confirm}
               authUserEmail={authUser?.email || ""}
+              teamMembers={teamMembers} setTeamMembers={setTeamMembers}
+              teamInvitations={teamInvitations} setTeamInvitations={setTeamInvitations}
+              supabase={supabase} authUser={authUser}
             />}
             </div>
           </div>

@@ -233,15 +233,97 @@ export type Database = {
         }
         Relationships: []
       }
+      sas_team_invitations: {
+        Row: {
+          accepted_at: string | null
+          created_at: string
+          email: string
+          id: string
+          inviter_user_id: string
+          permission: string
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          inviter_user_id: string
+          permission?: string
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          inviter_user_id?: string
+          permission?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      sas_team_members: {
+        Row: {
+          created_at: string
+          id: string
+          member_user_id: string
+          owner_user_id: string
+          permission: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          member_user_id: string
+          owner_user_id: string
+          permission?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          member_user_id?: string
+          owner_user_id?: string
+          permission?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_accessible_user_ids: { Args: { _user_id: string }; Returns: string[] }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "owner" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -368,6 +450,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "owner", "member"],
+    },
   },
 } as const
