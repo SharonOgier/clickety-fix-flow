@@ -1354,6 +1354,13 @@ export default function AccountingPortalPrototype() {
         }));
         setExpenses((prev) => [...prev, ...saved]);
         toast.success(`Imported ${saved.length} expense${saved.length !== 1 ? "s" : ""}!`);
+      } else if (importType === "income") {
+        const existing = incomeSources;
+        const existingNames = new Set(existing.map((r) => (r.name || "").toLowerCase().trim()));
+        const newRows = importRows.filter((r) => !existingNames.has((r.name || "").toLowerCase().trim()));
+        const saved = await Promise.all(newRows.map((r) => upsertRecordInDatabase(SUPABASE_TABLES.income_sources, { ...r })));
+        setIncomeSources((prev) => [...prev, ...saved]);
+        toast.success(`Imported ${saved.length} income source${saved.length !== 1 ? "s" : ""}${newRows.length < importRows.length ? ` (${importRows.length - newRows.length} duplicates skipped)` : ""}!`);
       }
       setShowImportModal(false);
       setImportRows([]);
