@@ -121,7 +121,7 @@ export default function FarmEquipmentPage() {
                 Extensive hands-on experience with agricultural machinery. Independent and thorough — every assessment backed by practical knowledge and real market awareness.
               </p>
               <div className="flex flex-wrap gap-2 justify-center mt-6">
-                {["Certified", "Independent", "On-Site"].map((tag) => (
+                {["Independent", "On-Site", "Practical"].map((tag) => (
                   <span key={tag} className="bg-teal-light text-accent rounded-full px-3.5 py-1 text-xs font-bold">
                     {tag}
                   </span>
