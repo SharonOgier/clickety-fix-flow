@@ -235,14 +235,22 @@ export default function SettingsPage(props) {
               <label style={labelStyle}>Portal Subscription Fee ($/mo)</label>
               <input
                 type="number"
-                style={inputStyle}
+                style={{ ...inputStyle, ...(isOwner ? {} : { background: "#f3f4f6", color: "#9ca3af", cursor: "not-allowed" }) }}
                 value={profile.monthlySubscription ?? DEFAULT_MONTHLY_SUBSCRIPTION}
-                onChange={(e) => setProfile({ ...profile, monthlySubscription: safeNumber(e.target.value) })}
+                onChange={(e) => {
+                  if (!isOwner) return;
+                  setProfile({ ...profile, monthlySubscription: safeNumber(e.target.value) });
+                }}
+                readOnly={!isOwner}
                 placeholder="45"
                 min="0"
                 step="1"
               />
-              <div style={{ fontSize: 12, color: colours.muted, marginTop: 4 }}>Fixed monthly subscription cost ($45 default). Deducted from Safe to Spend on the dashboard.</div>
+              <div style={{ fontSize: 12, color: colours.muted, marginTop: 4 }}>
+                {isOwner
+                  ? "Fixed monthly subscription cost ($45 default). Deducted from Safe to Spend on the dashboard."
+                  : "This fee is set by your account administrator and cannot be changed."}
+              </div>
             </div>
 
             <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
