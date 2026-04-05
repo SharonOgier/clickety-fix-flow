@@ -83,7 +83,7 @@ export default function SettingsPage(props) {
 
   return (
     <div style={{ display: "grid", gap: 20 }}>
-      <DashboardHero title="Settings" subtitle="Configure your business profile, financial settings, branding and security. Changes save to your Supabase database automatically." highlight={activeSettingsTab}>
+      <DashboardHero title="Settings" subtitle="Configure your business profile, financial settings, branding and security. Click Save on each tab to apply changes." highlight={activeSettingsTab}>
         <InsightChip label="Business" value={profile.businessName || "Not set"} />
         <InsightChip label="ABN" value={profile.abn || "Not set"} />
         <InsightChip label="GST" value={profile.gstRegistered ? "Registered" : "Not registered"} />
@@ -436,15 +436,6 @@ export default function SettingsPage(props) {
 
         {activeSettingsTab === "Security" && (
           <div style={{ display: "grid", gap: 16 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={profile.twoFactor}
-                onChange={(e) => setProfile({ ...profile, twoFactor: e.target.checked })}
-              />
-              Enable two-factor authentication
-            </label>
-
             <div style={{ borderTop: `1px solid ${colours.border}`, paddingTop: 20, marginTop: 8 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 6 }}>Close Account</div>
               <div style={{ fontSize: 13, color: colours.muted, marginBottom: 16, lineHeight: 1.6 }}>
