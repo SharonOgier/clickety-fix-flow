@@ -103,16 +103,12 @@ export default function ATOTaxFormPage({
   // Group portal invoices by type and sum — avoids one row per invoice
   const portalInc = (() => {
     const groups = {};
-    // Include all invoices (Draft, Sent, Paid, Overdue, etc.) — totals for tax planning
-    invoices.forEach(i=>{
-      const status = (i.status||"").toLowerCase();
+    invoices.filter(i=>i.status==="Paid").forEach(i=>{
       const key = "Business (sole trader)";
-      const label = status === "paid" ? "Business income – Paid invoices" : "Business income – All invoices";
-      if(!groups[key]) groups[key] = {type:key, payer:label, gross:0, withheld:0, franked:0, franking:0, abn:"", date:""};
+      if(!groups[key]) groups[key] = {type:key, payer:"Business income (portal invoices)", gross:0, withheld:0, franked:0, franking:0, abn:"", date:""};
       groups[key].gross    += safeNumber(i.total);
       groups[key].withheld += safeNumber(i.taxWithheld||0);
-      const dateVal = i.paidAt ? i.paidAt.slice(0,10) : (i.invoiceDate || "");
-      if(!groups[key].date || dateVal > groups[key].date) groups[key].date = dateVal;
+      if(!groups[key].date || i.paidAt?.slice(0,10) > groups[key].date) groups[key].date = i.paidAt?i.paidAt.slice(0,10):(i.invoiceDate||"");
     });
     // Group income sources by type
     incomeSources.filter(s=>safeNumber(s.beforeTax)>0).forEach(s=>{
