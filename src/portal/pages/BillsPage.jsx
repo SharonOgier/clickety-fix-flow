@@ -528,6 +528,7 @@ export default function BillsPage(props) {
             { key: "amount", label: "Amount" },
             { key: "status", label: "Status" },
           ], "bills.csv")}>Export CSV</button>
+          <button style={buttonSecondary} onClick={() => { setImportType("expenses"); setImportRows([]); setImportError(""); setShowImportModal(true); }}>Import Bills</button>
         }>
           <DataTable
             emptyState={{ icon: "", title: "No bills yet", message: "Bills and payables you record will appear here. Use the form above to add your first bill." }}

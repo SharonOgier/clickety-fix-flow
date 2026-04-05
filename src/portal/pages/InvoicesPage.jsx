@@ -610,6 +610,7 @@ function InvoicesPageInner(props) {
             { key: "total", label: "Total" },
             { key: "status", label: "Status", exportValue: (row) => row.status || "Draft" },
           ], "invoices.csv")}>Export CSV</button>
+          <button style={buttonSecondary} onClick={() => { setImportType("invoices"); setImportRows([]); setImportError(""); setShowImportModal(true); }}>Import Invoices</button>
         }>
           <DataTable
             emptyState={{ icon: "", title: "No invoices yet", message: "Create your first invoice using the form above. Invoices can be emailed as a PDF with a Stripe payment link." }}
