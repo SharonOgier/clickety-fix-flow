@@ -697,3 +697,25 @@ export function getSubscriptionAccess(profile) {
   if (status === "canceled" || status === "past_due") return { allowed: false, reason: status };
   return { allowed: true, reason: "legacy" };
 }
+
+// ── Export CSV helper ────────────────────────────────────────────────────────
+export function exportToCSV(rows, columns, filename = "export.csv") {
+  if (!rows || !rows.length) return;
+  const headers = columns.map((c) => c.label);
+  const csvRows = [
+    headers.join(","),
+    ...rows.map((row) =>
+      columns.map((c) => {
+        let val = c.exportValue ? c.exportValue(row) : (c.render ? c.render(row[c.key], row) : row[c.key]);
+        val = String(val ?? "").replace(/"/g, '""');
+        return `"${val}"`;
+      }).join(",")
+    ),
+  ];
+  const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
+}
