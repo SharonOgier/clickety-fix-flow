@@ -191,7 +191,9 @@ export default function AuthPage(props) {
             </div>
 
             {authMode === "signup" ? (
-              <div style={{ fontSize: 12, color: colours.muted, lineHeight: 1.7 }}>Use at least 8 characters with upper-case, lower-case and a number.</div>
+              <div style={{ fontSize: 12, color: colours.muted, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
+                Use at least 8 characters with upper-case, lower-case and a number. After signing up, our <strong style={{ color: colours.purple }}>setup wizard</strong> will walk you through everything.
+              </div>
             ) : null}
 
             <div style={{ display: "grid", gap: 10 }}>
