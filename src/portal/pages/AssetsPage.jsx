@@ -243,14 +243,17 @@ export default function AssetsPage(props) {
       })()}
 
       <SectionCard title="Asset List" right={
-        <button style={buttonSecondary} onClick={() => exportToCSV(assets, [
-          { key: "name", label: "Asset Name" }, { key: "assetType", label: "Type" },
-          { key: "serialNumber", label: "Serial/Rego" }, { key: "location", label: "Location" },
-          { key: "purchaseDate", label: "Purchase Date" }, { key: "purchasePrice", label: "Purchase Price" },
-          { key: "depreciationMethod", label: "Depreciation Method" }, { key: "effectiveLife", label: "Effective Life (yrs)" },
-          { key: "salvageValue", label: "Salvage Value" }, { key: "status", label: "Status" },
-          { key: "previousOwners", label: "Ownership History" },
-        ], "assets.csv")}>Export CSV</button>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <button style={buttonSecondary} onClick={() => exportToCSV(assets, [
+            { key: "name", label: "Asset Name" }, { key: "assetType", label: "Type" },
+            { key: "serialNumber", label: "Serial/Rego" }, { key: "location", label: "Location" },
+            { key: "purchaseDate", label: "Purchase Date" }, { key: "purchasePrice", label: "Purchase Price" },
+            { key: "depreciationMethod", label: "Depreciation Method" }, { key: "effectiveLife", label: "Effective Life (yrs)" },
+            { key: "salvageValue", label: "Salvage Value" }, { key: "status", label: "Status" },
+            { key: "previousOwners", label: "Ownership History" },
+          ], "assets.csv")}>Export CSV</button>
+          <button style={buttonSecondary} onClick={() => { setImportType("assets"); setImportRows([]); setImportError(""); setShowImportModal(true); }}>Import CSV</button>
+        </div>
       }>
         <DataTable
           emptyState={{ icon: "🏗️", title: "No assets yet", message: "Add your first asset using the form above. Track vehicles, equipment, tools and more with ATO-compliant depreciation." }}
