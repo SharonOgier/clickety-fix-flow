@@ -118,7 +118,7 @@ export default function AuthPage(props) {
               {[
                 ["Invoices & quotes", "Create, send and review client billing documents."],
                 ["Financial reporting", "View live insights, receivables, cash flow and BAS support."],
-                ["Secure access", "Supabase sign-in with password reset and account setup flow."],
+                ["Guided setup wizard", "New accounts are walked through a step-by-step wizard to configure your business profile."],
               ].map(([title, copy]) => (
                 <div key={title} style={{ background: "rgba(255,255,255,0.14)", border: "1px solid rgba(255,255,255,0.14)", borderRadius: 18, padding: 16 }}>
                   <div style={{ fontSize: 15, fontWeight: 800 }}>{title}</div>
@@ -144,8 +144,10 @@ export default function AuthPage(props) {
               <div style={{ fontSize: 28, fontWeight: 900, color: colours.text, marginBottom: 8 }}>
                 {authMode === "signup" ? "Create your portal account" : "Portal login"}
               </div>
-              <div style={{ fontSize: 14, color: colours.muted, lineHeight: 1.7 }}>
-                Sign in with Supabase Auth to access invoices, quotes, expenses, reports and client records.
+              <div style={{ fontSize: 14, color: colours.muted, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
+                {authMode === "signup"
+                  ? "Create your account and our setup wizard will guide you through configuring your business profile, branding, and preferences — all in a few easy steps."
+                  : "Sign in to access your invoices, quotes, expenses, reports and client records."}
               </div>
             </div>
 
@@ -189,7 +191,9 @@ export default function AuthPage(props) {
             </div>
 
             {authMode === "signup" ? (
-              <div style={{ fontSize: 12, color: colours.muted, lineHeight: 1.7 }}>Use at least 8 characters with upper-case, lower-case and a number.</div>
+              <div style={{ fontSize: 12, color: colours.muted, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
+                Use at least 8 characters with upper-case, lower-case and a number. After signing up, our <strong style={{ color: colours.purple }}>setup wizard</strong> will walk you through everything.
+              </div>
             ) : null}
 
             <div style={{ display: "grid", gap: 10 }}>
@@ -210,8 +214,8 @@ export default function AuthPage(props) {
               </div>
             </div>
 
-            <div style={{ background: colours.bg, borderRadius: 16, padding: 16, fontSize: 13, color: colours.muted, lineHeight: 1.7 }}>
-              <strong style={{ color: colours.text }}>Preview note:</strong> this login card is now part of the landing experience, so you can see the portal entry point immediately instead of having it hidden.
+            <div style={{ background: colours.bg, borderRadius: 16, padding: 16, fontSize: 13, color: colours.muted, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
+              <strong style={{ color: colours.text }}>✨ New here?</strong> Create an account and our guided setup wizard will help you configure your business name, ABN, contact details, and preferences in just a few minutes.
             </div>
           </div>
         </div>
