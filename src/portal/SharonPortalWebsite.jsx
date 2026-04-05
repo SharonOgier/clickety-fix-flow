@@ -4335,10 +4335,10 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
 
             {/* Tab switcher */}
             <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
-              {["clients", "suppliers", "invoices", "expenses"].map((t) => (
+              {["clients", "suppliers", "invoices", "expenses", "income"].map((t) => (
                 <button key={t} onClick={() => { setImportType(t); setImportRows([]); setImportError(""); }}
                   style={{ background: importType === t ? colours.purple : "#F1F5F9", color: importType === t ? "#fff" : colours.text, border: "none", borderRadius: 8, padding: "7px 16px", fontWeight: 700, cursor: "pointer", fontSize: 13, textTransform: "capitalize" }}>
-                  {t === "expenses" ? "Bills / Expenses" : t}
+                  {t === "expenses" ? "Bills / Expenses" : t === "income" ? "Income Sources" : t}
                 </button>
               ))}
             </div>
