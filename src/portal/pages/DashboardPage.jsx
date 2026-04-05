@@ -477,6 +477,7 @@ export default function DashboardPage(props) {
                 </div>
               );
             })()}
+          </div>
           {/* Link to full insights */}
           <button
             onClick={() => setActivePage("financial insights")}
