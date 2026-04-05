@@ -3975,57 +3975,63 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         <button className="sas-hamburger-btn" onClick={() => setSidebarOpen(true)}>
           <span /><span /><span />
         </button>
-        <span style={{ fontSize: 16, fontWeight: 900, color: colours.purple }}>{profile.businessName || "My Portal"}</span>
+        <span style={{ fontSize: 16, fontWeight: 800, color: colours.purple, fontFamily: '"Playfair Display", serif' }}>{profile.businessName || "My Portal"}</span>
       </div>
 
       {sidebarOpen && <div className="sas-overlay" onClick={() => setSidebarOpen(false)} />}
 
       <div className="sas-layout">
         <aside className={`sas-sidebar${sidebarOpen ? " open" : ""}`}>
-          <div style={{ fontSize: 20, fontWeight: 900, color: colours.purple, marginBottom: 20 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: colours.purple, marginBottom: 6, fontFamily: '"Playfair Display", serif' }}>
             {profile.businessName || "My Portal"}
           </div>
 
-          <div style={{ fontSize: 13, color: colours.muted, marginBottom: 16 }}>
-            Signed in as {authUser.email || "user"}
+          <div style={{ fontSize: 12, color: colours.muted, marginBottom: 24, paddingBottom: 16, borderBottom: `1px solid ${colours.border}` }}>
+            {authUser.email || "user"}
           </div>
 
-          <div style={{ display: "grid", gap: 14 }}>
+          <div style={{ display: "grid", gap: 16, flex: 1 }}>
             {navSections.map((section) => (
-              <div key={section.title} style={{ display: "grid", gap: 8 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", color: colours.muted, padding: "0 6px" }}>
+              <div key={section.title} style={{ display: "grid", gap: 4 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase", color: colours.muted, padding: "4px 12px 6px", opacity: 0.7 }}>
                   {section.title}
                 </div>
-                <div style={{ display: "grid", gap: 8 }}>
-                  {section.items.map((item) => (
-                    <button
-                      key={item}
-                      onClick={() => { setActivePage(item); setSidebarOpen(false); }}
-                      style={{
-                        textAlign: "left",
-                        border: "none",
-                        borderRadius: 12,
-                        padding: "12px 14px",
-                        cursor: "pointer",
-                        fontWeight: 700,
-                        background: activePage === item ? colours.lightPurple : "transparent",
-                        color: activePage === item ? colours.purple : colours.text,
-                      }}
-                    >
-                      {navLabels[item] || (item.charAt(0).toUpperCase() + item.slice(1))}
-                    </button>
-                  ))}
+                <div style={{ display: "grid", gap: 2 }}>
+                  {section.items.map((item) => {
+                    const isActive = activePage === item;
+                    const iconMap = {
+                      "dashboard": "⬡", "financial insights": "📊", "invoices": "📄", "quotes": "📋",
+                      "clients": "👥", "services": "⚙", "expenses": "💳", "bills / payables": "🧾",
+                      "income sources": "💰", "documents": "📁", "bas report": "📑", "ato tax form": "🏛",
+                      "settings": "⚙",
+                    };
+                    return (
+                      <button
+                        key={item}
+                        className={`sas-nav-item${isActive ? " active" : ""}`}
+                        onClick={() => { setActivePage(item); setSidebarOpen(false); }}
+                      >
+                        <span className="sas-nav-icon" style={{ fontSize: 15 }}>{iconMap[item] || "•"}</span>
+                        {navLabels[item] || (item.charAt(0).toUpperCase() + item.slice(1))}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ))}
           </div>
 
-          <button
-            onClick={handleSignOut}
-            style={{ ...buttonSecondary, width: "100%", marginTop: 16 }}
-          >
-            Log out
-          </button>
+          <div style={{ borderTop: `1px solid ${colours.border}`, paddingTop: 16, marginTop: 16 }}>
+            <button
+              onClick={handleSignOut}
+              style={{ ...buttonSecondary, width: "100%", fontSize: 13 }}
+            >
+              Log out
+            </button>
+            <div style={{ fontSize: 10, color: colours.muted, textAlign: "center", marginTop: 10, opacity: 0.6 }}>
+              Sharon's Accounting Service
+            </div>
+          </div>
         </aside>
 
         <main className="sas-main">
