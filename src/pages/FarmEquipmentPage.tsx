@@ -118,7 +118,7 @@ export default function FarmEquipmentPage() {
               <h2 className="font-serif text-3xl font-black text-foreground mb-2">Mitchell</h2>
               <p className="text-base text-primary font-semibold mb-4">Farm Equipment Assessor</p>
               <p className="text-sm text-muted-foreground leading-relaxed font-light">
-                Extensive hands-on experience with agricultural machinery. Independent, professional, and thorough — every evaluation backed by real market data.
+                Extensive hands-on experience with agricultural machinery. Independent and thorough — every assessment backed by practical knowledge and real market awareness.
               </p>
               <div className="flex flex-wrap gap-2 justify-center mt-6">
                 {["Certified", "Independent", "On-Site"].map((tag) => (
