@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 const pages = [
   { id: "home", label: "Home" },
   { id: "services", label: "Services" },
+  { id: "farm-equipment", label: "Farm Equipment" },
   { id: "about", label: "About" },
   { id: "portal", label: "Portal" },
   { id: "why", label: "Why Sharon" },
@@ -144,6 +145,27 @@ export default function HomePage() {
                 </div>
               </div>
 
+              {/* Mitchell section */}
+              <div className="bg-card border border-border rounded-xl shadow-brand p-6 mb-5">
+                <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-center">
+                  <div className="w-[100px] h-[100px] rounded-full bg-secondary flex items-center justify-center text-5xl mx-auto md:mx-0">
+                    👨‍🌾
+                  </div>
+                  <div>
+                    <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-3">
+                      Farm Equipment Evaluations
+                    </span>
+                    <h3 className="text-xl font-black text-foreground mb-2">Mitchell — Equipment Evaluator</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-3">
+                      Mitchell provides independent, professional valuations for tractors, harvesters, implements, trucks, and fixed plant. Reports accepted by banks, insurers, and industry professionals.
+                    </p>
+                    <Link to="/farm-equipment" className="inline-flex px-5 py-2.5 rounded-md font-extrabold bg-primary text-primary-foreground text-sm">
+                      View Services →
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
               {/* Quote box */}
               <div className="rounded-xl p-6 text-primary-foreground shadow-brand mb-5" style={{ background: "var(--gradient-brand)" }}>
                 <h3 className="text-lg font-bold mb-2 text-primary-foreground font-serif">Built for real businesses, not templates.</h3>
@@ -166,6 +188,38 @@ export default function HomePage() {
                     <div className="w-11 h-11 grid place-items-center rounded-md bg-secondary text-primary font-extrabold mb-3">{s.num}</div>
                     <h3 className="text-lg font-bold mb-2 text-foreground font-sans">{s.title}</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">{s.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* FARM EQUIPMENT */}
+          {activePage === "farm-equipment" && (
+            <section>
+              <div className="bg-card border border-border rounded-xl shadow-brand p-6 mb-5">
+                <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-4">Mitchell</span>
+                <h2 className="text-3xl font-black mb-3 text-foreground">Farm Equipment Evaluations</h2>
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  Mitchell provides independent, professional valuations for a wide range of farm equipment — from tractors and harvesters through to fixed plant and infrastructure. His reports are trusted by lenders, insurers, and industry professionals.
+                </p>
+                <Link to="/farm-equipment" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-primary text-primary-foreground text-sm">
+                  View Full Details →
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[
+                  { icon: "🚜", title: "Tractor & Harvester Valuations", desc: "Market-value assessments including condition grading, hours-of-use analysis, and comparable sales data." },
+                  { icon: "🔧", title: "Implements & Attachments", desc: "Evaluations for ploughs, seeders, sprayers, balers, and all bolt-on implements." },
+                  { icon: "🚛", title: "Trucks & Transport", desc: "Valuations for farm trucks, trailers, grain bins, and livestock transport equipment." },
+                  { icon: "🏗️", title: "Fixed Plant & Infrastructure", desc: "Silos, augers, irrigation systems, sheds, and other fixed assets." },
+                  { icon: "📋", title: "Pre-Purchase Inspections", desc: "Independent inspections before buying or selling — mechanical, structural, and cosmetic." },
+                  { icon: "📊", title: "Insurance & Finance Reports", desc: "Formal valuation certificates accepted by major insurers and lenders." },
+                ].map((svc) => (
+                  <div key={svc.title} className="bg-card border border-border rounded-lg shadow-brand p-5">
+                    <div className="text-2xl mb-3">{svc.icon}</div>
+                    <h3 className="text-base font-bold mb-1 text-foreground font-sans">{svc.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{svc.desc}</p>
                   </div>
                 ))}
               </div>
