@@ -520,15 +520,17 @@ export default function BillsPage(props) {
         </SectionCard>
 
         <SectionCard title="Bills list" right={
-          <button style={buttonSecondary} onClick={() => exportToCSV(billRows, [
-            { key: "supplier", label: "Supplier" },
-            { key: "category", label: "Category" },
-            { key: "date", label: "Bill Date" },
-            { key: "dueDate", label: "Due Date" },
-            { key: "amount", label: "Amount" },
-            { key: "status", label: "Status" },
-          ], "bills.csv")}>Export CSV</button>
-          <button style={buttonSecondary} onClick={() => { setImportType("expenses"); setImportRows([]); setImportError(""); setShowImportModal(true); }}>Import Bills</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button style={buttonSecondary} onClick={() => exportToCSV(billRows, [
+              { key: "supplier", label: "Supplier" },
+              { key: "category", label: "Category" },
+              { key: "date", label: "Bill Date" },
+              { key: "dueDate", label: "Due Date" },
+              { key: "amount", label: "Amount" },
+              { key: "status", label: "Status" },
+            ], "bills.csv")}>Export CSV</button>
+            <button style={buttonSecondary} onClick={() => { setImportType("expenses"); setImportRows([]); setImportError(""); setShowImportModal(true); }}>Import Bills</button>
+          </div>
         }>
           <DataTable
             emptyState={{ icon: "", title: "No bills yet", message: "Bills and payables you record will appear here. Use the form above to add your first bill." }}
