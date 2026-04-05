@@ -25,6 +25,7 @@ const navItems = [
   "bills / payables",
   "income sources",
   "documents",
+  "farm equipment",
   "bas report",
   "ato tax form",
   "settings",
