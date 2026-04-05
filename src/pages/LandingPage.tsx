@@ -275,6 +275,7 @@ export default function LandingPage() {
         <div className="flex justify-center gap-6 mt-5 flex-wrap">
           <Link to="/" className="text-sm text-slate-500 hover:text-card transition-colors">Home</Link>
           <a href="#features" className="text-sm text-slate-500 hover:text-card transition-colors">Features</a>
+          <Link to="/farm-equipment" className="text-sm text-slate-500 hover:text-card transition-colors">Farm Equipment</Link>
           <a href="#pricing" className="text-sm text-slate-500 hover:text-card transition-colors">Pricing</a>
           <Link to="/auth?mode=signin" className="text-sm text-slate-500 hover:text-card transition-colors">Portal Login</Link>
         </div>
