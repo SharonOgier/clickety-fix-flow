@@ -169,6 +169,7 @@ export default function AccountingPortalPrototype() {
   const [creditNoteForm, setCreditNoteForm] = useState({ amount: "", reason: "", date: todayLocal() });
   const [knownSuppliers, setKnownSuppliers] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
+  const [assets, setAssets] = useState([]);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
