@@ -4184,6 +4184,12 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               saveService={saveService} deleteService={deleteService}
               handleServiceFormChange={handleServiceFormChange}
             />}
+            {activePage === "farm equipment" && <FarmEquipmentPage
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              DashboardHero={DashboardHero} InsightChip={InsightChip}
+              SectionCard={SectionCard} profile={profile}
+            />}
             {activePage === "expenses" && <ExpensesPage
               expenses={expenses} expenseForm={expenseForm} setExpenseForm={setExpenseForm}
               savingExpense={savingExpense} receiptFile={receiptFile} setReceiptFile={setReceiptFile}
