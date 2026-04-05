@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { exportToCSV } from "../PortalHelpers";
 
 // -----------------------------------------------------------------------------
 // BillsPage
