@@ -4445,6 +4445,9 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               handleCloseAccount={handleCloseAccount} handleSignOut={handleSignOut}
               toast={toast} confirm={confirm}
               authUserEmail={authUser?.email || ""}
+              teamMembers={teamMembers} setTeamMembers={setTeamMembers}
+              teamInvitations={teamInvitations} setTeamInvitations={setTeamInvitations}
+              supabase={supabase} authUser={authUser}
             />}
             </div>
           </div>
