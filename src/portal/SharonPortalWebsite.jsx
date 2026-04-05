@@ -1226,14 +1226,20 @@ export default function AccountingPortalPrototype() {
     const clientExample = "John Smith,Smith Farms Pty Ltd,john@smithfarms.com.au,0412 345 678,123 Farm Rd Dubbo NSW 2830,12 345 678 901,AUD $,Primary production";
     const supplierHeaders = "Name,Contact Person,Email,Phone,Address,ABN,Notes";
     const supplierExample = "AGL Energy,Jane Brown,accounts@agl.com.au,1800 123 456,72 Yeo St Neutral Bay NSW 2089,74 115 061 375,Monthly billing";
-    const csv = type === "clients"
-      ? `${clientHeaders}\n${clientExample}\n`
-      : `${supplierHeaders}\n${supplierExample}\n`;
+    const invoiceHeaders = "Invoice Number,Client Name,Date,Due Date,Description,Subtotal,GST,Total,Status";
+    const invoiceExample = "INV-001,Smith Farms Pty Ltd,2025-03-15,2025-04-15,Fencing repair and materials,1000.00,100.00,1100.00,Draft";
+    const expenseHeaders = "Supplier,Date,Due Date,Category,Description,Amount,GST,Is Paid";
+    const expenseExample = "AGL Energy,2025-03-10,2025-04-10,Utilities,Electricity - March quarter,450.00,45.00,No";
+    let csv, filename;
+    if (type === "clients") { csv = `${clientHeaders}\n${clientExample}\n`; filename = "clients_template.csv"; }
+    else if (type === "suppliers") { csv = `${supplierHeaders}\n${supplierExample}\n`; filename = "suppliers_template.csv"; }
+    else if (type === "invoices") { csv = `${invoiceHeaders}\n${invoiceExample}\n`; filename = "invoices_template.csv"; }
+    else { csv = `${expenseHeaders}\n${expenseExample}\n`; filename = "expenses_template.csv"; }
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = type === "clients" ? "clients_template.csv" : "suppliers_template.csv";
+    a.download = filename;
     a.click();
     URL.revokeObjectURL(url);
   };
