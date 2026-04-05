@@ -39,7 +39,11 @@ export default function SettingsPage(props) {
     handleSignOut,
     toast = { success: () => {}, error: () => {} },
     confirm = ({ onConfirm }) => typeof onConfirm === "function" && onConfirm(),
+    authUserEmail = "",
   } = props;
+
+  const MASTER_EMAILS = ["info@sharonogier.com", "sharon@sharonogier.com"];
+  const isOwner = MASTER_EMAILS.includes((authUserEmail || "").toLowerCase().trim());
 
   const LOGO_PREVIEW_MAX_HEIGHT = 140;
   const LOGO_PREVIEW_MAX_WIDTH = 320;
