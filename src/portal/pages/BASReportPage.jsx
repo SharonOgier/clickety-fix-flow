@@ -10,6 +10,7 @@ export default function BASReportPage(props) {
     profile = {},
     invoices = [],
     expenses = [],
+    assets = [],
     invoiceAllocations = [],
     totals = {},
     basQuarter,
