@@ -217,7 +217,7 @@ export default function LandingPage() {
             <Link to="/auth?mode=signup" className="w-full flex justify-center items-center py-4 px-8 rounded-md font-bold bg-primary text-primary-foreground text-base">
               Start free trial — 14 days free
             </Link>
-            <p className="text-sm text-muted-foreground mt-3.5">Then $45/month. Cancel anytime.</p>
+            <p className="text-sm text-muted-foreground mt-3.5">Then $27/month. Cancel anytime.</p>
           </div>
         </div>
       </section>
