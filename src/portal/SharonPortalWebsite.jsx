@@ -2983,6 +2983,73 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     }
     };
 
+    const saveBill = async (opts = {}) => {
+      if (opts.clear) {
+        setExpenseForm({
+          date: todayLocal(),
+          dueDate: addDaysEOM(todayLocal()),
+          supplier: "",
+          category: "",
+          description: "",
+          amount: "",
+          expenseType: "",
+          workType: profile.workType,
+          receiptFileName: "",
+          receiptUrl: "",
+        });
+        setBillLineItems([blankBillLine()]);
+        setBillWizardStep(1);
+        setReceiptFile(null);
+        return;
+      }
+      try {
+        setSavingBill(true);
+        let receiptUrl = "";
+        let receiptFileName = "";
+        if (receiptFile) {
+          const uploaded = await uploadReceiptToSupabase(receiptFile);
+          receiptUrl = uploaded.receiptUrl;
+          receiptFileName = uploaded.fileName;
+        }
+        const amount = safeNumber(opts.totalAmt || 0);
+        const gst = safeNumber(opts.totalGst || 0);
+        const payload = {
+          ...expenseForm,
+          dueDate: expenseForm.dueDate || expenseForm.date,
+          amount,
+          gst,
+          isPaid: false,
+          paidAt: "",
+          receiptFileName,
+          receiptUrl,
+          lineItems: billLineItems.filter(l => l.description || l.amount),
+        };
+        const savedExpense = await upsertRecordInDatabase(SUPABASE_TABLES.expenses, payload);
+        setExpenses((prev) => [...prev, savedExpense]);
+        setExpenseForm({
+          date: todayLocal(),
+          dueDate: addDaysEOM(todayLocal()),
+          supplier: "",
+          category: "",
+          description: "",
+          amount: "",
+          expenseType: "",
+          workType: profile.workType,
+          receiptFileName: "",
+          receiptUrl: "",
+        });
+        setBillLineItems([blankBillLine()]);
+        setBillWizardStep(1);
+        setReceiptFile(null);
+        setSavingBill(false);
+        toast.success("Bill saved!");
+      } catch (err) {
+        console.error("SAVE BILL ERROR:", err);
+        setSavingBill(false);
+        toast.error(err.message || "Something went wrong saving the bill");
+      }
+    };
+
     const markInvoicePaid = async (invoiceId, paidVia = "Manual") => {
     const invoice = invoices.find((inv) => inv.id === invoiceId);
     if (!invoice) return;
