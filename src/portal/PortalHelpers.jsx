@@ -40,10 +40,6 @@ export const navSections = [
     items: ["clients", "services", "bills / payables", "income sources", "documents"],
   },
   {
-    title: "Services",
-    items: ["farm equipment"],
-  },
-  {
     title: "Admin",
     items: ["bas report", "ato tax form", "settings"],
   },
