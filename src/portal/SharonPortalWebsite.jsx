@@ -2723,12 +2723,15 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         );
         setSupabaseSyncStatus(result.message || "Invoice emailed");
         setStatus(result.message || "Invoice emailed.", "#166534");
+        toast({ title: "Invoice emailed", description: result.message || `Sent to ${(result.recipients || []).join(", ")}` });
       } else {
         setStatus(result?.message || "Could not send invoice.", "#B42318");
+        toast({ title: "Email not sent", description: result?.message || "Could not send invoice.", variant: "destructive" });
       }
     } catch (error) {
       console.error("PREVIEW INVOICE EMAIL ERROR:", error);
       setStatus(`Send failed: ${error.message || "Unknown error"}`, "#B42318");
+      toast({ title: "Email failed", description: error.message || "Unknown error", variant: "destructive" });
     } finally {
       if (emailButton) {
         emailButton.disabled = false;
