@@ -1230,10 +1230,13 @@ export default function AccountingPortalPrototype() {
     const invoiceExample = "INV-001,Smith Farms Pty Ltd,2025-03-15,2025-04-15,Fencing repair and materials,1000.00,100.00,1100.00,Draft";
     const expenseHeaders = "Supplier,Date,Due Date,Category,Description,Amount,GST,Is Paid";
     const expenseExample = "AGL Energy,2025-03-10,2025-04-10,Utilities,Electricity - March quarter,450.00,45.00,No";
+    const incomeHeaders = "Name,Income Type,Before Tax,Frequency,Started After Jul 2025,Has End Date";
+    const incomeExample = "Smith Farms Employment,Casual employment,1200.00,Weekly,No,No";
     let csv, filename;
     if (type === "clients") { csv = `${clientHeaders}\n${clientExample}\n`; filename = "clients_template.csv"; }
     else if (type === "suppliers") { csv = `${supplierHeaders}\n${supplierExample}\n`; filename = "suppliers_template.csv"; }
     else if (type === "invoices") { csv = `${invoiceHeaders}\n${invoiceExample}\n`; filename = "invoices_template.csv"; }
+    else if (type === "income") { csv = `${incomeHeaders}\n${incomeExample}\n`; filename = "income_sources_template.csv"; }
     else { csv = `${expenseHeaders}\n${expenseExample}\n`; filename = "expenses_template.csv"; }
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
