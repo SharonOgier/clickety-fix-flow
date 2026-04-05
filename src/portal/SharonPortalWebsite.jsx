@@ -3905,6 +3905,11 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               sendQuoteFromPreview={sendQuoteFromPreview}
               clientIsGstExempt={clientIsGstExempt} gstAppliesToClient={gstAppliesToClient}
               calculateFormGst={calculateFormGst} computeLineItemTotals={computeLineItemTotals}
+              setClientModalForm={setClientModalForm} setEditingClientId={setEditingClientId}
+              setShowClientModal={setShowClientModal}
+              setImportType={setImportType} setImportRows={setImportRows}
+              setImportError={setImportError} setShowImportModal={setShowImportModal}
+              convertQuoteToInvoice={convertQuoteToInvoice} openQuotePreview={openQuotePreview}
             />}
             {activePage === "clients" && <ClientsPage
               profile={profile} clients={clients} invoices={invoices}
