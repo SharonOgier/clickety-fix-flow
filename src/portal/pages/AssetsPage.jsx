@@ -73,7 +73,6 @@ export default function AssetsPage(props) {
     saveAsset, deleteAsset, confirm,
     setImportType = () => {}, setImportRows = () => {},
     setImportError = () => {}, setShowImportModal = () => {},
-    saveAsset, deleteAsset, confirm,
   } = props;
 
   const [form, setForm] = useState({
