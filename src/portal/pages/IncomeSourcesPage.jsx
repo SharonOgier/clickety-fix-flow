@@ -41,6 +41,10 @@ export default function IncomeSourcesPage(props) {
     closeIncomeSourceEditor = () => {},
     saveIncomeSourceEdits = () => {},
     savingIncomeSourceEdits = false,
+    setImportType = () => {},
+    setImportRows = () => {},
+    setImportError = () => {},
+    setShowImportModal = () => {},
   } = props;
 
     const totalBeforeTax = incomeSources.reduce((s, src) => s + safeNumber(src.beforeTax), 0);
