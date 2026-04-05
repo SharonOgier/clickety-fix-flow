@@ -4129,6 +4129,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               MiniBarChart={MiniBarChart} IncomeSourceModal={IncomeSourceModal}
               saveIncomeSource={saveIncomeSource} deleteIncomeSource={deleteIncomeSource}
+              setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
             />}
             {activePage === "documents" && <DocumentsPage
               documents={documents} documentFile={documentFile} setDocumentFile={setDocumentFile}
