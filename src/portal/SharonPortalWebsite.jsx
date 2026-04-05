@@ -4061,9 +4061,45 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             {profile.businessName || "My Portal"}
           </div>
 
-          <div style={{ fontSize: 12, color: colours.muted, marginBottom: 24, paddingBottom: 16, borderBottom: `1px solid ${colours.border}` }}>
+          <div style={{ fontSize: 12, color: colours.muted, marginBottom: isAdmin ? 8 : 24, paddingBottom: isAdmin ? 8 : 16, borderBottom: isAdmin ? "none" : `1px solid ${colours.border}` }}>
             {authUser.email || "user"}
           </div>
+
+          {/* Admin client switcher */}
+          {isAdmin && allPortalUsers.length > 0 && (
+            <div style={{ marginBottom: 16, paddingBottom: 16, borderBottom: `1px solid ${colours.border}` }}>
+              <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase", color: colours.muted, marginBottom: 6 }}>
+                👤 Viewing As
+              </div>
+              <select
+                value={viewingAsUserId || authUser.id}
+                onChange={(e) => switchToUser(e.target.value)}
+                style={{
+                  width: "100%", padding: "8px 10px", borderRadius: 8,
+                  border: `1px solid ${viewingAsUserId ? colours.purple : colours.border}`,
+                  fontSize: 12, fontWeight: 600,
+                  background: viewingAsUserId ? colours.lightPurple : colours.white,
+                  color: colours.text, cursor: "pointer",
+                }}
+              >
+                <option value={authUser.id}>🔑 My Portal</option>
+                {allPortalUsers
+                  .filter(u => u.userId !== authUser.id)
+                  .sort((a, b) => (a.businessName || "").localeCompare(b.businessName || ""))
+                  .map(u => (
+                    <option key={u.userId} value={u.userId}>
+                      {u.businessName || u.email || "Unknown"}
+                    </option>
+                  ))
+                }
+              </select>
+              {viewingAsUserId && (
+                <div style={{ fontSize: 11, color: colours.purple, fontWeight: 700, marginTop: 4, textAlign: "center" }}>
+                  ⚠ Viewing client data
+                </div>
+              )}
+            </div>
+          )}
 
           <div style={{ display: "grid", gap: 16, flex: 1 }}>
             {navSections.map((section) => (
