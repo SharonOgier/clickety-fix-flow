@@ -4676,7 +4676,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13, color: colours.text, lineHeight: 2 }}>
                 <li>Click <strong>Download Template</strong> below to get the CSV file</li>
                 <li>Open it in Excel or Google Sheets</li>
-                <li>Fill in your {importType === "expenses" ? "bills / expenses" : importType === "income" ? "income sources" : importType} — <strong>{importType === "invoices" ? "Invoice Number or Client Name" : importType === "expenses" ? "Supplier or Amount" : "Name"} is required</strong></li>
+                <li>Fill in your {importType === "expenses" ? "bills / expenses" : importType === "income" ? "income sources" : importType === "assets" ? "assets" : importType} — <strong>{importType === "invoices" ? "Invoice Number or Client Name" : importType === "expenses" ? "Supplier or Amount" : importType === "assets" ? "Asset Name" : "Name"} is required</strong></li>
                 <li>Save as <strong>CSV</strong> (File → Save As → CSV)</li>
                 <li>Click <strong>Choose File</strong> below and select your saved CSV</li>
                 <li>Review the preview, then click <strong>Confirm Import</strong></li>
