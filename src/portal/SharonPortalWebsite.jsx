@@ -901,13 +901,14 @@ export default function AccountingPortalPrototype() {
     return row;
   };
 
-  const fetchCollectionFromDatabase = async (tableName) => {
+  const fetchCollectionFromDatabase = async (tableName, overrideUserId = null) => {
     if (!supabase || !authUser?.id) return [];
+    const targetUserId = overrideUserId || viewingAsUserId || authUser.id;
 
     const { data, error } = await supabase
       .from(tableName)
       .select("id, data, user_id, updated_at")
-      .eq("user_id", authUser.id)
+      .eq("user_id", targetUserId)
       .order("updated_at", { ascending: true });
 
     if (error) throw error;
