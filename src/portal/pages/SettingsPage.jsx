@@ -39,7 +39,16 @@ export default function SettingsPage(props) {
     toast = { success: () => {}, error: () => {} },
     confirm = ({ onConfirm }) => typeof onConfirm === "function" && onConfirm(),
     authUserEmail = "",
+    teamMembers = [],
+    setTeamMembers = () => {},
+    teamInvitations = [],
+    setTeamInvitations = () => {},
+    supabase = null,
+    authUser = null,
   } = props;
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [invitePermission, setInvitePermission] = useState("viewer");
+  const [sendingInvite, setSendingInvite] = useState(false);
 
   const MASTER_EMAILS = ["info@sharonogier.com", "sharon@sharonogier.com"];
   const isOwner = MASTER_EMAILS.includes((authUserEmail || "").toLowerCase().trim());
