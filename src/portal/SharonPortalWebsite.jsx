@@ -3895,6 +3895,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               showImportModal={showImportModal} setShowImportModal={setShowImportModal}
               editingClientId={editingClientId} setEditingClientId={setEditingClientId}
               clientModalForm={clientModalForm} setClientModalForm={setClientModalForm}
+              clientForm={clientForm} setClientForm={setClientForm}
               importType={importType} setImportType={setImportType}
               importRows={importRows} setImportRows={setImportRows}
               importError={importError} setImportError={setImportError}
@@ -3902,6 +3903,9 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               saveClientFromModal={saveClientFromModal} deleteClient={deleteClient}
               confirmImport={confirmImport} downloadTemplate={downloadTemplate}
               parseImportCSV={parseImportCSV} openClientEditor={openClientEditor}
+              clientEditorOpen={clientEditorOpen} clientEditorForm={clientEditorForm}
+              setClientEditorForm={setClientEditorForm} closeClientEditor={closeClientEditor}
+              saveClientEdits={saveClientEdits} saveClient={saveClient} todayLocal={todayLocal}
               blankClient={blankClient}
             />}
             {activePage === "services" && <ServicesPage
