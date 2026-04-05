@@ -985,42 +985,20 @@ ${purchaseOrderBlock}
       });
     })();
 
-    document.getElementById('paypal-pay-btn').addEventListener('click', async function() {
-      var btn = this;
-      var status = document.getElementById('paypal-status');
-      btn.disabled = true;
-      btn.textContent = 'Processing...';
-      status.textContent = '';
-      try {
-        var res = await fetch('${safeServerBaseUrl}/api/create-paypal-order', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            invoiceId: '${invoice.id || ""}',
-            invoiceNumber: '${invoice.invoiceNumber || ""}',
-            amount: ${safeNumber(invoice.total).toFixed(2)},
-            total: ${safeNumber(invoice.total).toFixed(2)},
-            currency: '${invoice.currencyCode || "AUD"}',
-            description: 'Invoice ${invoice.invoiceNumber || ""}',
-            successUrl: window.location.origin + '?paypal=success&invoice=${encodeURIComponent(invoice.invoiceNumber || "")}',
-            cancelUrl: window.location.origin + '?paypal=cancel&invoice=${encodeURIComponent(invoice.invoiceNumber || "")}'
-          })
-        });
-        var data = await res.json();
-        if (data.ok && data.url) {
-          window.open(data.url, '_blank', 'noopener,noreferrer');
-          status.textContent = 'PayPal checkout opened.';
+    (function() {
+      var paypalBtn = document.getElementById('paypal-pay-btn');
+      if (!paypalBtn) return;
+      var paypalUrl = ${safeJsonForScript(paypalCheckoutUrl)};
+      var paypalStatus = document.getElementById('paypal-status');
+      paypalBtn.addEventListener('click', function() {
+        if (paypalUrl) {
+          window.open(paypalUrl, '_blank', 'noopener,noreferrer');
+          if (paypalStatus) { paypalStatus.textContent = 'PayPal checkout opened.'; paypalStatus.style.color = '#166534'; }
         } else {
-          status.textContent = data.error || 'PayPal failed. Please try again.';
-          status.style.color = '#991B1B';
+          if (paypalStatus) { paypalStatus.textContent = 'PayPal is not configured. Add your PayPal email in Settings → Financial.'; paypalStatus.style.color = '#991B1B'; }
         }
-      } catch(e) {
-        status.textContent = 'Could not connect to payment server.';
-        status.style.color = '#991B1B';
-      }
-      btn.disabled = false;
-      btn.textContent = 'Pay with PayPal';
-    });
+      });
+    })();
   </script>
 </div>
 </div>
