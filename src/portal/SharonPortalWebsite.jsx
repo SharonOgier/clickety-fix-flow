@@ -4782,6 +4782,14 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                           <span style={{ marginLeft: 8, fontSize: 11, color: colours.muted }}>{row.frequency || ""}</span>
                         </>
                       )}
+                      {importType === "assets" && (
+                        <>
+                          <strong>{row.name || "Unknown"}</strong>
+                          <span style={{ color: colours.muted }}> — {row.assetType || "Other"}</span>
+                          <span style={{ fontWeight: 700, marginLeft: 8, color: colours.teal }}>${Number(row.purchasePrice || 0).toFixed(2)}</span>
+                          <span style={{ marginLeft: 8, fontSize: 11, color: colours.purple, fontWeight: 600 }}>{row.depreciationMethod || "prime_cost"}</span>
+                        </>
+                      )}
                     </div>
                   ))}
                   {importRows.length > 10 && <div style={{ padding: "8px 14px", fontSize: 12, color: colours.muted }}>...and {importRows.length - 10} more</div>}
