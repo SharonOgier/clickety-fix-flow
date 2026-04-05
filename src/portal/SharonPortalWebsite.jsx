@@ -4501,6 +4501,21 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                 />
               </div>
             )}
+            {activePage === "tax estimator" && (
+              <div className="sas-inline-page-card">
+                <TaxEstimatorPage
+                  profile={profile} invoices={invoices} expenses={expenses}
+                  assets={assets} incomeSources={incomeSources}
+                  colours={colours} cardStyle={cardStyle}
+                  buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+                  inputStyle={inputStyle} labelStyle={labelStyle}
+                  currency={currency} formatDateAU={formatDateAU} safeNumber={safeNumber}
+                  DashboardHero={DashboardHero} InsightChip={InsightChip}
+                  MetricCard={MetricCard} SectionCard={SectionCard}
+                  setActivePage={setActivePage}
+                />
+              </div>
+            )}
             {activePage === "settings" && <SettingsPage
               profile={profile} setProfile={setProfile}
               activeSettingsTab={activeSettingsTab} setActiveSettingsTab={setActiveSettingsTab}
