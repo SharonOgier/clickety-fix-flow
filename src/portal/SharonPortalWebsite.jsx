@@ -1571,6 +1571,7 @@ export default function AccountingPortalPrototype() {
         remoteServices,
         remoteDocuments,
         remoteSuppliers,
+        remoteAssets,
       ] = await Promise.all([
         safeF(SUPABASE_TABLES.profile),
         safeF(SUPABASE_TABLES.clients),
@@ -1581,6 +1582,7 @@ export default function AccountingPortalPrototype() {
         safeF(SUPABASE_TABLES.services),
         safeF(SUPABASE_TABLES.documents),
         safeF(SUPABASE_TABLES.suppliers),
+        safeF(SUPABASE_TABLES.assets),
       ]);
       hasHydratedSupabaseState.current = true;
 
