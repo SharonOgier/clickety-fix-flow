@@ -83,7 +83,7 @@ export default function SettingsPage(props) {
 
   return (
     <div style={{ display: "grid", gap: 20 }}>
-      <DashboardHero title="Settings" subtitle="Configure your business profile, financial settings, branding and security. Changes save to your Supabase database automatically." highlight={activeSettingsTab}>
+      <DashboardHero title="Settings" subtitle="Configure your business profile, financial settings, branding and security. Click Save on each tab to apply changes." highlight={activeSettingsTab}>
         <InsightChip label="Business" value={profile.businessName || "Not set"} />
         <InsightChip label="ABN" value={profile.abn || "Not set"} />
         <InsightChip label="GST" value={profile.gstRegistered ? "Registered" : "Not registered"} />
