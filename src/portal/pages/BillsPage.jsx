@@ -381,6 +381,13 @@ export default function BillsPage(props) {
 
         <SectionCard title="Supplier Directory" right={
           <div style={{ display: "flex", gap: 8 }}>
+            <button style={buttonSecondary} onClick={() => exportToCSV(suppliers, [
+              { key: "name", label: "Supplier" },
+              { key: "contactPerson", label: "Contact" },
+              { key: "email", label: "Email" },
+              { key: "phone", label: "Phone" },
+              { key: "abn", label: "ABN" },
+            ], "suppliers.csv")}>Export CSV</button>
             <button style={buttonSecondary} onClick={() => { setImportType("suppliers"); setImportRows([]); setImportError(""); setShowImportModal(true); }}>Upload Import</button>
             <button style={buttonPrimary} onClick={() => { setSupplierForm({ name: "", email: "", phone: "", address: "", abn: "", contactPerson: "", notes: "" }); setEditingSupplierId(null); setShowSupplierModal(true); }}>+ Add Supplier</button>
           </div>
