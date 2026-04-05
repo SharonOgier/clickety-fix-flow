@@ -56,6 +56,7 @@ export const navLabels = {
   "bills / payables": "Bills & Payables",
   "income sources": "Income Sources",
   documents: "Documents",
+  assets: "Assets & Depreciation",
   "bank reconciliation": "Bank Reconciliation",
   "bas report": "BAS Report",
   "ato tax form": "ATO Tax Form",
