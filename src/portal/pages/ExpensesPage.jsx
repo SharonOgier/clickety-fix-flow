@@ -137,15 +137,34 @@ export default function ExpensesPage(props) {
       <SectionCard
         title="Expense Details"
         right={
-          <button
-            style={buttonPrimary}
-            onClick={() => {
-              setExpenseModalOpen(true);
-              setExpenseTypeStep(1);
-            }}
-          >
-            Add Expense
-          </button>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <input
+              ref={scanInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) handleScanReceipt(file);
+              }}
+            />
+            <button
+              style={{ ...buttonSecondary, display: "flex", alignItems: "center", gap: 6 }}
+              onClick={() => scanInputRef.current?.click()}
+              disabled={scanning}
+            >
+              {scanning ? "Scanning..." : "📷 Scan Receipt"}
+            </button>
+            <button
+              style={buttonPrimary}
+              onClick={() => {
+                setExpenseModalOpen(true);
+                setExpenseTypeStep(1);
+              }}
+            >
+              Add Expense
+            </button>
+          </div>
         }
       >
         <div
