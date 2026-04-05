@@ -3183,22 +3183,19 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     const w = window.open("", "_blank");
     if (!w) return;
 
-    let stripeCheckoutUrl = "";
-    try {
-      if (resolveInvoiceStripeAmount(previewInvoice) > 0) {
-        stripeCheckoutUrl = await createStripeCheckoutForInvoice(previewInvoice);
-      }
-    } catch (error) {
-      console.error("STRIPE PREVIEW ERROR:", error);
-    }
-
-    const previewInvoiceWithStripe = {
-      ...previewInvoice,
-      stripeCheckoutUrl,
-    };
-
-    writeInvoicePreviewToWindow(w, previewInvoiceWithStripe, stripeCheckoutUrl, { allowEmail: true }, { profile, clients });
+    // Show invoice immediately without Stripe URL
+    writeInvoicePreviewToWindow(w, previewInvoice, "", { allowEmail: true }, { profile, clients });
     w.simulateInvoicePayment = () => simulateInvoicePayment(previewInvoice.id);
+
+    // Generate Stripe URL in background and refresh
+    if (resolveInvoiceStripeAmount(previewInvoice) > 0) {
+      createStripeCheckoutForInvoice(previewInvoice).then((stripeCheckoutUrl) => {
+        if (stripeCheckoutUrl) {
+          const updated = { ...previewInvoice, stripeCheckoutUrl };
+          writeInvoicePreviewToWindow(w, updated, stripeCheckoutUrl, { allowEmail: true }, { profile, clients });
+        }
+      }).catch((error) => console.error("STRIPE PREVIEW ERROR:", error));
+    }
     };
 
     const openQuotePreview = () => {
