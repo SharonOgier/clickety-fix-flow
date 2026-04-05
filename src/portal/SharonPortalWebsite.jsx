@@ -4279,6 +4279,15 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               openDocumentEditor={openDocumentEditor} closeDocumentEditor={closeDocumentEditor}
               saveDocumentEdits={saveDocumentEdits}
             />}
+            {activePage === "bank reconciliation" && <BankReconciliationPage
+              invoices={invoices} expenses={expenses} clients={clients}
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              inputStyle={inputStyle} labelStyle={labelStyle}
+              currency={currency} formatDateAU={formatDateAU} safeNumber={safeNumber}
+              DashboardHero={DashboardHero} SectionCard={SectionCard}
+              DataTable={DataTable} EmptyState={EmptyState}
+            />}
             {activePage === "ato tax form" && (
               <div className="sas-inline-page-card">
                 <div style={{ display: "grid", gap: 8, marginBottom: 18 }}>
