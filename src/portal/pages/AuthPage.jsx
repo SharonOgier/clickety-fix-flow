@@ -144,8 +144,10 @@ export default function AuthPage(props) {
               <div style={{ fontSize: 28, fontWeight: 900, color: colours.text, marginBottom: 8 }}>
                 {authMode === "signup" ? "Create your portal account" : "Portal login"}
               </div>
-              <div style={{ fontSize: 14, color: colours.muted, lineHeight: 1.7 }}>
-                Sign in with Supabase Auth to access invoices, quotes, expenses, reports and client records.
+              <div style={{ fontSize: 14, color: colours.muted, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
+                {authMode === "signup"
+                  ? "Create your account and our setup wizard will guide you through configuring your business profile, branding, and preferences — all in a few easy steps."
+                  : "Sign in to access your invoices, quotes, expenses, reports and client records."}
               </div>
             </div>
 
