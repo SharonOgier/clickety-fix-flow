@@ -25,7 +25,6 @@ const navItems = [
   "bills / payables",
   "income sources",
   "documents",
-  "farm equipment",
   "bas report",
   "ato tax form",
   "settings",
@@ -39,10 +38,6 @@ export const navSections = [
   {
     title: "Workspace",
     items: ["clients", "services", "bills / payables", "income sources", "documents"],
-  },
-  {
-    title: "Services",
-    items: ["farm equipment"],
   },
   {
     title: "Admin",
@@ -61,7 +56,7 @@ export const navLabels = {
   "bills / payables": "Bills & Payables",
   "income sources": "Income Sources",
   documents: "Documents",
-  "farm equipment": "Farm Equipment — Mitchell",
+  documents: "Documents",
   "bas report": "BAS Report",
   "ato tax form": "ATO Tax Form",
   settings: "Settings",

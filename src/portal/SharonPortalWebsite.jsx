@@ -91,7 +91,7 @@ import ExpensesPage         from "./pages/ExpensesPage";
 import IncomeSourcesPage    from "./pages/IncomeSourcesPage";
 import DocumentsPage        from "./pages/DocumentsPage";
 import SetupWizardPage      from "./pages/SetupWizardPage";
-import FarmEquipmentPage    from "./pages/FarmEquipmentPage";
+import AuthPage             from "./pages/AuthPage";
 import AuthPage             from "./pages/AuthPage";
 import BASReportPage        from "./pages/BASReportPage";
 import SettingsPage         from "./pages/SettingsPage";
@@ -4183,12 +4183,6 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               openNewServiceModal={openNewServiceModal} openEditServiceModal={openEditServiceModal}
               saveService={saveService} deleteService={deleteService}
               handleServiceFormChange={handleServiceFormChange}
-            />}
-            {activePage === "farm equipment" && <FarmEquipmentPage
-              colours={colours} cardStyle={cardStyle}
-              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
-              DashboardHero={DashboardHero} InsightChip={InsightChip}
-              SectionCard={SectionCard} profile={profile}
             />}
             {activePage === "expenses" && <ExpensesPage
               expenses={expenses} expenseForm={expenseForm} setExpenseForm={setExpenseForm}

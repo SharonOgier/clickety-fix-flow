@@ -63,6 +63,7 @@ export default function LandingPage() {
         </Link>
         <div className="hidden md:flex items-center gap-8">
           <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Features</a>
+          <Link to="/farm-equipment" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Farm Equipment</Link>
           <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">How it works</a>
           <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Pricing</a>
           <Link to="/auth?mode=signin" className="text-sm font-bold text-primary bg-secondary border border-primary/20 rounded-md px-4 py-2.5 hover:bg-secondary/80 transition-colors">
@@ -274,6 +275,7 @@ export default function LandingPage() {
         <div className="flex justify-center gap-6 mt-5 flex-wrap">
           <Link to="/" className="text-sm text-slate-500 hover:text-card transition-colors">Home</Link>
           <a href="#features" className="text-sm text-slate-500 hover:text-card transition-colors">Features</a>
+          <Link to="/farm-equipment" className="text-sm text-slate-500 hover:text-card transition-colors">Farm Equipment</Link>
           <a href="#pricing" className="text-sm text-slate-500 hover:text-card transition-colors">Pricing</a>
           <Link to="/auth?mode=signin" className="text-sm text-slate-500 hover:text-card transition-colors">Portal Login</Link>
         </div>
