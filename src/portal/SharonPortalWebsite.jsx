@@ -3441,6 +3441,42 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       );
     }
 
+    if (isSupabaseRestoring || !hasLoadedUserProfile) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          background: colours.bg,
+          display: "grid",
+          placeItems: "center",
+          color: colours.text,
+          fontFamily:
+            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        }}
+      >
+        Loading your profile...
+      </div>
+    );
+    }
+
+    if (!setupComplete) {
+    return (
+      <SetupWizardPage
+        wizardForm={wizardForm}
+        setWizardForm={setWizardForm}
+        wizardSaving={wizardSaving}
+        completeSetupWizard={completeSetupWizard}
+        authUser={authUser}
+        colours={colours}
+        cardStyle={cardStyle}
+        inputStyle={inputStyle}
+        labelStyle={labelStyle}
+        buttonPrimary={buttonPrimary}
+        buttonSecondary={buttonSecondary}
+      />
+    );
+    }
+
     if (profile?.accountStatus === "closed") {
     return (
       <div style={{ minHeight: "100vh", background: colours.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "sans-serif" }}>
