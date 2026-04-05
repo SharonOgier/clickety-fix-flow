@@ -1,12 +1,28 @@
 import React from "react";
 import { exportToCSV } from "../PortalHelpers";
 
+class InvoicesErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  componentDidCatch(error, info) { console.error("InvoicesPage crash:", error, info); }
+  render() {
+    if (this.state.error) return (
+      <div style={{ padding: 40, textAlign: "center" }}>
+        <h2 style={{ color: "#991B1B", marginBottom: 12 }}>Something went wrong on the Invoices page</h2>
+        <p style={{ color: "#64748B", marginBottom: 16 }}>{String(this.state.error?.message || this.state.error)}</p>
+        <button onClick={() => this.setState({ error: null })} style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #E2E8F0", cursor: "pointer", fontWeight: 700 }}>Try Again</button>
+      </div>
+    );
+    return this.props.children;
+  }
+}
+
 // -----------------------------------------------------------------------------
 // InvoicesPage
 // All state and handlers come from SharonPortalWebsite via props.
 // -----------------------------------------------------------------------------
 
-export default function InvoicesPage(props) {
+function InvoicesPageInner(props) {
   const {
     profile,
     clients,
@@ -84,6 +100,15 @@ export default function InvoicesPage(props) {
     setShowImportModal = () => {},
     sendInvoiceFromPreview,
   } = props;
+
+  if (typeof computeLineItemTotals !== "function") {
+    console.error("InvoicesPage: computeLineItemTotals is not a function", { computeLineItemTotals });
+    return <div style={{ padding: 40, color: "#991B1B" }}>Error: Missing computeLineItemTotals prop</div>;
+  }
+  if (typeof getClientById !== "function") {
+    console.error("InvoicesPage: getClientById is not a function");
+    return <div style={{ padding: 40, color: "#991B1B" }}>Error: Missing getClientById prop</div>;
+  }
 
   const createLocalId = () => {
     if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") return crypto.randomUUID();
@@ -874,4 +899,12 @@ export default function InvoicesPage(props) {
       </div>
     );
 
+}
+
+export default function InvoicesPage(props) {
+  return (
+    <InvoicesErrorBoundary>
+      <InvoicesPageInner {...props} />
+    </InvoicesErrorBoundary>
+  );
 }
