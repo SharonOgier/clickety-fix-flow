@@ -196,10 +196,10 @@ export default function FarmEquipmentPage() {
       <section className="py-24 px-6 lg:px-10 text-center" id="contact" style={{ background: "var(--gradient-cta)" }}>
         <div className="fade-in">
           <h2 className="font-serif text-3xl lg:text-5xl font-black text-primary-foreground mb-4 tracking-tight">
-            Need a farm equipment evaluation?
+            Need a farm equipment assessment?
           </h2>
           <p className="text-lg text-primary-foreground/70 font-light mb-10 max-w-[600px] mx-auto">
-            Get in touch to arrange an on-site inspection with Mitchell. We provide formal valuation reports for insurance, finance, sale, or internal asset management purposes.
+            Get in touch to arrange an on-site inspection with Mitchell. He provides detailed written reports for buying, selling, or internal asset management purposes.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
             <a
