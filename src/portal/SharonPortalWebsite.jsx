@@ -744,6 +744,72 @@ export default function AccountingPortalPrototype() {
     };
   }, [invoices, quotes, profile, clients]);
 
+  // Check admin role and load all portal users for admin
+  useEffect(() => {
+    if (!authUser || !supabase) return;
+    (async () => {
+      try {
+        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", authUser.id);
+        const adminRole = (roles || []).some(r => r.role === "admin");
+        setIsAdmin(adminRole);
+        if (adminRole) {
+          const { data: profiles } = await supabase.from("sas_profile").select("id, data, user_id");
+          setAllPortalUsers((profiles || []).map(p => ({
+            userId: p.user_id,
+            businessName: p.data?.businessName || p.data?.name || "Unknown",
+            email: p.data?.email || "",
+          })));
+        }
+        // Load team members and invitations
+        const { data: members } = await supabase.from("sas_team_members").select("*").eq("owner_user_id", authUser.id);
+        setTeamMembers(members || []);
+        const { data: invites } = await supabase.from("sas_team_invitations").select("*").eq("inviter_user_id", authUser.id);
+        setTeamInvitations(invites || []);
+        // Check for pending invitations for this user and auto-accept
+        const { data: pendingInvites } = await supabase.from("sas_team_invitations").select("*").eq("email", authUser.email).eq("status", "pending");
+        if (pendingInvites?.length) {
+          for (const inv of pendingInvites) {
+            await supabase.from("sas_team_members").insert({ owner_user_id: inv.inviter_user_id, member_user_id: authUser.id, permission: inv.permission }).select();
+            await supabase.from("sas_team_invitations").update({ status: "accepted", accepted_at: new Date().toISOString() }).eq("id", inv.id);
+          }
+          const { data: updatedMembers } = await supabase.from("sas_team_members").select("*").eq("owner_user_id", authUser.id);
+          setTeamMembers(updatedMembers || []);
+        }
+      } catch (err) { console.warn("Multi-user check failed:", err); }
+    })();
+  }, [authUser]);
+
+  const switchToUser = async (targetUserId) => {
+    if (!supabase || !authUser) return;
+    setViewingAsUserId(targetUserId === authUser.id ? null : targetUserId);
+    // Re-fetch all data for the target user
+    setIsSupabaseRestoring(true);
+    try {
+      const uid = targetUserId;
+      const safeF = (table) => fetchCollectionFromDatabase(table, uid).catch(() => []);
+      const [rProfile, rClients, rInvoices, rQuotes, rExpenses, rIncome, rServices, rDocs, rSuppliers] = await Promise.all([
+        safeF(SUPABASE_TABLES.profile), safeF(SUPABASE_TABLES.clients), safeF(SUPABASE_TABLES.invoices),
+        safeF(SUPABASE_TABLES.quotes), safeF(SUPABASE_TABLES.expenses), safeF(SUPABASE_TABLES.incomeSources),
+        safeF(SUPABASE_TABLES.services), safeF(SUPABASE_TABLES.documents), safeF(SUPABASE_TABLES.suppliers),
+      ]);
+      const remoteProfile = Array.isArray(rProfile) && rProfile.length
+        ? [...rProfile].reverse().find(r => Boolean(r?.setupComplete ?? r?.data?.setupComplete)) || rProfile[rProfile.length - 1]
+        : null;
+      const nextProfile = remoteProfile?.data ? { ...initialProfile, ...remoteProfile.data, id: remoteProfile.id } : remoteProfile ? { ...initialProfile, ...remoteProfile } : initialProfile;
+      setProfile(nextProfile);
+      setClients(Array.isArray(rClients) ? rClients : []);
+      setInvoices(Array.isArray(rInvoices) ? rInvoices : []);
+      setQuotes(Array.isArray(rQuotes) ? rQuotes : []);
+      setExpenses(Array.isArray(rExpenses) ? rExpenses : []);
+      setIncomeSources(Array.isArray(rIncome) ? rIncome : []);
+      setServices(Array.isArray(rServices) ? rServices : []);
+      setDocuments(Array.isArray(rDocs) ? rDocs : []);
+      setSuppliers(Array.isArray(rSuppliers) ? rSuppliers : []);
+      setActivePage("dashboard");
+    } catch (err) { console.error("Switch user failed:", err); }
+    setIsSupabaseRestoring(false);
+  };
+
   useEffect(() => {
     if (authUser) {
       restorePortalStateFromSupabase();
