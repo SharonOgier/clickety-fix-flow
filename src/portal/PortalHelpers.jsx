@@ -700,7 +700,10 @@ export function getSubscriptionAccess(profile) {
 
 // ── Export CSV helper ────────────────────────────────────────────────────────
 export function exportToCSV(rows, columns, filename = "export.csv") {
-  if (!rows || !rows.length) return;
+  if (!rows || !rows.length) {
+    try { const { toast } = require("sonner"); toast.info("No data to export yet."); } catch(e) { alert("No data to export yet."); }
+    return;
+  }
   const headers = columns.map((c) => c.label);
   const csvRows = [
     headers.join(","),
