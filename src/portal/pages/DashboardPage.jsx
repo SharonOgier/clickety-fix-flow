@@ -30,7 +30,7 @@ export default function DashboardPage(props) {
     currency = (v) => v,
     formatDateAU = (v) => v,
     safeNumber = (v) => Number(v || 0),
-    DEFAULT_MONTHLY_SUBSCRIPTION = 45,
+    DEFAULT_MONTHLY_SUBSCRIPTION = 27,
     buttonPrimary = {},
     buttonSecondary = {},
     inputStyle = {},

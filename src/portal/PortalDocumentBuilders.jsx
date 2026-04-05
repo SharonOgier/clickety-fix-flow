@@ -93,7 +93,7 @@ const getApiBaseUrl = (preferredValue = "") => {
 };
 
 const LOCKED_FEE_RATE_PERCENT = 1;
-const DEFAULT_MONTHLY_SUBSCRIPTION = 45;
+const DEFAULT_MONTHLY_SUBSCRIPTION = 27;
 
 const SUPABASE_STORAGE_BUCKET = "receipts";
 
