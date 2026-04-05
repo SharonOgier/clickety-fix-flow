@@ -5,7 +5,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
 
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -13,6 +13,16 @@ serve(async (req: Request) => {
   }
 
   try {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
+    }
+
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) {
+      throw new Error("RESEND_API_KEY is not configured");
+    }
+
     const body = await req.json();
     const {
       to,
@@ -37,24 +47,18 @@ serve(async (req: Request) => {
       );
     }
 
-    if (!RESEND_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "Email service not configured. Please add RESEND_API_KEY." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     const fromName = businessName || "Sharon Ogier Accounting";
-    const fromEmail = businessEmail && businessEmail.includes("@") ? businessEmail : "noreply@sharonogier.com";
+    // Resend requires a verified domain or onboarding@resend.dev for testing
+    const fromEmail = "onboarding@resend.dev";
 
-    // Send to each recipient
     const results = [];
     for (const recipient of to) {
-      const res = await fetch("https://api.resend.com/emails", {
+      const res = await fetch(`${GATEWAY_URL}/emails`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${RESEND_API_KEY}`,
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "X-Connection-Api-Key": RESEND_API_KEY,
         },
         body: JSON.stringify({
           from: `${fromName} <${fromEmail}>`,
@@ -67,15 +71,15 @@ serve(async (req: Request) => {
 
       const data = await res.json();
       if (!res.ok) {
-        console.error("Resend error for", recipient, data);
+        console.error("Resend gateway error for", recipient, JSON.stringify(data));
         results.push({ recipient, ok: false, error: data });
       } else {
         results.push({ recipient, ok: true, id: data.id });
       }
     }
 
-    const allOk = results.every((r) => r.ok);
-    const sentCount = results.filter((r) => r.ok).length;
+    const allOk = results.every((r: any) => r.ok);
+    const sentCount = results.filter((r: any) => r.ok).length;
 
     return new Response(
       JSON.stringify({
