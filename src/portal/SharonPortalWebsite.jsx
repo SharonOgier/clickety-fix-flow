@@ -808,6 +808,7 @@ export default function AccountingPortalPrototype() {
       setServices(Array.isArray(rServices) ? rServices : []);
       setDocuments(Array.isArray(rDocs) ? rDocs : []);
       setSuppliers(Array.isArray(rSuppliers) ? rSuppliers : []);
+      setAssets(Array.isArray(rAssets) ? rAssets : []);
       setActivePage("dashboard");
     } catch (err) { console.error("Switch user failed:", err); }
     setIsSupabaseRestoring(false);
