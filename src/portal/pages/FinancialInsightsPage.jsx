@@ -1,4 +1,8 @@
 import React from "react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from "recharts";
 
 // -----------------------------------------------------------------------------
 // FinancialInsightsPage
@@ -115,34 +119,22 @@ export default function FinancialInsightsPage(props) {
   const estimatedTax = safeNumber(totals?.estimatedTax);
   const totalFees = safeNumber(totals?.totalFees);
   const totalTaxWithheld = safeNumber(totals?.totalTaxWithheld);
-  const preExpenseAvailable = safeNumber(totals?.preExpenseAvailable);
   const monthlySubscriptionCost = safeNumber(totals?.monthlySubscriptionCost);
   const safeToSpend = safeNumber(totals?.safeToSpend);
 
-  const profitAndLossRows = [
-    { line: "Sales / invoice income", amount: totalIncome },
-    { line: "Less operating expenses", amount: -totalExpenses },
-    { line: "Operating result", amount: totalIncome - totalExpenses },
-    { line: "Less subscription", amount: -monthlySubscriptionCost },
-    { line: "Net result after subscription", amount: totalIncome - totalExpenses - monthlySubscriptionCost },
-  ];
+  // -- Chart data --
+  const monthlyChartData = (monthlyFinance || []).map((month) => ({
+    name: month?.label || month?.monthKey || "-",
+    Revenue: safeNumber(month?.revenue),
+    Expenses: safeNumber(month?.expenses),
+    Net: safeNumber(month?.net),
+  }));
 
-  const cashMovementRows = [
-    { line: "Paid income received", amount: paidIncome },
-    { line: "Less GST payable", amount: -gstPayable },
-    { line: "Less estimated tax reserve", amount: -estimatedTax },
-    { line: "Less fees", amount: -totalFees },
-    { line: "Less tax withheld", amount: -totalTaxWithheld },
-    { line: "Less operating expenses", amount: -totalExpenses },
-    { line: "Less subscription", amount: -monthlySubscriptionCost },
-    { line: "Safe to spend", amount: safeToSpend },
-  ];
-
-  const gstReportRows = [
-    { line: "GST collected on income", amount: gstCollected },
-    { line: "GST credits on expenses", amount: -gstOnExpenses },
-    { line: "Net GST position", amount: gstPayable },
-  ];
+  const PIE_COLORS = [resolvedColours.teal, resolvedColours.purple, resolvedColours.navy, "#F59E0B", "#EC4899", "#10B981", "#6366F1", "#F97316"];
+  const expensePieData = (expenseCategoryRows || []).filter(r => safeNumber(r?.value) > 0).map((r) => ({
+    name: r?.label || r?.name || "-",
+    value: safeNumber(r?.value),
+  }));
 
   const revenueSummaryRows = (monthlyFinance || []).map((month) => ({
     period: month?.label || month?.monthKey || "-",
@@ -164,39 +156,20 @@ export default function FinancialInsightsPage(props) {
     netAvailable: safeNumber(item?.netAvailable),
   }));
 
-  const tableCellStyle = {
-    padding: "10px 12px",
-    borderBottom: `1px solid ${resolvedColours.border}`,
-    fontSize: 14,
-    color: resolvedColours.text,
+  const customTooltipStyle = {
+    background: resolvedColours.white,
+    border: `1px solid ${resolvedColours.border}`,
+    borderRadius: 10,
+    padding: "10px 14px",
+    fontSize: 13,
+    boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
   };
-
-  const renderSimpleReportTable = (rows) => (
-    <div style={{ overflowX: "auto" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 380 }}>
-        <thead>
-          <tr style={{ background: resolvedColours.bg }}>
-            <th style={{ ...tableCellStyle, textAlign: "left", fontWeight: 800, color: resolvedColours.muted }}>Line item</th>
-            <th style={{ ...tableCellStyle, textAlign: "right", fontWeight: 800, color: resolvedColours.muted }}>Amount</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.line}>
-              <td style={{ ...tableCellStyle, fontWeight: 600 }}>{row.line}</td>
-              <td style={{ ...tableCellStyle, textAlign: "right", fontWeight: 700 }}>{currency(row.amount)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  );
 
   return (
     <div style={{ display: "grid", gap: 20 }}>
       <DashboardHero
-        title="Financial Reports"
-        subtitle="This page now contains the actual financial reporting view for your portal, including Profit & Loss, cash movement, GST position, revenue summary, and paid invoice allocation detail."
+        title="Financial Insights"
+        subtitle="Visual overview of your farm's financial performance. Revenue trends, expense breakdowns, client concentration and seasonal patterns — all in one place."
         highlight={currency(safeToSpend)}
       >
         <InsightChip label="Safe to spend" value={currency(safeToSpend)} />
@@ -211,52 +184,82 @@ export default function FinancialInsightsPage(props) {
           gap: 16,
         }}
       >
-        <MetricCard title="Total income" value={currency(totalIncome)} subtitle="All invoice income recorded in the portal." accent={resolvedColours.purple} />
-        <MetricCard title="Paid income" value={currency(paidIncome)} subtitle="Cash actually received from paid invoices." accent={resolvedColours.teal} />
+        <MetricCard title="Total income" value={currency(totalIncome)} subtitle="All invoice income recorded." accent={resolvedColours.purple} />
+        <MetricCard title="Paid income" value={currency(paidIncome)} subtitle="Cash received from paid invoices." accent={resolvedColours.teal} />
         <MetricCard title="Total expenses" value={currency(totalExpenses)} subtitle="All expenses currently recorded." accent={resolvedColours.purple} />
-        <MetricCard title="Safe to spend" value={currency(safeToSpend)} subtitle="Cash remaining after tax, GST, fees, expenses, and subscription." accent={resolvedColours.teal} />
+        <MetricCard title="Safe to spend" value={currency(safeToSpend)} subtitle="After tax, GST, fees, expenses & subscription." accent={resolvedColours.teal} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
-        <SectionCard title="Profit & Loss" right={<div style={{ fontSize: 12, color: resolvedColours.muted }}>Core profitability report</div>}>
-          {renderSimpleReportTable(profitAndLossRows)}
-        </SectionCard>
-
-        <SectionCard title="GST Position" right={<div style={{ fontSize: 12, color: resolvedColours.muted }}>Collected less credits</div>}>
-          {renderSimpleReportTable(gstReportRows)}
-        </SectionCard>
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
-        <SectionCard title="Cash Movement" right={<div style={{ fontSize: 12, color: resolvedColours.muted }}>How paid income is allocated</div>}>
-          {renderSimpleReportTable(cashMovementRows)}
-        </SectionCard>
-
-        <WaterfallCard
-          title="Cash efficiency"
-          rows={[
-            { label: "Paid income", value: paidIncome },
-            { label: "Less GST payable", value: -gstPayable },
-            { label: "Less tax reserve", value: -estimatedTax },
-            { label: "Less expenses", value: -totalExpenses },
-            { label: "Less subscription", value: -monthlySubscriptionCost },
-            { label: "Safe to spend", value: safeToSpend },
-          ]}
-        />
-      </div>
-
-      <SectionCard title="Revenue Summary" right={<div style={{ fontSize: 12, color: resolvedColours.muted }}>Month-by-month report</div>}>
-        <DataTable
-          columns={[
-            { key: "period", label: "Period" },
-            { key: "revenue", label: "Revenue", render: (value) => currency(value) },
-            { key: "expenses", label: "Expenses", render: (value) => currency(value) },
-            { key: "net", label: "Net", render: (value) => currency(value) },
-          ]}
-          rows={revenueSummaryRows}
-          emptyState={{ title: "No monthly revenue data yet." }}
-        />
+      {/* ── Monthly Revenue vs Expenses Chart ── */}
+      <SectionCard title="Monthly Revenue vs Expenses" right={<div style={{ fontSize: 12, color: resolvedColours.muted }}>Track seasonal patterns 🌾</div>}>
+        {monthlyChartData.length > 0 ? (
+          <div style={{ width: "100%", height: 320 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={monthlyChartData} margin={{ top: 10, right: 10, left: 0, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={resolvedColours.border} />
+                <XAxis dataKey="name" tick={{ fontSize: 12, fill: resolvedColours.muted }} />
+                <YAxis tick={{ fontSize: 12, fill: resolvedColours.muted }} tickFormatter={(v) => `$${(v / 1000).toFixed(v >= 1000 ? 0 : 1)}k`} />
+                <Tooltip contentStyle={customTooltipStyle} formatter={(value) => currency(value)} />
+                <Legend wrapperStyle={{ fontSize: 13 }} />
+                <Bar dataKey="Revenue" fill={resolvedColours.teal} radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Expenses" fill={resolvedColours.purple} radius={[6, 6, 0, 0]} />
+                <Bar dataKey="Net" fill={resolvedColours.navy} radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div style={{ padding: 24, textAlign: "center", color: resolvedColours.muted, fontSize: 14 }}>
+            Add paid invoices and expenses to see your seasonal revenue trends here.
+          </div>
+        )}
       </SectionCard>
+
+      {/* ── Expense Breakdown Pie Chart ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
+        <SectionCard title="Where Your Money Goes" right={<div style={{ fontSize: 12, color: resolvedColours.muted }}>Expense breakdown 🚜</div>}>
+          {expensePieData.length > 0 ? (
+            <div style={{ width: "100%", height: 300, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={expensePieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={110}
+                    paddingAngle={3}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={{ stroke: resolvedColours.muted, strokeWidth: 1 }}
+                  >
+                    {expensePieData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={customTooltipStyle} formatter={(value) => currency(value)} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          ) : (
+            <div style={{ padding: 24, textAlign: "center", color: resolvedColours.muted, fontSize: 14 }}>
+              Record some expenses to see your spending breakdown here.
+            </div>
+          )}
+        </SectionCard>
+
+        <SectionCard title="Revenue Summary" right={<div style={{ fontSize: 12, color: resolvedColours.muted }}>Month-by-month</div>}>
+          <DataTable
+            columns={[
+              { key: "period", label: "Period" },
+              { key: "revenue", label: "Revenue", render: (value) => currency(value) },
+              { key: "expenses", label: "Expenses", render: (value) => currency(value) },
+              { key: "net", label: "Net", render: (value) => currency(value) },
+            ]}
+            rows={revenueSummaryRows}
+            emptyState={{ title: "No monthly revenue data yet." }}
+          />
+        </SectionCard>
+      </div>
 
       <div
         style={{
