@@ -4657,12 +4657,12 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         <div style={{ position: "fixed", inset: 0, zIndex: 99993, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: "#fff", borderRadius: 18, padding: 28, width: "100%", maxWidth: 620, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", fontFamily: "sans-serif", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ fontSize: 18, fontWeight: 800, color: colours.text, marginBottom: 6 }}>
-              Import {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : importType === "income" ? "Income Sources" : "Expenses / Bills"}
+              Import {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : importType === "income" ? "Income Sources" : importType === "assets" ? "Assets" : "Expenses / Bills"}
             </div>
 
             {/* Tab switcher */}
             <div style={{ display: "flex", gap: 6, marginBottom: 20, flexWrap: "wrap" }}>
-              {["clients", "suppliers", "invoices", "expenses", "income"].map((t) => (
+              {["clients", "suppliers", "invoices", "expenses", "income", "assets"].map((t) => (
                 <button key={t} onClick={() => { setImportType(t); setImportRows([]); setImportError(""); }}
                   style={{ background: importType === t ? colours.purple : "#F1F5F9", color: importType === t ? "#fff" : colours.text, border: "none", borderRadius: 8, padding: "7px 16px", fontWeight: 700, cursor: "pointer", fontSize: 13, textTransform: "capitalize" }}>
                   {t === "expenses" ? "Bills / Expenses" : t === "income" ? "Income Sources" : t}
