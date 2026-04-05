@@ -3768,7 +3768,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         background: colours.bg,
         color: colours.text,
         fontFamily:
-          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+          '"DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       }}
     >
       <style>{`
