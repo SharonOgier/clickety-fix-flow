@@ -188,7 +188,8 @@ export default function AccountingPortalPrototype() {
   const [recurringSelected, setRecurringSelected] = useState([]);
   const recurringShownRef = useRef(false);
   const [quoteWizardStep, setQuoteWizardStep] = useState(1);
-  const [activePage, setActivePage] = useState("dashboard");
+  const [activePage, setActivePageRaw] = useState("dashboard");
+  const isPopstateRef = useRef(false);
   const [showQuickAddMenu, setShowQuickAddMenu] = useState(false);
   const [showMobileWizard, setShowMobileWizard] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(() => (typeof window !== "undefined" ? window.innerWidth <= 768 : false));
