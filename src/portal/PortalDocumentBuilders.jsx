@@ -297,6 +297,20 @@ const safeLogoDataUrl = (value) =>
     ? value.trim()
     : "";
 
+const safeHref = (value) => {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  try {
+    const parsed = new URL(trimmed);
+    return parsed.protocol === "https:" || parsed.protocol === "http:"
+      ? parsed.toString()
+      : "";
+  } catch {
+    return "";
+  }
+};
+
 const nl2br = (value) => escapeHtml(value).replace(/\n/g, "<br/>");
 
 // Parse YYYY-MM-DD as LOCAL date (not UTC) -- prevents day-shift in AU timezones
@@ -717,6 +731,7 @@ const paypalCheckoutUrl = buildPayPalInvoiceUrl({
   currencyCode,
   invoiceNumber: invoice.invoiceNumber || paymentReference,
 });
+const cardPaymentUrl = safeHref(stripeCheckoutUrl || invoice?.stripeCheckoutUrl || profile.stripePaymentLink);
 
 const clientDetails =
   previewClient?.includeAddressDetails && previewClient?.addressDetails
