@@ -699,9 +699,9 @@ export function getSubscriptionAccess(profile) {
 }
 
 // ── Export CSV helper ────────────────────────────────────────────────────────
-export function exportToCSV(rows, columns, filename = "export.csv") {
+export function exportToCSV(rows, columns, filename = "export.csv", onEmpty) {
   if (!rows || !rows.length) {
-    try { const { toast } = require("sonner"); toast.info("No data to export yet."); } catch(e) { alert("No data to export yet."); }
+    if (onEmpty) onEmpty(); 
     return;
   }
   const headers = columns.map((c) => c.label);
