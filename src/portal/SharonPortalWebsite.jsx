@@ -2719,15 +2719,15 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         );
         setSupabaseSyncStatus(result.message || "Invoice emailed");
         setStatus(result.message || "Invoice emailed.", "#166534");
-        toast({ title: "Invoice emailed", description: result.message || `Sent to ${(result.recipients || []).join(", ")}` });
+        toast.success(result.message || `Sent to ${(result.recipients || []).join(", ")}`, "Invoice emailed");
       } else {
         setStatus(result?.message || "Could not send invoice.", "#B42318");
-        toast({ title: "Email not sent", description: result?.message || "Could not send invoice.", variant: "destructive" });
+        toast.error(result?.message || "Could not send invoice.", "Email not sent");
       }
     } catch (error) {
       console.error("PREVIEW INVOICE EMAIL ERROR:", error);
       setStatus(`Send failed: ${error.message || "Unknown error"}`, "#B42318");
-      toast({ title: "Email failed", description: error.message || "Unknown error", variant: "destructive" });
+      toast.error(error.message || "Unknown error", "Email failed");
     } finally {
       if (emailButton) {
         emailButton.disabled = false;
@@ -2780,15 +2780,15 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         );
         setSupabaseSyncStatus(result.message || "Quote emailed");
         setStatus(result.message || "Quote emailed.", "#166534");
-        toast({ title: "Quote emailed", description: result.message || `Sent to ${(result.recipients || []).join(", ")}` });
+        toast.success(result.message || `Sent to ${(result.recipients || []).join(", ")}`, "Quote emailed");
       } else {
         setStatus(result?.message || "Could not send quote.", "#B42318");
-        toast({ title: "Email not sent", description: result?.message || "Could not send quote.", variant: "destructive" });
+        toast.error(result?.message || "Could not send quote.", "Email not sent");
       }
     } catch (error) {
       console.error("PREVIEW QUOTE EMAIL ERROR:", error);
       setStatus(`Send failed: ${error.message || "Unknown error"}`, "#B42318");
-      toast({ title: "Email failed", description: error.message || "Unknown error", variant: "destructive" });
+      toast.error(error.message || "Unknown error", "Email failed");
     } finally {
       if (emailButton) {
         emailButton.disabled = false;

@@ -48,8 +48,10 @@ serve(async (req: Request) => {
     }
 
     const fromName = businessName || "Sharon Ogier Accounting";
-    // Resend requires a verified domain or onboarding@resend.dev for testing
-    const fromEmail = "onboarding@resend.dev";
+    const normalisedBusinessEmail = String(businessEmail || "").trim().toLowerCase();
+    const fromEmail = normalisedBusinessEmail.endsWith("@sharonogier.com")
+      ? normalisedBusinessEmail
+      : "info@sharonogier.com";
 
     const results = [];
     for (const recipient of to) {
