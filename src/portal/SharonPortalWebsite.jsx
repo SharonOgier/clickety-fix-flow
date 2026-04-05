@@ -1614,6 +1614,7 @@ export default function AccountingPortalPrototype() {
       setServices(Array.isArray(remoteServices) ? remoteServices : []);
       setDocuments(Array.isArray(remoteDocuments) ? remoteDocuments : []);
       setSuppliers(Array.isArray(remoteSuppliers) ? remoteSuppliers : []);
+      setAssets(Array.isArray(remoteAssets) ? remoteAssets : []);
       setSetupComplete(nextSetupComplete);
       setWizardForm((prev) => ({ ...prev,
         firstName: nextProfile.firstName || "",
