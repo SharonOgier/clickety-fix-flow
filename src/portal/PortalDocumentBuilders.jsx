@@ -943,17 +943,16 @@ ${purchaseOrderBlock}
           return;
         }
 
+        // Open window synchronously to avoid popup blocker
+        var popupWin = window.open('about:blank', '_blank');
+
         stripeBtn.disabled = true;
         stripeBtn.textContent = 'Opening...';
-        if (status) {
-          status.textContent = '';
-        }
+        if (status) { status.textContent = ''; }
 
         try {
           var headers = { 'Content-Type': 'application/json' };
-          if (publishableKey) {
-            headers.apikey = publishableKey;
-          }
+          if (publishableKey) { headers.apikey = publishableKey; }
 
           var res = await fetch(checkoutEndpoint, {
             method: 'POST',
@@ -964,20 +963,19 @@ ${purchaseOrderBlock}
 
           if (res.ok && data && data.url) {
             checkoutUrl = data.url;
-            openCheckout(checkoutUrl);
-            if (status) {
-              status.textContent = 'Card checkout opened.';
-              status.style.color = '#166534';
+            if (popupWin && !popupWin.closed) {
+              popupWin.location.href = checkoutUrl;
+            } else {
+              window.location.href = checkoutUrl;
             }
-          } else if (status) {
-            status.textContent = (data && data.error) || 'Card payment failed. Please try again.';
-            status.style.color = '#991B1B';
+            if (status) { status.textContent = 'Card checkout opened.'; status.style.color = '#166534'; }
+          } else {
+            if (popupWin && !popupWin.closed) popupWin.close();
+            if (status) { status.textContent = (data && data.error) || 'Card payment failed. Please try again.'; status.style.color = '#991B1B'; }
           }
         } catch (e) {
-          if (status) {
-            status.textContent = 'Could not connect to card payment.';
-            status.style.color = '#991B1B';
-          }
+          if (popupWin && !popupWin.closed) popupWin.close();
+          if (status) { status.textContent = 'Could not connect to card payment.'; status.style.color = '#991B1B'; }
         }
 
         stripeBtn.disabled = false;
