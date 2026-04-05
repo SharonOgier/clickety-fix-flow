@@ -187,8 +187,9 @@ export default function ATOTaxFormPage({
   const totInc = sumKey(allInc,"gross");
   const totWH  = sumKey(allInc,"withheld");
   const totFC  = sumKey(allInc,"franking");
-  const deduct = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
+  const deduct = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
   const taxableSum = Math.max(0,totInc-deduct);
+  const capitalG10 = g10 + capitalPurchases; // Capital purchases including assets
 
   // ITR state
   const [itr, setItr] = useState({
