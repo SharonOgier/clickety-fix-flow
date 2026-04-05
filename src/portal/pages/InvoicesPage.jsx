@@ -1,5 +1,9 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import { exportToCSV } from "../PortalHelpers";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from "recharts";
 
 class InvoicesErrorBoundary extends React.Component {
   constructor(props) { super(props); this.state = { error: null }; }
@@ -172,6 +176,109 @@ function InvoicesPageInner(props) {
             <MiniBarChart data={recentMonths} height={90} accent={colours.teal} />
           </div>
         </div>
+
+        {/* ── AR Analytics Charts ── */}
+        {(() => {
+          const today = new Date();
+          const unpaidInvs = invoices.filter(inv => inv.status !== "Paid");
+          const paidInvs = invoices.filter(inv => inv.status === "Paid");
+
+          // Days Sales Outstanding (DSO)
+          const dso = totalPaid > 0 ? Math.round((totalOutstanding / (totalInvoiced / (invoices.length > 0 ? Math.max(1, Math.ceil((today - new Date(Math.min(...invoices.map(i => new Date(i.invoiceDate || today).getTime())))) / (1000*60*60*24*30))) : 1))) * 30) : 0;
+
+          // Aging buckets
+          const aging = { current: 0, days30: 0, days60: 0, days90: 0, over90: 0 };
+          unpaidInvs.forEach(inv => {
+            const due = inv.dueDate ? new Date(inv.dueDate) : new Date(inv.invoiceDate || today);
+            const daysOver = Math.max(0, Math.floor((today - due) / (1000*60*60*24)));
+            const amt = safeNumber(inv.total);
+            if (daysOver <= 0) aging.current += amt;
+            else if (daysOver <= 30) aging.days30 += amt;
+            else if (daysOver <= 60) aging.days60 += amt;
+            else if (daysOver <= 90) aging.days90 += amt;
+            else aging.over90 += amt;
+          });
+          const agingData = [
+            { name: "Current", amount: aging.current },
+            { name: "1-30 days", amount: aging.days30 },
+            { name: "31-60 days", amount: aging.days60 },
+            { name: "61-90 days", amount: aging.days90 },
+            { name: "90+ days", amount: aging.over90 },
+          ].filter(r => r.amount > 0 || r.name === "Current");
+
+          // Status pie
+          const statusPieData = [
+            { name: "Paid", value: paidInvs.length },
+            { name: "Sent", value: invoices.filter(i => i.status === "Sent").length },
+            { name: "Draft", value: invoices.filter(i => i.status === "Draft").length },
+            { name: "Overdue", value: overdueInvoices.length },
+          ].filter(r => r.value > 0);
+          const PIE_COLORS = [colours.teal || "#006D6D", colours.navy || "#2B2F6B", colours.muted || "#64748B", "#DC2626"];
+
+          const collectionRate = totalInvoiced > 0 ? ((totalPaid / totalInvoiced) * 100).toFixed(1) : "0.0";
+          const avgInvoiceValue = invoices.length > 0 ? totalInvoiced / invoices.length : 0;
+
+          const tooltipStyle = { background: "#fff", border: "1px solid #E2E8F0", borderRadius: 10, padding: "10px 14px", fontSize: 13 };
+
+          return (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
+              <div style={{ ...cardStyle, padding: 20 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: colours.text, marginBottom: 4 }}>Accounts Receivable Aging</div>
+                <div style={{ fontSize: 12, color: colours.muted, marginBottom: 16 }}>Outstanding invoices by days overdue</div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10, marginBottom: 16 }}>
+                  <div style={{ background: colours.bg || "#F8FAFC", borderRadius: 10, padding: 12, textAlign: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: colours.muted, textTransform: "uppercase" }}>DSO</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: colours.purple }}>{dso} days</div>
+                  </div>
+                  <div style={{ background: colours.bg || "#F8FAFC", borderRadius: 10, padding: 12, textAlign: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: colours.muted, textTransform: "uppercase" }}>Collection</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: colours.teal }}>{collectionRate}%</div>
+                  </div>
+                  <div style={{ background: colours.bg || "#F8FAFC", borderRadius: 10, padding: 12, textAlign: "center" }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: colours.muted, textTransform: "uppercase" }}>Avg invoice</div>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: colours.navy }}>{currency(avgInvoiceValue)}</div>
+                  </div>
+                </div>
+                {agingData.length > 0 ? (
+                  <div style={{ width: "100%", height: 220 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={agingData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E2E8F0" />
+                        <XAxis dataKey="name" tick={{ fontSize: 11, fill: colours.muted }} />
+                        <YAxis tick={{ fontSize: 11, fill: colours.muted }} tickFormatter={v => currency(v)} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={v => currency(v)} />
+                        <Bar dataKey="amount" fill={colours.purple} radius={[6,6,0,0]} name="Amount" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div style={{ padding: 20, textAlign: "center", color: colours.muted, fontSize: 13 }}>No outstanding invoices to age.</div>
+                )}
+              </div>
+
+              <div style={{ ...cardStyle, padding: 20 }}>
+                <div style={{ fontSize: 14, fontWeight: 800, color: colours.text, marginBottom: 4 }}>Invoice Status Mix</div>
+                <div style={{ fontSize: 12, color: colours.muted, marginBottom: 16 }}>Breakdown of all invoices by current status</div>
+                {statusPieData.length > 0 ? (
+                  <div style={{ width: "100%", height: 280 }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={statusPieData} cx="50%" cy="50%" innerRadius={55} outerRadius={100} paddingAngle={3} dataKey="value"
+                          label={({ name, percent }) => `${name} ${(percent*100).toFixed(0)}%`}
+                          labelLine={{ stroke: colours.muted, strokeWidth: 1 }}>
+                          {statusPieData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip contentStyle={tooltipStyle} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div style={{ padding: 20, textAlign: "center", color: colours.muted, fontSize: 13 }}>Create invoices to see status breakdown.</div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
         <SectionCard title="Create Invoice">
           {/* -- Wizard progress bar -- */}
           <div style={{ display: "flex", alignItems: "center", marginBottom: 28 }}>
