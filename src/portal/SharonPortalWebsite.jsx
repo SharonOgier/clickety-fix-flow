@@ -2784,12 +2784,15 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         );
         setSupabaseSyncStatus(result.message || "Quote emailed");
         setStatus(result.message || "Quote emailed.", "#166534");
+        toast({ title: "Quote emailed", description: result.message || `Sent to ${(result.recipients || []).join(", ")}` });
       } else {
         setStatus(result?.message || "Could not send quote.", "#B42318");
+        toast({ title: "Email not sent", description: result?.message || "Could not send quote.", variant: "destructive" });
       }
     } catch (error) {
       console.error("PREVIEW QUOTE EMAIL ERROR:", error);
       setStatus(`Send failed: ${error.message || "Unknown error"}`, "#B42318");
+      toast({ title: "Email failed", description: error.message || "Unknown error", variant: "destructive" });
     } finally {
       if (emailButton) {
         emailButton.disabled = false;
