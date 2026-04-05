@@ -260,40 +260,117 @@ export default function DashboardPage(props) {
         <TrendBarsCard title="Invoice status mix" subtitle="A quick collections snapshot" data={resolvedInvoiceStatusRows} valueKey="value" formatValue={(value) => `${value} item${value === 1 ? "" : "s"}`} accent={colours.navy} emptyText="No invoices yet." />
       </div>
 
-      <SectionCard title="Financial reports" right={<div style={{ fontSize: 12, color: colours.muted }}>Tap any report to open it</div>}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 16 }}>
-          <ActionHubCard
-            icon="📈"
-            title="Profit & loss"
-            description="Income less expenses -- operating surplus or deficit after tax reserve."
-            buttonLabel="View report"
+      <SectionCard title="Financial reports" right={<div style={{ fontSize: 12, color: colours.muted }}>Click to expand</div>}>
+        <div style={{ display: "grid", gap: 12 }}>
+          {/* P&L Dropdown */}
+          <div>
+            <button
+              onClick={() => setShowPL(!showPL)}
+              style={{
+                ...resolvedButtonSecondary,
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px 16px",
+                fontSize: 14,
+                fontWeight: 700,
+                background: colours.bg || "#F8FAFC",
+                border: `1px solid ${colours.border || "#E2E8F0"}`,
+                borderRadius: 12,
+                cursor: "pointer",
+              }}
+            >
+              <span>📈 Profit & Loss</span>
+              <span style={{ fontSize: 12, color: colours.muted }}>{showPL ? "▲" : "▼"}</span>
+            </button>
+            {showPL && (
+              <div style={{ marginTop: 8, overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 380 }}>
+                  <thead>
+                    <tr style={{ background: colours.bg || "#F8FAFC" }}>
+                      <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 800, fontSize: 13, color: colours.muted }}>Line item</th>
+                      <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 800, fontSize: 13, color: colours.muted }}>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { line: "Sales / invoice income", amount: safeNumber(totals.totalIncome) },
+                      { line: "Less operating expenses", amount: -safeNumber(totals.totalExpenses) },
+                      { line: "Operating result", amount: safeNumber(totals.totalIncome) - safeNumber(totals.totalExpenses) },
+                      { line: "Less subscription", amount: -safeNumber(totals.monthlySubscriptionCost) },
+                      { line: "Net result after subscription", amount: safeNumber(totals.totalIncome) - safeNumber(totals.totalExpenses) - safeNumber(totals.monthlySubscriptionCost) },
+                    ].map((row) => (
+                      <tr key={row.line}>
+                        <td style={{ padding: "10px 12px", borderBottom: `1px solid ${colours.border || "#E2E8F0"}`, fontSize: 14, fontWeight: 600 }}>{row.line}</td>
+                        <td style={{ padding: "10px 12px", borderBottom: `1px solid ${colours.border || "#E2E8F0"}`, fontSize: 14, fontWeight: 700, textAlign: "right" }}>{currency(row.amount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* GST Position Dropdown */}
+          <div>
+            <button
+              onClick={() => setShowGST(!showGST)}
+              style={{
+                ...resolvedButtonSecondary,
+                width: "100%",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                padding: "12px 16px",
+                fontSize: 14,
+                fontWeight: 700,
+                background: colours.bg || "#F8FAFC",
+                border: `1px solid ${colours.border || "#E2E8F0"}`,
+                borderRadius: 12,
+                cursor: "pointer",
+              }}
+            >
+              <span>🧾 GST Position</span>
+              <span style={{ fontSize: 12, color: colours.muted }}>{showGST ? "▲" : "▼"}</span>
+            </button>
+            {showGST && (
+              <div style={{ marginTop: 8, overflowX: "auto" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 380 }}>
+                  <thead>
+                    <tr style={{ background: colours.bg || "#F8FAFC" }}>
+                      <th style={{ padding: "10px 12px", textAlign: "left", fontWeight: 800, fontSize: 13, color: colours.muted }}>Line item</th>
+                      <th style={{ padding: "10px 12px", textAlign: "right", fontWeight: 800, fontSize: 13, color: colours.muted }}>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[
+                      { line: "GST collected on income", amount: safeNumber(totals.gstCollected) },
+                      { line: "GST credits on expenses", amount: -safeNumber(totals.gstOnExpenses) },
+                      { line: "Net GST position", amount: safeNumber(totals.gstPayable) },
+                    ].map((row) => (
+                      <tr key={row.line}>
+                        <td style={{ padding: "10px 12px", borderBottom: `1px solid ${colours.border || "#E2E8F0"}`, fontSize: 14, fontWeight: 600 }}>{row.line}</td>
+                        <td style={{ padding: "10px 12px", borderBottom: `1px solid ${colours.border || "#E2E8F0"}`, fontSize: 14, fontWeight: 700, textAlign: "right" }}>{currency(row.amount)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Link to full insights */}
+          <button
             onClick={() => setActivePage("financial insights")}
-            tone={colours.purple}
-          />
-          <ActionHubCard
-            icon="💧"
-            title="Cash movement"
-            description="Cash received, GST deducted, tax reserved, fees and closing safe-to-spend."
-            buttonLabel="View report"
-            onClick={() => setActivePage("financial insights")}
-            tone={colours.teal}
-          />
-          <ActionHubCard
-            icon="🧾"
-            title="GST position"
-            description="GST collected on invoices less GST credits on expenses -- net amount owing."
-            buttonLabel="View report"
-            onClick={() => setActivePage("financial insights")}
-            tone={colours.navy}
-          />
-          <ActionHubCard
-            icon="📊"
-            title="Revenue summary"
-            description="Client concentration, best and worst months, revenue volatility."
-            buttonLabel="View report"
-            onClick={() => setActivePage("financial insights")}
-            tone={colours.purple}
-          />
+            style={{
+              ...resolvedButtonPrimary,
+              width: "100%",
+              marginTop: 4,
+            }}
+          >
+            View full Financial Insights →
+          </button>
         </div>
       </SectionCard>
 
