@@ -168,7 +168,7 @@ export default function FarmEquipmentPage() {
           <div className="fade-in text-center">
             <p className="text-xs font-bold tracking-[2px] uppercase text-primary mb-4">Services</p>
             <h2 className="text-3xl lg:text-[42px] font-black leading-tight text-foreground tracking-tight">
-              Evaluation services by <em className="not-italic text-primary">Mitchell</em>
+              Assessment services by <em className="not-italic text-primary">Mitchell</em>
             </h2>
             <p className="text-base text-muted-foreground leading-relaxed font-light mt-4 max-w-[560px] mx-auto">
               Professional valuations and inspections for all types of farm equipment and agricultural assets.
