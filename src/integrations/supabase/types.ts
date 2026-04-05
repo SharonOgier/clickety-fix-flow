@@ -119,6 +119,36 @@ export type Database = {
         }
         Relationships: []
       }
+      sas_payment_reminders: {
+        Row: {
+          id: number
+          invoice_id: string
+          recipient_email: string | null
+          reminder_type: string
+          sent_at: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          id?: never
+          invoice_id: string
+          recipient_email?: string | null
+          reminder_type: string
+          sent_at?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          id?: never
+          invoice_id?: string
+          recipient_email?: string | null
+          reminder_type?: string
+          sent_at?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sas_profile: {
         Row: {
           data: Json

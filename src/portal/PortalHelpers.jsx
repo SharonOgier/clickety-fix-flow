@@ -41,7 +41,7 @@ export const navSections = [
   },
   {
     title: "Admin",
-    items: ["bas report", "ato tax form", "settings"],
+    items: ["bank reconciliation", "bas report", "ato tax form", "settings"],
   },
 ];
 
@@ -56,13 +56,13 @@ export const navLabels = {
   "bills / payables": "Bills & Payables",
   "income sources": "Income Sources",
   documents: "Documents",
-  documents: "Documents",
+  "bank reconciliation": "Bank Reconciliation",
   "bas report": "BAS Report",
   "ato tax form": "ATO Tax Form",
   settings: "Settings",
 };
 
-export const settingsTabs = ["Profile", "Financial", "Branding", "Security"];
+export const settingsTabs = ["Profile", "Financial", "Branding", "Notifications", "Security"];
 
 const LOGO_DOCUMENT_MAX_HEIGHT = 140;
 const LOGO_DOCUMENT_MAX_WIDTH = 440;

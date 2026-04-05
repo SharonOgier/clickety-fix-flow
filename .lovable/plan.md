@@ -1,30 +1,46 @@
+## Feature 1: Bank Reconciliation (CSV Upload Matching)
 
-## Portal Design Unification Plan
+### How it works
+- New "Bank Reconciliation" page/tab in the portal
+- User uploads a CSV bank statement
+- System parses transactions (date, description, amount)
+- Auto-matches against existing invoices (by amount & date proximity) and expenses
+- Shows matched, partially matched, and unmatched items
+- User can confirm matches, manually match, or mark as reconciled
 
-### 1. Add Brand Fonts (Playfair Display + DM Sans)
-- Import Google Fonts in `index.html`
-- Update the portal's global `<style>` block in `SharonPortalWebsite.jsx` to use DM Sans as the base font and Playfair Display for headings (hero titles, section titles, page headers)
+### Implementation
+1. Add a new "Reconciliation" page component in the portal
+2. CSV parser that handles common bank statement formats (date, description, debit, credit, balance)
+3. Matching algorithm: exact amount match → date proximity → description similarity
+4. UI with three sections: Auto-matched, Needs Review, Unmatched
+5. Store reconciliation state in `sas_documents` (or new table) with user_id
 
-### 2. Unify Buttons & Form Inputs
-- Standardise `buttonPrimary` and `buttonSecondary` in `PortalHelpers.jsx` with consistent font-size (14px), height, border-radius (12px), and transitions
-- Add a `buttonDanger` style for delete buttons (currently each page hardcodes red styling differently)
-- Ensure `inputStyle` has consistent padding, border-radius, and focus states across all pages
+### No new database tables needed
+- Bank statement data is transient (parsed in-memory from CSV)
+- Reconciliation results can be stored as flags on existing invoice/expense records in their JSONB `data` field
 
-### 3. Polish Page Headers & Hero Banners
-- Ensure all pages use the `DashboardHero` component consistently (same gradient, same layout)
-- Apply Playfair Display to hero titles
-- Standardise the `InsightChip` sizing and spacing in hero sections
+---
 
-### 4. Uniform Tables & Data Lists
-- Refine `DataTable` component in `PortalComponents.jsx` with better row hover states, consistent font sizing, and cleaner action button alignment
-- Add alternating row backgrounds for better readability
-- Ensure all action button groups in table rows use uniform styling (gap, size, wrapping)
+## Feature 2: Automated Payment Reminders
 
-### 5. Sidebar & Navigation Polish
-- Refine sidebar styling with brand colours: active item gets a left accent bar, smoother transitions
-- Add nav icons using Lucide icons for each section
-- Polish the mobile hamburger menu appearance
-- Add a subtle footer to the sidebar with app branding
+### How it works
+- A scheduled edge function runs daily
+- Checks all invoices that are overdue by 7, 14, or 30 days
+- Sends reminder emails to clients via the existing Resend integration
+- Tracks which reminders have been sent to avoid duplicates
 
-### Impact
-All changes are visual/CSS only — no business logic changes. The design tokens and shared styles in `PortalHelpers.jsx` and `PortalComponents.jsx` will be updated so all pages automatically inherit the improvements.
+### Implementation
+1. Add `remindersSent` tracking to invoice JSONB data (e.g., `{reminder7: true, reminder14: true}`)
+2. Create a `send-payment-reminders` edge function that:
+   - Queries all invoices across all users
+   - Filters for overdue unpaid invoices
+   - Checks which reminder tier applies (7/14/30 days)
+   - Sends emails via the existing `send-document-email` pattern
+   - Updates the invoice record to mark reminder as sent
+3. Set up a pg_cron job to run the function daily
+4. Add UI in Settings to enable/disable reminders and customize message
+5. Add reminder history view on each invoice
+
+### Database needs
+- New migration: create a `sas_payment_reminders` table to log sent reminders (user_id, invoice_id, reminder_type, sent_at)
+- This keeps reminder tracking separate from invoice data for cleaner querying

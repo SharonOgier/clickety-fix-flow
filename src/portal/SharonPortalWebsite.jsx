@@ -95,6 +95,7 @@ import AuthPage             from "./pages/AuthPage";
 import BASReportPage        from "./pages/BASReportPage";
 import SettingsPage         from "./pages/SettingsPage";
 import ATOTaxFormPage       from "./ATOTaxFormPage";
+import BankReconciliationPage from "./pages/BankReconciliationPage";
 // -----------------------------------------------------------------------------
 
 
@@ -4003,8 +4004,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                     const iconMap = {
                       "dashboard": "⬡", "financial insights": "📊", "invoices": "📄", "quotes": "📋",
                       "clients": "👥", "services": "⚙", "expenses": "💳", "bills / payables": "🧾",
-                      "income sources": "💰", "documents": "📁", "bas report": "📑", "ato tax form": "🏛",
-                      "settings": "⚙",
+                      "income sources": "💰", "documents": "📁", "bank reconciliation": "🏦",
+                      "bas report": "📑", "ato tax form": "🏛", "settings": "⚙",
                     };
                     return (
                       <button
@@ -4277,6 +4278,15 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               uploadDocument={uploadDocument} deleteDocument={deleteDocument}
               openDocumentEditor={openDocumentEditor} closeDocumentEditor={closeDocumentEditor}
               saveDocumentEdits={saveDocumentEdits}
+            />}
+            {activePage === "bank reconciliation" && <BankReconciliationPage
+              invoices={invoices} expenses={expenses} clients={clients}
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              inputStyle={inputStyle} labelStyle={labelStyle}
+              currency={currency} formatDateAU={formatDateAU} safeNumber={safeNumber}
+              DashboardHero={DashboardHero} SectionCard={SectionCard}
+              DataTable={DataTable} EmptyState={EmptyState}
             />}
             {activePage === "ato tax form" && (
               <div className="sas-inline-page-card">
