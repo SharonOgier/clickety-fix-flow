@@ -1285,6 +1285,31 @@ export default function AccountingPortalPrototype() {
     });
   };
 
+  const saveAsset = async (payload) => {
+    try {
+      const saved = await upsertRecordInDatabase(SUPABASE_TABLES.assets, payload);
+      setAssets((prev) => {
+        const exists = prev.find((a) => a.id === payload.id);
+        return exists ? prev.map((a) => a.id === payload.id ? saved : a) : [...prev, saved];
+      });
+      toast.success(payload.id && assets.find(a => a.id === payload.id) ? "Asset updated!" : "Asset saved!");
+    } catch (err) { toast.error(err.message || "Failed to save asset"); }
+  };
+
+  const deleteAsset = (id) => {
+    confirm({
+      title: "Delete Asset",
+      message: "Are you sure you want to delete this asset?",
+      onConfirm: async () => {
+        try {
+          await deleteRecordFromDatabase(SUPABASE_TABLES.assets, id);
+          setAssets((prev) => prev.filter((a) => a.id !== id));
+          toast.success("Asset deleted");
+        } catch (err) { toast.error(err.message || "Failed to delete asset"); }
+      },
+    });
+  };
+
   const saveClientFromModal = async () => {
     if (!clientModalForm.name.trim()) { toast.warning("Client name is required"); return; }
     try {
