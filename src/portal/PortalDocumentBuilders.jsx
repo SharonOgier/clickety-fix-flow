@@ -41,6 +41,16 @@ const DEFAULT_API_BASE_URL =
         : (typeof window !== "undefined" ? window.location.origin : "")
     : (typeof window !== "undefined" ? window.location.origin : ""));
 
+const SUPABASE_FUNCTIONS_BASE_URL =
+  ((typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_URL)
+    ? String(import.meta.env.VITE_SUPABASE_URL).trim().replace(/\/$/, "")
+    : "");
+
+const SUPABASE_PUBLISHABLE_KEY =
+  ((typeof import.meta !== "undefined" && import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY)
+    ? String(import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY).trim()
+    : "");
+
 const normaliseApiBaseUrl = (value) => String(value || "").trim().replace(/\/$/, "");
 
 const getApiBaseUrl = (preferredValue = "") => {
@@ -310,6 +320,14 @@ const safeHref = (value) => {
     return "";
   }
 };
+
+const safeJsonForScript = (value) =>
+  JSON.stringify(value ?? null)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
 
 const nl2br = (value) => escapeHtml(value).replace(/\n/g, "<br/>");
 
@@ -732,6 +750,31 @@ const paypalCheckoutUrl = buildPayPalInvoiceUrl({
   invoiceNumber: invoice.invoiceNumber || paymentReference,
 });
 const cardPaymentUrl = safeHref(stripeCheckoutUrl || invoice?.stripeCheckoutUrl || profile.stripePaymentLink);
+const documentOrigin =
+  typeof window !== "undefined" && window.location?.origin
+    ? window.location.origin
+    : "https://sharonogier.com";
+const cardCheckoutFunctionUrl = safeHref(
+  SUPABASE_FUNCTIONS_BASE_URL
+    ? `${SUPABASE_FUNCTIONS_BASE_URL}/functions/v1/create-invoice-checkout`
+    : ""
+);
+const canCreateCardCheckout = !cardPaymentUrl && !!cardCheckoutFunctionUrl && safeNumber(invoice.total) > 0;
+const cardCheckoutPayload = {
+  invoiceId: invoice?.id || "",
+  invoiceNumber: invoice?.invoiceNumber || paymentReference,
+  clientId: invoice?.clientId || "",
+  customerName: previewClient?.name || previewClient?.businessName || "",
+  customerEmail: previewClient?.email || "",
+  description:
+    invoice?.description ||
+    `Invoice ${invoice?.invoiceNumber || invoice?.id || ""}`,
+  currency: String(currencyCode || "AUD").toLowerCase(),
+  amount: Number(safeNumber(invoice.total).toFixed(2)),
+  total: Number(safeNumber(invoice.total).toFixed(2)),
+  successUrl: `${documentOrigin}?stripe=success&invoice=${encodeURIComponent(invoice?.invoiceNumber || "")}&invoiceId=${encodeURIComponent(String(invoice?.id || ""))}`,
+  cancelUrl: `${documentOrigin}?stripe=cancel&invoice=${encodeURIComponent(invoice?.invoiceNumber || "")}&invoiceId=${encodeURIComponent(String(invoice?.id || ""))}`,
+};
 
 const clientDetails =
   previewClient?.includeAddressDetails && previewClient?.addressDetails
@@ -863,16 +906,85 @@ ${purchaseOrderBlock}
 <div style="margin-top:16px; padding:14px; border:1px solid #E2E8F0; border-radius:12px; background:#F7F6F5;">
   <div style="font-weight:700; color:#14202B; margin-bottom:8px;">Pay Online</div>
   <div style="font-size:13px; color:#555; margin-bottom:10px;">Choose your preferred payment method below.</div>
-  ${stripeCheckoutUrl
-    ? `<a href="${safeHref(stripeCheckoutUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-right:10px; background:#6A1B9A; color:#FFFFFF; text-decoration:none; padding:10px 16px; border-radius:10px; font-weight:700;">Pay with Card</a>`
-    : (profile.stripePaymentLink
-      ? `<a href="${safeHref(profile.stripePaymentLink)}" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-right:10px; background:#6A1B9A; color:#FFFFFF; text-decoration:none; padding:10px 16px; border-radius:10px; font-weight:700;">Pay with Card</a>`
+  ${cardPaymentUrl
+    ? `<a href="${cardPaymentUrl}" target="_blank" rel="noopener noreferrer" style="display:inline-block; margin-right:10px; background:#6A1B9A; color:#FFFFFF; text-decoration:none; padding:10px 16px; border-radius:10px; font-weight:700;">Pay with Card</a>`
+    : (canCreateCardCheckout
+      ? `<button id="stripe-pay-btn" style="display:inline-block; margin-right:10px; background:#6A1B9A; color:#FFFFFF; border:none; padding:10px 16px; border-radius:10px; font-weight:700; cursor:pointer;">Pay with Card</button><span id="stripe-status" style="font-size:13px; color:#555; margin-right:10px;"></span>`
       : "")
   }
   <button id="paypal-pay-btn"
     style="display:inline-block; background:#003087; color:#FFFFFF; border:none; padding:10px 16px; border-radius:10px; font-weight:700; cursor:pointer;">Pay with PayPal</button>
   <span id="paypal-status" style="font-size:13px; color:#555; margin-left:10px;"></span>
   <script>
+    (function() {
+      var stripeBtn = document.getElementById('stripe-pay-btn');
+      if (!stripeBtn) return;
+      var status = document.getElementById('stripe-status');
+      var checkoutUrl = ${safeJsonForScript(cardPaymentUrl)};
+      var checkoutEndpoint = ${safeJsonForScript(cardCheckoutFunctionUrl)};
+      var publishableKey = ${safeJsonForScript(SUPABASE_PUBLISHABLE_KEY)};
+      var payload = ${safeJsonForScript(cardCheckoutPayload)};
+
+      var openCheckout = function(url) {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      };
+
+      stripeBtn.addEventListener('click', async function() {
+        if (checkoutUrl) {
+          openCheckout(checkoutUrl);
+          return;
+        }
+
+        if (!checkoutEndpoint) {
+          if (status) {
+            status.textContent = 'Card payment is not available yet.';
+            status.style.color = '#991B1B';
+          }
+          return;
+        }
+
+        stripeBtn.disabled = true;
+        stripeBtn.textContent = 'Opening...';
+        if (status) {
+          status.textContent = '';
+        }
+
+        try {
+          var headers = { 'Content-Type': 'application/json' };
+          if (publishableKey) {
+            headers.apikey = publishableKey;
+          }
+
+          var res = await fetch(checkoutEndpoint, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(payload)
+          });
+          var data = await res.json().catch(function() { return {}; });
+
+          if (res.ok && data && data.url) {
+            checkoutUrl = data.url;
+            openCheckout(checkoutUrl);
+            if (status) {
+              status.textContent = 'Card checkout opened.';
+              status.style.color = '#166534';
+            }
+          } else if (status) {
+            status.textContent = (data && data.error) || 'Card payment failed. Please try again.';
+            status.style.color = '#991B1B';
+          }
+        } catch (e) {
+          if (status) {
+            status.textContent = 'Could not connect to card payment.';
+            status.style.color = '#991B1B';
+          }
+        }
+
+        stripeBtn.disabled = false;
+        stripeBtn.textContent = 'Pay with Card';
+      });
+    })();
+
     document.getElementById('paypal-pay-btn').addEventListener('click', async function() {
       var btn = this;
       var status = document.getElementById('paypal-status');
