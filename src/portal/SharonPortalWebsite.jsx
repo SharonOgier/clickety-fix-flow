@@ -4390,7 +4390,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             {/* Download template button */}
             <button onClick={() => downloadTemplate(importType)}
               style={{ ...buttonSecondary, marginBottom: 20, display: "flex", alignItems: "center", gap: 8 }}>
-              ⬇️ Download {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : "Expenses"} Template
+              ⬇️ Download {importType === "clients" ? "Clients" : importType === "suppliers" ? "Suppliers" : importType === "invoices" ? "Invoices" : importType === "income" ? "Income Sources" : "Expenses"} Template
             </button>
 
             {/* File upload */}
