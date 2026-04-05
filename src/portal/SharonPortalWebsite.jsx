@@ -1223,23 +1223,11 @@ export default function AccountingPortalPrototype() {
     setRecurringSelected([]);
   };
 
-  const getStableProfileRowId = () => {
-    const clean = String(authUser?.id || "").replace(/[^a-fA-F0-9]/g, "").slice(0, 12);
-    if (clean) {
-      const parsed = Number.parseInt(clean, 16);
-      if (Number.isFinite(parsed) && parsed > 0) return parsed;
-    }
-    return 1;
-  };
-
   const saveProfileToSupabase = async (profilePayload) => {
     if (!supabase || !authUser?.id) return;
     try {
       setSupabaseSyncStatus("Saving profile to Supabase database...");
-      const savedProfile = await upsertRecordInDatabase(SUPABASE_TABLES.profile, {
-        ...profilePayload,
-        id: profilePayload?.id || getStableProfileRowId(),
-      });
+      const savedProfile = await upsertRecordInDatabase(SUPABASE_TABLES.profile, profilePayload);
 
       setProfile((prev) => ({
         ...prev,
