@@ -1487,6 +1487,13 @@ export default function AccountingPortalPrototype() {
         const saved = await Promise.all(newRows.map((r) => upsertRecordInDatabase(SUPABASE_TABLES.incomeSources, { ...r })));
         setIncomeSources((prev) => [...prev, ...saved]);
         toast.success(`Imported ${saved.length} income source${saved.length !== 1 ? "s" : ""}${newRows.length < importRows.length ? ` (${importRows.length - newRows.length} duplicates skipped)` : ""}!`);
+      } else if (importType === "assets") {
+        const existing = assets;
+        const existingNames = new Set(existing.map((r) => (r.name || "").toLowerCase().trim()));
+        const newRows = importRows.filter((r) => !existingNames.has((r.name || "").toLowerCase().trim()));
+        const saved = await Promise.all(newRows.map((r) => upsertRecordInDatabase(SUPABASE_TABLES.assets, { ...r, id: Date.now() + Math.random() })));
+        setAssets((prev) => [...prev, ...saved]);
+        toast.success(`Imported ${saved.length} asset${saved.length !== 1 ? "s" : ""}${newRows.length < importRows.length ? ` (${importRows.length - newRows.length} duplicates skipped)` : ""}!`);
       }
       setShowImportModal(false);
       setImportRows([]);
