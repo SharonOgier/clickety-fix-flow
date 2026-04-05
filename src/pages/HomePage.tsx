@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 const pages = [
   { id: "home", label: "Home" },
   { id: "services", label: "Services" },
+  { id: "farm-equipment", label: "Farm Equipment" },
   { id: "about", label: "About" },
   { id: "portal", label: "Portal" },
   { id: "why", label: "Why Sharon" },
