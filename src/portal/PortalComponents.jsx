@@ -139,20 +139,17 @@ export function useConfirm() {
 
 // -- Subscription helpers (imported from PortalHelpers) -----------------------
 
-export function PaywallScreen({ profile, serverBaseUrl }) {
+export function PaywallScreen({ profile, supabase }) {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState("");
   const access = getSubscriptionAccess(profile);
   const handleSubscribe = async () => {
     setLoading(true); setError("");
     try {
-      const res = await fetch(`${serverBaseUrl}/api/create-subscription-checkout`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: profile.email, userId: profile.user_id || profile.id, businessName: profile.businessName, successUrl: window.location.origin + "?subscribed=1", cancelUrl: window.location.origin + "?subscribed=0" }),
-      });
-      const data = await res.json();
-      if (data.url) window.location.href = data.url;
-      else setError(data.error || "Could not start checkout. Please try again.");
+      const { data, error: fnError } = await supabase.functions.invoke("create-checkout");
+      if (fnError) throw fnError;
+      if (data?.url) window.location.href = data.url;
+      else setError(data?.error || "Could not start checkout. Please try again.");
     } catch { setError("Could not reach the server. Please try again."); }
     finally { setLoading(false); }
   };
