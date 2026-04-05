@@ -70,6 +70,47 @@ export default function ExpensesPage(props) {
     setShowImportModal = () => {},
   } = props;
 
+    const [scanning, setScanning] = useState(false);
+    const scanInputRef = useRef(null);
+
+    const handleScanReceipt = async (file) => {
+      if (!file) return;
+      setScanning(true);
+      try {
+        const reader = new FileReader();
+        const base64 = await new Promise((resolve, reject) => {
+          reader.onload = () => resolve(reader.result.split(",")[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(file);
+        });
+
+        const { data, error } = await supabase.functions.invoke("scan-receipt", {
+          body: { imageBase64: base64, mimeType: file.type },
+        });
+
+        if (error) throw error;
+        if (data?.error) throw new Error(data.error);
+
+        const extracted = data.data;
+        setExpenseForm((prev) => ({
+          ...prev,
+          date: extracted.date || prev.date,
+          supplier: extracted.supplier || prev.supplier,
+          amount: extracted.amount ? String(extracted.amount) : prev.amount,
+          category: extracted.category || prev.category,
+          description: extracted.description || prev.description,
+        }));
+        setReceiptFile(file);
+        setExpenseForm((prev) => ({ ...prev, receiptFileName: file.name }));
+      } catch (err) {
+        console.error("Receipt scan error:", err);
+        alert("Could not scan receipt: " + (err.message || "Unknown error"));
+      } finally {
+        setScanning(false);
+        if (scanInputRef.current) scanInputRef.current.value = "";
+      }
+    };
+
     const totalExpenseAmt = expenses.reduce((s, e) => s + safeNumber(e.amount), 0);
     const totalGstCredit = expenses.reduce((s, e) => s + safeNumber(e.gst), 0);
     const thisMonth = new Date().toISOString().slice(0, 7);
