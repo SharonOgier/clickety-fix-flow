@@ -43,7 +43,7 @@ const services = [
 const reasons = [
   { icon: "✅", text: "Independent & unbiased reporting" },
   { icon: "📍", text: "On-site inspections across the region" },
-  { icon: "🏦", text: "Reports accepted by banks & insurers" },
+  { icon: "🔍", text: "Thorough mechanical & structural assessments" },
   { icon: "⚡", text: "Fast turnaround — typically 3–5 business days" },
 ];
 
