@@ -3126,39 +3126,31 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     const w = window.open("", "_blank");
     if (!w) return;
 
-    w.document.open();
-    w.document.write(`<!doctype html>
-    <html>
-    <head><meta charset="utf-8" /><title>Invoice Preview</title></head>
-    <body style="font-family: Arial, sans-serif; padding: 40px; color: #14202B;">
-    <div style="font-size: 20px; font-weight: 700; margin-bottom: 12px;">Preparing invoice preview...</div>
-    <div style="font-size: 14px; color: #64748B;">Generating the Stripe payment section.</div>
-    </body>
-    </html>`);
-    w.document.close();
-
     let stripeCheckoutUrl = invoice.stripeCheckoutUrl || "";
-    let previewInvoice = { ...invoice };
+    const previewInvoice = { ...invoice };
 
-    try {
-      if (!stripeCheckoutUrl && resolveInvoiceStripeAmount(invoice) > 0) {
+    // Show the invoice immediately — don't block on Stripe
+    writeInvoicePreviewToWindow(w, previewInvoice, stripeCheckoutUrl, { allowEmail: true }, { profile, clients });
+    w.simulateInvoicePayment = () => simulateInvoicePayment(invoice.id);
+
+    // Try to generate a Stripe checkout URL in the background and refresh the preview
+    if (!stripeCheckoutUrl && resolveInvoiceStripeAmount(invoice) > 0) {
+      try {
         stripeCheckoutUrl = await createStripeCheckoutForInvoice(invoice);
-
         if (stripeCheckoutUrl) {
-          previewInvoice = { ...invoice, stripeCheckoutUrl };
+          const updatedInvoice = { ...invoice, stripeCheckoutUrl };
           setInvoices((prev) =>
             prev.map((item) =>
               item.id === invoice.id ? { ...item, stripeCheckoutUrl } : item
             )
           );
+          // Refresh the preview window with the Stripe URL
+          writeInvoicePreviewToWindow(w, updatedInvoice, stripeCheckoutUrl, { allowEmail: true }, { profile, clients });
         }
+      } catch (error) {
+        console.error("STRIPE PREVIEW ERROR:", error);
       }
-    } catch (error) {
-      console.error("STRIPE PREVIEW ERROR:", error);
     }
-
-    writeInvoicePreviewToWindow(w, previewInvoice, stripeCheckoutUrl, { allowEmail: true }, { profile, clients });
-    w.simulateInvoicePayment = () => simulateInvoicePayment(invoice.id);
     };
 
     const openInvoicePreview = async () => {
@@ -3191,22 +3183,19 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     const w = window.open("", "_blank");
     if (!w) return;
 
-    let stripeCheckoutUrl = "";
-    try {
-      if (resolveInvoiceStripeAmount(previewInvoice) > 0) {
-        stripeCheckoutUrl = await createStripeCheckoutForInvoice(previewInvoice);
-      }
-    } catch (error) {
-      console.error("STRIPE PREVIEW ERROR:", error);
-    }
-
-    const previewInvoiceWithStripe = {
-      ...previewInvoice,
-      stripeCheckoutUrl,
-    };
-
-    writeInvoicePreviewToWindow(w, previewInvoiceWithStripe, stripeCheckoutUrl, { allowEmail: true }, { profile, clients });
+    // Show invoice immediately without Stripe URL
+    writeInvoicePreviewToWindow(w, previewInvoice, "", { allowEmail: true }, { profile, clients });
     w.simulateInvoicePayment = () => simulateInvoicePayment(previewInvoice.id);
+
+    // Generate Stripe URL in background and refresh
+    if (resolveInvoiceStripeAmount(previewInvoice) > 0) {
+      createStripeCheckoutForInvoice(previewInvoice).then((stripeCheckoutUrl) => {
+        if (stripeCheckoutUrl) {
+          const updated = { ...previewInvoice, stripeCheckoutUrl };
+          writeInvoicePreviewToWindow(w, updated, stripeCheckoutUrl, { allowEmail: true }, { profile, clients });
+        }
+      }).catch((error) => console.error("STRIPE PREVIEW ERROR:", error));
+    }
     };
 
     const openQuotePreview = () => {
