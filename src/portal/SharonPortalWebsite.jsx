@@ -43,6 +43,7 @@ import {
   cardStyle,
   buttonPrimary,
   buttonSecondary,
+  buttonDanger,
   currency,
   safeNumber,
   parseLocalDate,
@@ -3768,114 +3769,170 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         background: colours.bg,
         color: colours.text,
         fontFamily:
-          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+          '"DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       }}
     >
       <style>{`
         * { box-sizing: border-box; }
-        .sas-layout { display: grid; grid-template-columns: 252px minmax(0, 1fr); min-height: 100vh; }
+        body { font-family: "DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        .sas-layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); min-height: 100vh; }
         .sas-sidebar {
-          background: rgba(255,255,255,0.96);
-          backdrop-filter: blur(12px);
-          border-right: 1px solid #E2E8F0;
-          padding: 22px 18px;
+          background: linear-gradient(180deg, #FFFFFF 0%, #FAFBFE 100%);
+          border-right: 1px solid ${colours.border};
+          padding: 24px 16px;
           position: sticky;
           top: 0;
           height: 100vh;
           overflow-y: auto;
           z-index: 100;
+          display: flex;
+          flex-direction: column;
         }
+        .sas-sidebar::-webkit-scrollbar { width: 4px; }
+        .sas-sidebar::-webkit-scrollbar-thumb { background: ${colours.border}; border-radius: 4px; }
         .sas-sidebar button { transition: all 0.18s ease; }
-        .sas-sidebar button:hover { transform: translateX(2px); }
+        .sas-sidebar button:hover { transform: none; }
         .sas-overlay { display: none; }
         .sas-hamburger { display: none; }
         .sas-main {
-          padding: 28px;
+          padding: 32px;
           overflow-x: auto;
           background:
-            radial-gradient(circle at top right, rgba(106, 27, 154, 0.06), transparent 22%),
+            radial-gradient(circle at top right, rgba(106, 27, 154, 0.04), transparent 30%),
             linear-gradient(180deg, #F8FAFC 0%, #F4F7FB 100%);
         }
         .sas-page-wrap { width: 100%; overflow-x: auto; }
         .sas-page-inner { min-width: 0; }
         .sas-page-panel {
           display: grid;
-          gap: 22px;
+          gap: 24px;
           width: 100%;
         }
         .sas-inline-page-card {
           background: #FFFFFF;
-          border: 1px solid #E2E8F0;
-          border-radius: 22px;
-          box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
-          padding: 22px;
+          border: 1px solid ${colours.border};
+          border-radius: 20px;
+          box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+          padding: 24px;
         }
         .sas-inline-page-card h1,
         .sas-inline-page-card h2,
-        .sas-inline-page-card h3 { overflow-wrap: anywhere; }
+        .sas-inline-page-card h3 { overflow-wrap: anywhere; font-family: "Playfair Display", serif; }
         .sas-section-card,
         .sas-summary-box,
         .sas-metric-card,
         .sas-action-card {
-          transition: transform 0.18s ease, box-shadow 0.18s ease;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
         .sas-section-card:hover,
         .sas-summary-box:hover,
         .sas-metric-card:hover,
         .sas-action-card:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 16px 36px rgba(15, 23, 42, 0.08);
+          transform: translateY(-2px);
+          box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08);
         }
         .sas-section-card { overflow: hidden; }
         .sas-summary-box { min-height: 124px; }
-        .sas-dashboard-hero .sas-hero-title { word-break: break-word; overflow-wrap: anywhere; }
-        .sas-dashboard-hero .sas-hero-subtitle { word-break: break-word; }
+        .sas-dashboard-hero .sas-hero-title { word-break: break-word; overflow-wrap: anywhere; font-family: "Playfair Display", serif; }
+        .sas-dashboard-hero .sas-hero-subtitle { word-break: break-word; font-family: "DM Sans", sans-serif; }
         .sas-dashboard-hero .sas-insight-chip { backdrop-filter: blur(6px); }
         .sas-table-wrap {
-          border: 1px solid #E2E8F0;
-          border-radius: 18px;
+          border: 1px solid ${colours.border};
+          border-radius: 16px;
           background: #FFFFFF;
+          overflow: hidden;
         }
         .sas-data-table th {
           background: #F8FAFC;
           color: #475569;
           font-size: 12px;
+          font-weight: 700;
           text-transform: uppercase;
-          letter-spacing: 0.04em;
+          letter-spacing: 0.05em;
+          font-family: "DM Sans", sans-serif;
         }
         .sas-data-table th,
         .sas-data-table td {
           padding: 14px 16px !important;
-          border-bottom: 1px solid #E2E8F0;
+          border-bottom: 1px solid ${colours.border};
           vertical-align: top;
         }
-        .sas-data-table tbody tr:hover td { background: #FCFCFD; }
+        .sas-data-table tbody tr { transition: background 0.15s ease; }
+        .sas-data-table tbody tr:hover td { background: #FAFBFE; }
+        .sas-data-table tbody tr:nth-child(even) td { background: #FCFCFE; }
+        .sas-data-table tbody tr:nth-child(even):hover td { background: #F5F6FA; }
         input, select, textarea, button { font-family: inherit; }
         input, select, textarea {
           transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
         }
         input:focus, select:focus, textarea:focus {
           outline: none;
-          border-color: #6A1B9A !important;
-          box-shadow: 0 0 0 3px rgba(106, 27, 154, 0.12);
+          border-color: ${colours.purple} !important;
+          box-shadow: 0 0 0 3px rgba(106, 27, 154, 0.10);
         }
         button { transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease; }
-        button:hover { box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08); }
+        button:hover { box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06); }
         button:active { transform: translateY(1px); }
+        .sas-nav-item {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          text-align: left;
+          border: none;
+          border-radius: 10px;
+          padding: 10px 12px;
+          cursor: pointer;
+          font-weight: 600;
+          font-size: 14px;
+          position: relative;
+          width: 100%;
+        }
+        .sas-nav-item.active {
+          background: ${colours.lightPurple};
+          color: ${colours.purple};
+          font-weight: 700;
+        }
+        .sas-nav-item.active::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 6px;
+          bottom: 6px;
+          width: 3px;
+          border-radius: 0 3px 3px 0;
+          background: ${colours.purple};
+        }
+        .sas-nav-item:not(.active) {
+          background: transparent;
+          color: ${colours.text};
+        }
+        .sas-nav-item:not(.active):hover {
+          background: #F5F6FA;
+        }
+        .sas-nav-icon {
+          width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          opacity: 0.7;
+        }
+        .sas-nav-item.active .sas-nav-icon { opacity: 1; }
         @media (max-width: 1080px) {
-          .sas-layout { grid-template-columns: 230px minmax(0, 1fr); }
-          .sas-main { padding: 22px; }
+          .sas-layout { grid-template-columns: 240px minmax(0, 1fr); }
+          .sas-main { padding: 24px; }
         }
         @media (max-width: 768px) {
           .sas-layout { grid-template-columns: 1fr; }
           .sas-sidebar {
             position: fixed;
             top: 0;
-            left: -272px;
-            width: 248px;
+            left: -280px;
+            width: 260px;
             height: 100vh;
             overflow-y: auto;
-            transition: left 0.25s ease;
+            transition: left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 200;
             box-shadow: 10px 0 30px rgba(15, 23, 42, 0.18);
           }
@@ -3885,22 +3942,22 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             display: flex;
             align-items: center;
             gap: 12px;
-            background: rgba(255,255,255,0.96);
+            background: rgba(255,255,255,0.97);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid #E2E8F0;
+            border-bottom: 1px solid ${colours.border};
             padding: 14px 16px;
             position: sticky;
             top: 0;
             z-index: 100;
           }
           .sas-hamburger-btn { background: none; border: none; cursor: pointer; padding: 4px; display: flex; flex-direction: column; gap: 5px; box-shadow: none !important; }
-          .sas-hamburger-btn span { display: block; width: 22px; height: 2px; background: #6A1B9A; border-radius: 2px; }
+          .sas-hamburger-btn span { display: block; width: 22px; height: 2px; background: ${colours.purple}; border-radius: 2px; }
           .sas-main { padding: 16px; }
           .sas-page-wrap { overflow-x: auto; }
           .sas-page-inner { max-width: 100% !important; }
-          .sas-inline-page-card { padding: 16px; border-radius: 18px; }
+          .sas-inline-page-card { padding: 16px; border-radius: 16px; }
           .sas-dashboard-hero.sas-hero-grid { grid-template-columns: 1fr !important; gap: 16px !important; padding: 20px !important; border-radius: 20px !important; }
-          .sas-dashboard-hero .sas-hero-title { font-size: 28px !important; line-height: 1.15 !important; }
+          .sas-dashboard-hero .sas-hero-title { font-size: 26px !important; line-height: 1.15 !important; }
           .sas-dashboard-hero .sas-hero-subtitle { font-size: 14px !important; line-height: 1.55 !important; }
           .sas-dashboard-hero .sas-hero-focus-card { padding: 18px !important; min-height: auto !important; }
           .sas-dashboard-hero .sas-hero-focus-value { font-size: 24px !important; line-height: 1.1 !important; word-break: break-word; }
@@ -3910,8 +3967,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         @media (max-width: 480px) {
           .sas-main { padding: 12px; }
           .sas-inline-page-card { padding: 14px; }
-          .sas-dashboard-hero .sas-hero-title { font-size: 24px !important; }
-          .sas-section-card, .sas-summary-box, .sas-metric-card, .sas-action-card { border-radius: 18px !important; }
+          .sas-dashboard-hero .sas-hero-title { font-size: 22px !important; }
+          .sas-section-card, .sas-summary-box, .sas-metric-card, .sas-action-card { border-radius: 16px !important; }
         }
       `}</style>
 
@@ -3919,57 +3976,63 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         <button className="sas-hamburger-btn" onClick={() => setSidebarOpen(true)}>
           <span /><span /><span />
         </button>
-        <span style={{ fontSize: 16, fontWeight: 900, color: colours.purple }}>{profile.businessName || "My Portal"}</span>
+        <span style={{ fontSize: 16, fontWeight: 800, color: colours.purple, fontFamily: '"Playfair Display", serif' }}>{profile.businessName || "My Portal"}</span>
       </div>
 
       {sidebarOpen && <div className="sas-overlay" onClick={() => setSidebarOpen(false)} />}
 
       <div className="sas-layout">
         <aside className={`sas-sidebar${sidebarOpen ? " open" : ""}`}>
-          <div style={{ fontSize: 20, fontWeight: 900, color: colours.purple, marginBottom: 20 }}>
+          <div style={{ fontSize: 20, fontWeight: 800, color: colours.purple, marginBottom: 6, fontFamily: '"Playfair Display", serif' }}>
             {profile.businessName || "My Portal"}
           </div>
 
-          <div style={{ fontSize: 13, color: colours.muted, marginBottom: 16 }}>
-            Signed in as {authUser.email || "user"}
+          <div style={{ fontSize: 12, color: colours.muted, marginBottom: 24, paddingBottom: 16, borderBottom: `1px solid ${colours.border}` }}>
+            {authUser.email || "user"}
           </div>
 
-          <div style={{ display: "grid", gap: 14 }}>
+          <div style={{ display: "grid", gap: 16, flex: 1 }}>
             {navSections.map((section) => (
-              <div key={section.title} style={{ display: "grid", gap: 8 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, letterSpacing: 0.6, textTransform: "uppercase", color: colours.muted, padding: "0 6px" }}>
+              <div key={section.title} style={{ display: "grid", gap: 4 }}>
+                <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase", color: colours.muted, padding: "4px 12px 6px", opacity: 0.7 }}>
                   {section.title}
                 </div>
-                <div style={{ display: "grid", gap: 8 }}>
-                  {section.items.map((item) => (
-                    <button
-                      key={item}
-                      onClick={() => { setActivePage(item); setSidebarOpen(false); }}
-                      style={{
-                        textAlign: "left",
-                        border: "none",
-                        borderRadius: 12,
-                        padding: "12px 14px",
-                        cursor: "pointer",
-                        fontWeight: 700,
-                        background: activePage === item ? colours.lightPurple : "transparent",
-                        color: activePage === item ? colours.purple : colours.text,
-                      }}
-                    >
-                      {navLabels[item] || (item.charAt(0).toUpperCase() + item.slice(1))}
-                    </button>
-                  ))}
+                <div style={{ display: "grid", gap: 2 }}>
+                  {section.items.map((item) => {
+                    const isActive = activePage === item;
+                    const iconMap = {
+                      "dashboard": "⬡", "financial insights": "📊", "invoices": "📄", "quotes": "📋",
+                      "clients": "👥", "services": "⚙", "expenses": "💳", "bills / payables": "🧾",
+                      "income sources": "💰", "documents": "📁", "bas report": "📑", "ato tax form": "🏛",
+                      "settings": "⚙",
+                    };
+                    return (
+                      <button
+                        key={item}
+                        className={`sas-nav-item${isActive ? " active" : ""}`}
+                        onClick={() => { setActivePage(item); setSidebarOpen(false); }}
+                      >
+                        <span className="sas-nav-icon" style={{ fontSize: 15 }}>{iconMap[item] || "•"}</span>
+                        {navLabels[item] || (item.charAt(0).toUpperCase() + item.slice(1))}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             ))}
           </div>
 
-          <button
-            onClick={handleSignOut}
-            style={{ ...buttonSecondary, width: "100%", marginTop: 16 }}
-          >
-            Log out
-          </button>
+          <div style={{ borderTop: `1px solid ${colours.border}`, paddingTop: 16, marginTop: 16 }}>
+            <button
+              onClick={handleSignOut}
+              style={{ ...buttonSecondary, width: "100%", fontSize: 13 }}
+            >
+              Log out
+            </button>
+            <div style={{ fontSize: 10, color: colours.muted, textAlign: "center", marginTop: 10, opacity: 0.6 }}>
+              Sharon's Accounting Service
+            </div>
+          </div>
         </aside>
 
         <main className="sas-main">

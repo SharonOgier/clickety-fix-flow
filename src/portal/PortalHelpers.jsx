@@ -370,39 +370,47 @@ export const inputStyle = {
   width: "100%",
   border: `1px solid ${colours.border}`,
   borderRadius: 12,
-  padding: "11px 13px",
+  padding: "11px 14px",
   fontSize: 14,
-  lineHeight: 1.4,
+  lineHeight: 1.5,
   boxSizing: "border-box",
   background: "#FCFDFE",
   color: colours.text,
+  fontFamily: '"DM Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
   boxShadow: "inset 0 1px 2px rgba(15, 23, 42, 0.03)",
+  transition: "border-color 0.2s ease, box-shadow 0.2s ease",
 };
 
 export const labelStyle = {
   display: "block",
   fontSize: 13,
   fontWeight: 600,
-  color: colours.text,
+  color: colours.muted,
   marginBottom: 6,
+  letterSpacing: "0.01em",
+  fontFamily: '"DM Sans", sans-serif',
 };
 
 export const cardStyle = {
   background: colours.white,
   border: `1px solid ${colours.border}`,
   borderRadius: 20,
-  boxShadow: "0 10px 30px rgba(15, 23, 42, 0.06)",
+  boxShadow: "0 4px 20px rgba(15, 23, 42, 0.05)",
 };
 
 export const buttonPrimary = {
-  background: colours.purple,
+  background: `linear-gradient(135deg, ${colours.purple} 0%, #8E24AA 100%)`,
   color: "#fff",
   border: "none",
   borderRadius: 12,
-  padding: "11px 16px",
-  fontWeight: 800,
+  padding: "11px 20px",
+  fontSize: 14,
+  fontWeight: 700,
   cursor: "pointer",
-  boxShadow: "0 8px 18px rgba(106, 27, 154, 0.18)",
+  fontFamily: '"DM Sans", sans-serif',
+  boxShadow: "0 4px 14px rgba(106, 27, 154, 0.25)",
+  transition: "all 0.2s ease",
+  letterSpacing: "0.01em",
 };
 
 export const buttonSecondary = {
@@ -410,10 +418,27 @@ export const buttonSecondary = {
   color: colours.text,
   border: `1px solid ${colours.border}`,
   borderRadius: 12,
-  padding: "11px 16px",
-  fontWeight: 700,
+  padding: "11px 20px",
+  fontSize: 14,
+  fontWeight: 600,
   cursor: "pointer",
-  boxShadow: "0 2px 10px rgba(15, 23, 42, 0.04)",
+  fontFamily: '"DM Sans", sans-serif',
+  boxShadow: "0 1px 4px rgba(15, 23, 42, 0.04)",
+  transition: "all 0.2s ease",
+};
+
+export const buttonDanger = {
+  background: "#fff",
+  color: "#DC2626",
+  border: "1px solid #FECACA",
+  borderRadius: 12,
+  padding: "11px 20px",
+  fontSize: 14,
+  fontWeight: 600,
+  cursor: "pointer",
+  fontFamily: '"DM Sans", sans-serif',
+  boxShadow: "0 1px 4px rgba(220, 38, 38, 0.06)",
+  transition: "all 0.2s ease",
 };
 
 export const currency = (value) =>
