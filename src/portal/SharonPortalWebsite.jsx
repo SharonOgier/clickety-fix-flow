@@ -3031,7 +3031,6 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
   };
 
     const createStripeCheckoutForInvoice = async (invoice) => {
-    const serverBaseUrl = getApiBaseUrl(profile?.stripeServerUrl);
     const selectedClient = getClientById(invoice?.clientId) || {};
 
     const rawTotal = resolveInvoiceStripeAmount(invoice);
@@ -3061,31 +3060,18 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       )}&invoiceId=${encodeURIComponent(String(invoice?.id || ""))}`,
     };
 
-    let response;
+    const { data, error: fnError } = await supabase.functions.invoke("create-invoice-checkout", {
+      body: payload,
+    });
 
-    try {
-      response = await fetch(`${serverBaseUrl}/api/create-checkout-session`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-    } catch (error) {
-      console.error("STRIPE CHECKOUT NETWORK ERROR:", {
-        serverBaseUrl,
-        error,
-      });
-      throw new Error(`Could not reach the Stripe server at ${serverBaseUrl}. Check the Stripe Server URL setting and your backend deployment.`);
-    }
-
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error("Stripe checkout response error", data);
-      throw new Error(data?.error || "Stripe checkout failed");
+    if (fnError) {
+      console.error("STRIPE CHECKOUT ERROR:", fnError);
+      throw new Error("Could not create Stripe checkout. Please try again.");
     }
 
     if (!data?.url) {
-      throw new Error("Stripe checkout URL was not returned");
+      console.error("Stripe checkout response missing URL", data);
+      throw new Error(data?.error || "Stripe checkout URL was not returned");
     }
 
     return data.url;
