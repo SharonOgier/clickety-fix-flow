@@ -171,7 +171,7 @@ export default function FarmEquipmentPage() {
               Assessment services by <em className="not-italic text-primary">Mitchell</em>
             </h2>
             <p className="text-base text-muted-foreground leading-relaxed font-light mt-4 max-w-[560px] mx-auto">
-              Professional valuations and inspections for all types of farm equipment and agricultural assets.
+              Professional assessments and inspections for all types of farm equipment and agricultural assets.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-14">
