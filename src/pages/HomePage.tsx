@@ -214,7 +214,7 @@ export default function HomePage() {
                   { icon: "🚛", title: "Trucks & Transport", desc: "Valuations for farm trucks, trailers, grain bins, and livestock transport equipment." },
                   { icon: "🏗️", title: "Fixed Plant & Infrastructure", desc: "Silos, augers, irrigation systems, sheds, and other fixed assets." },
                   { icon: "📋", title: "Pre-Purchase Inspections", desc: "Independent inspections before buying or selling — mechanical, structural, and cosmetic." },
-                  { icon: "📊", title: "Insurance & Finance Reports", desc: "Formal valuation certificates accepted by major insurers and lenders." },
+                  { icon: "📊", title: "Sale & Purchase Reports", desc: "Detailed reports to support buying or selling decisions with market positioning and condition summary." },
                 ].map((svc) => (
                   <div key={svc.title} className="bg-card border border-border rounded-lg shadow-brand p-5">
                     <div className="text-2xl mb-3">{svc.icon}</div>
