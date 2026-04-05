@@ -530,6 +530,31 @@ export default function AccountingPortalPrototype() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // Wrap setActivePage to push browser history
+  const setActivePage = React.useCallback((page) => {
+    setActivePageRaw((prev) => {
+      if (page !== prev && !isPopstateRef.current) {
+        window.history.pushState({ portalPage: page }, "", window.location.pathname + window.location.search);
+      }
+      isPopstateRef.current = false;
+      return page;
+    });
+  }, []);
+
+  // Listen for browser back/forward
+  useEffect(() => {
+    const onPopState = (e) => {
+      if (e.state && e.state.portalPage) {
+        isPopstateRef.current = true;
+        setActivePage(e.state.portalPage);
+      }
+    };
+    // Set initial state
+    window.history.replaceState({ portalPage: activePage }, "", window.location.pathname + window.location.search);
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     setShowQuickAddMenu(false);
   }, [activePage]);
