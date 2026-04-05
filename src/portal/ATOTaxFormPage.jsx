@@ -147,6 +147,10 @@ export default function ATOTaxFormPage({
   })();
   const portalExp = expenses.map(e=>({date:e.date||"",type:e.category||e.expenseType||"Other",supplier:e.supplier||e.description||"",amount:safeNumber(e.amount),gstIncl:e.gstIncluded!==false?"yes":"no"}));
 
+  // Asset depreciation totals
+  const totalDepreciation = assets.filter(a => (a.status || "Active") === "Active").reduce((s, a) => s + calcAssetAnnualDep(a), 0);
+  const capitalPurchases = assets.reduce((s, a) => s + (Number(a.purchasePrice) || 0), 0);
+
   // Manually added records
   const [extraInc, setExtraInc] = useState([]);
   const [extraExp, setExtraExp] = useState([]);
