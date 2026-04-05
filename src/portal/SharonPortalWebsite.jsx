@@ -1286,6 +1286,17 @@ export default function AccountingPortalPrototype() {
           amount, gst,
           isPaid: isPaidRaw === "yes" || isPaidRaw === "true" || isPaidRaw === "1",
         });
+      } else if (type === "income") {
+        const startedRaw = (row["startedafterjul2025"] || row["startedafter"] || "").toLowerCase();
+        const endRaw = (row["hasenddate"] || row["enddate"] || "").toLowerCase();
+        rows.push({
+          name: row["name"] || row["source"] || "",
+          incomeType: row["incometype"] || row["type"] || "Casual employment",
+          beforeTax: row["beforetax"] || row["amount"] || "",
+          frequency: row["frequency"] || "",
+          startedAfterDate: startedRaw === "yes" || startedRaw === "true" || startedRaw === "1",
+          hasEndDate: endRaw === "yes" || endRaw === "true" || endRaw === "1",
+        });
       }
     }
     const valid = type === "invoices"
