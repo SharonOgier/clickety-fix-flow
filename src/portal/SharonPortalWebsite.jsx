@@ -4376,6 +4376,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                   ? ["Name *", "Contact Person", "Email", "Phone", "Address", "ABN", "Notes"]
                   : importType === "invoices"
                   ? ["Invoice Number *", "Client Name *", "Date", "Due Date", "Description", "Subtotal", "GST", "Total", "Status"]
+                  : importType === "income"
+                  ? ["Name *", "Income Type", "Before Tax", "Frequency", "Started After Jul 2025", "Has End Date"]
                   : ["Supplier *", "Date", "Due Date", "Category", "Description", "Amount *", "GST", "Is Paid"]
                 ).map((col) => (
                   <span key={col} style={{ background: col.includes("*") ? colours.purple : "#F1F5F9", color: col.includes("*") ? "#fff" : colours.text, borderRadius: 6, padding: "4px 10px", fontSize: 12, fontWeight: 600 }}>
