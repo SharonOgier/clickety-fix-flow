@@ -572,6 +572,12 @@ export default function BillsPage(props) {
                         Credit Note
                       </button>
                     )}
+                    <button
+                      style={{ ...buttonSecondary, color: "#DC2626", borderColor: "#DC2626" }}
+                      onClick={() => deleteExpense(row.id)}
+                    >
+                      Delete
+                    </button>
                   </div>
                 ),
               },
