@@ -144,6 +144,27 @@ export default function HomePage() {
                 </div>
               </div>
 
+              {/* Mitchell section */}
+              <div className="bg-card border border-border rounded-xl shadow-brand p-6 mb-5">
+                <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-center">
+                  <div className="w-[100px] h-[100px] rounded-full bg-secondary flex items-center justify-center text-5xl mx-auto md:mx-0">
+                    👨‍🌾
+                  </div>
+                  <div>
+                    <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-3">
+                      Farm Equipment Evaluations
+                    </span>
+                    <h3 className="text-xl font-black text-foreground mb-2">Mitchell — Equipment Evaluator</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed mb-3">
+                      Mitchell provides independent, professional valuations for tractors, harvesters, implements, trucks, and fixed plant. Reports accepted by banks, insurers, and industry professionals.
+                    </p>
+                    <Link to="/farm-equipment" className="inline-flex px-5 py-2.5 rounded-md font-extrabold bg-primary text-primary-foreground text-sm">
+                      View Services →
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
               {/* Quote box */}
               <div className="rounded-xl p-6 text-primary-foreground shadow-brand mb-5" style={{ background: "var(--gradient-brand)" }}>
                 <h3 className="text-lg font-bold mb-2 text-primary-foreground font-serif">Built for real businesses, not templates.</h3>
