@@ -62,7 +62,7 @@ export const navLabels = {
   settings: "Settings",
 };
 
-export const settingsTabs = ["Profile", "Financial", "Branding", "Security"];
+export const settingsTabs = ["Profile", "Financial", "Branding", "Notifications", "Security"];
 
 const LOGO_DOCUMENT_MAX_HEIGHT = 140;
 const LOGO_DOCUMENT_MAX_WIDTH = 440;
