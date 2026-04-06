@@ -10,6 +10,7 @@ const emptyTrip = () => ({
   purpose: "",
   km: "",
   ratePerKm: String(ATO_RATE_PER_KM),
+  jobId: "",
 });
 
 export default function MileageSection({
