@@ -30,6 +30,8 @@ export default function MileageSection({
   safeNumber,
   SectionCard,
   DataTable,
+  jobs = [],
+  getClientName = () => "Unknown",
 }) {
   const [trip, setTrip] = useState(emptyTrip());
   const [editingId, setEditingId] = useState(null);
