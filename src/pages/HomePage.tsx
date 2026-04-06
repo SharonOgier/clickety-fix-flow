@@ -326,7 +326,7 @@ export default function HomePage() {
                 </p>
                 <div className="flex gap-3 flex-wrap">
                   <Link to="/landing" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-primary text-primary-foreground">
-                    Go to Portal Login
+                    Go to Mustered Login
                   </Link>
                 </div>
               </div>
