@@ -182,6 +182,29 @@ export default function SettingsPage(props) {
               />
             </div>
 
+            {/* Google Review & Customer Engagement */}
+            <div style={{ gridColumn: "1 / -1", borderTop: `1px solid ${colours.border || "#E2E8F0"}`, paddingTop: 20, marginTop: 8 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: colours.text, marginBottom: 4 }}>⭐ Customer Reviews</div>
+              <p style={{ fontSize: 12, color: colours.muted, marginBottom: 12 }}>When a job is completed, your customer will automatically receive a review request email. Paste your Google Review link below so they can leave a review in one tap.</p>
+              <div>
+                <label style={labelStyle}>Google Review URL</label>
+                <input
+                  style={inputStyle}
+                  type="url"
+                  placeholder="https://g.page/r/YOUR-PLACE-ID/review"
+                  value={profile.googleReviewUrl || ""}
+                  onChange={(e) => setProfile({ ...profile, googleReviewUrl: e.target.value })}
+                />
+                <div style={{ fontSize: 11, color: colours.muted, marginTop: 4 }}>Find yours at <a href="https://support.google.com/business/answer/7035772" target="_blank" rel="noopener noreferrer" style={{ color: colours.purple }}>Google Business Profile</a> → Share review link</div>
+              </div>
+              <div style={{ marginTop: 12 }}>
+                <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
+                  <input type="checkbox" checked={profile.autoSendReviewRequest !== false} onChange={e => setProfile({ ...profile, autoSendReviewRequest: e.target.checked })} />
+                  Automatically email a review request when a job is completed
+                </label>
+              </div>
+            </div>
+
             {/* Business Type & Industry */}
             <div style={{ gridColumn: "1 / -1", borderTop: `1px solid ${colours.border || "#E2E8F0"}`, paddingTop: 20, marginTop: 8 }}>
               <div style={{ fontSize: 14, fontWeight: 800, color: colours.text, marginBottom: 12 }}>Business Type</div>

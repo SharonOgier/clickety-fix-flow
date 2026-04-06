@@ -751,8 +751,46 @@ export default function SchedulingPage({
   const handleSave = async () => {
     if (!form.title.trim()) return;
     const payload = { ...form, id: editingJob?.id || Date.now() };
+    const wasCompleted = editingJob?.status === "Completed";
+    const isNowCompleted = payload.status === "Completed";
     await saveJob(payload);
+    // Auto-send review request when job first marked as Completed
+    if (isNowCompleted && !wasCompleted && !payload.reviewRequestSent && profile.autoSendReviewRequest !== false) {
+      sendReviewRequest(payload);
+    }
     closeForm();
+  };
+
+  const sendReviewRequest = async (job) => {
+    const client = clientMap[String(job.clientId)];
+    if (!client?.email) return; // silently skip if no email
+    setNotifSending("review-request");
+    try {
+      // Build portal URL if client has a portal token
+      const portalUrl = client.portalToken
+        ? `${window.location.origin}/client-portal?token=${encodeURIComponent(client.portalToken)}`
+        : "";
+      const { data, error } = await supabase.functions.invoke("send-job-notification", {
+        body: {
+          type: "review-request",
+          job,
+          profile,
+          client: { name: client.name, email: client.email },
+          googleReviewUrl: profile.googleReviewUrl || "",
+          portalUrl,
+        },
+      });
+      if (error) throw error;
+      if (data?.ok) {
+        const updated = { ...job, reviewRequestSent: new Date().toISOString() };
+        await saveJob(updated);
+        if (detailJob && String(detailJob.id) === String(job.id)) setDetailJob(updated);
+        alert(`⭐ Review request sent to ${client.email}`);
+      }
+    } catch (err) {
+      console.error("Review request error:", err);
+    }
+    setNotifSending(null);
   };
 
   const handleDelete = (job) => {
@@ -1156,12 +1194,20 @@ export default function SchedulingPage({
                     >
                       {notifSending === "job-completed" ? "Sending…" : "✅ Send Completion + Invoice"}
                     </button>
+                    <button
+                      style={{ ...buttonSecondary, fontSize: 12, padding: "6px 14px", color: "#F57F17", borderColor: "#F57F17", opacity: notifSending ? 0.6 : 1 }}
+                      disabled={!!notifSending}
+                      onClick={() => sendReviewRequest(detailJob)}
+                    >
+                      {notifSending === "review-request" ? "Sending…" : "⭐ Request Review"}
+                    </button>
                   </div>
                   {/* Sent indicators */}
                   <div style={{ marginTop: 8, display: "flex", gap: 12, flexWrap: "wrap" }}>
                     {detailJob.bookingConfirmationSent && <span style={{ fontSize: 11, color: "#2E7D32" }}>✓ Booking sent {new Date(detailJob.bookingConfirmationSent).toLocaleDateString()}</span>}
                     {detailJob.dayBeforeReminderSent && <span style={{ fontSize: 11, color: "#1E88E5" }}>✓ Reminder sent {new Date(detailJob.dayBeforeReminderSent).toLocaleDateString()}</span>}
                     {detailJob.completionNotificationSent && <span style={{ fontSize: 11, color: "#2E7D32" }}>✓ Completion sent {new Date(detailJob.completionNotificationSent).toLocaleDateString()}</span>}
+                    {detailJob.reviewRequestSent && <span style={{ fontSize: 11, color: "#F57F17" }}>⭐ Review request sent {new Date(detailJob.reviewRequestSent).toLocaleDateString()}</span>}
                   </div>
                 </div>
               )}
