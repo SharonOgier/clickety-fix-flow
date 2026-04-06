@@ -993,6 +993,17 @@ function CertificatePanel({ job, onUpdate, colours, buttonPrimary, buttonSeconda
                 authUser={authUser}
               />
             )}
+
+            {detailTab === "certificate" && (
+              <CertificatePanel
+                job={detailJob}
+                onUpdate={async (updated) => { await saveJob(updated); setDetailJob(updated); }}
+                colours={colours} buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+                inputStyle={inputStyle} labelStyle={labelStyle}
+                profile={profile} clients={clients} properties={properties}
+                authUser={authUser}
+              />
+            )}
           </div>
         </div>
       )}
