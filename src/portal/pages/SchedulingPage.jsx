@@ -56,7 +56,129 @@ const PriorityBadge = ({ priority }) => {
   return <span style={{ fontSize: 11, fontWeight: 700, color: map[priority] || "#64748B" }}>● {priority}</span>;
 };
 
-/* ═══════════════════════════════════════════════════════════════════════ */
+/* ─── Job Photos Panel ─────────────────────────────────────────────────── */
+function JobPhotosPanel({ job, onUpdate, colours, buttonPrimary, buttonSecondary, authUser }) {
+  const [uploading, setUploading] = useState(false);
+  const [viewImg, setViewImg] = useState(null);
+  const beforeRef = useRef(null);
+  const afterRef = useRef(null);
+
+  const photos = job.photos || { before: [], after: [] };
+  const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
+  const getPublicUrl = (path) => `${SUPABASE_URL}/storage/v1/object/public/job-photos/${path}`;
+
+  const uploadPhotos = async (files, type) => {
+    if (!authUser?.id || !files.length) return;
+    setUploading(true);
+    try {
+      const newPhotos = [];
+      for (const file of files) {
+        const ext = file.name.split(".").pop() || "jpg";
+        const fileName = `${authUser.id}/${job.id}/${type}/${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error } = await supabase.storage.from("job-photos").upload(fileName, file, { upsert: false });
+        if (error) { console.error("Upload error:", error); continue; }
+        newPhotos.push({ path: fileName, url: getPublicUrl(fileName), uploadedAt: new Date().toISOString(), name: file.name });
+      }
+      if (newPhotos.length > 0) {
+        const updated = {
+          ...job,
+          photos: {
+            before: type === "before" ? [...(photos.before || []), ...newPhotos] : (photos.before || []),
+            after: type === "after" ? [...(photos.after || []), ...newPhotos] : (photos.after || []),
+          },
+        };
+        await onUpdate(updated);
+      }
+    } catch (err) { console.error("Upload failed:", err); }
+    setUploading(false);
+  };
+
+  const deletePhoto = async (type, index) => {
+    const photo = photos[type]?.[index];
+    if (!photo) return;
+    try {
+      await supabase.storage.from("job-photos").remove([photo.path]);
+    } catch (_) {}
+    const updated = {
+      ...job,
+      photos: {
+        ...photos,
+        [type]: photos[type].filter((_, i) => i !== index),
+      },
+    };
+    await onUpdate(updated);
+  };
+
+  const PhotoGrid = ({ items, type }) => (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", gap: 10, marginTop: 8 }}>
+      {(items || []).map((p, i) => (
+        <div key={i} style={{ position: "relative", borderRadius: 10, overflow: "hidden", border: "1px solid #E2E8F0", aspectRatio: "1", cursor: "pointer" }}>
+          <img src={p.url} alt={`${type} photo ${i + 1}`}
+            onClick={() => setViewImg(p.url)}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <button onClick={(e) => { e.stopPropagation(); deletePhoto(type, i); }}
+            style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.6)", color: "#fff", border: "none", borderRadius: 99, width: 22, height: 22, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+        </div>
+      ))}
+    </div>
+  );
+
+  const UploadButton = ({ type, inputRef }) => (
+    <>
+      <input ref={inputRef} type="file" accept="image/*" multiple capture="environment" style={{ display: "none" }}
+        onChange={(e) => { if (e.target.files?.length) uploadPhotos(Array.from(e.target.files), type); e.target.value = ""; }} />
+      <button style={{ ...buttonSecondary, fontSize: 13 }} onClick={() => inputRef.current?.click()} disabled={uploading}>
+        {uploading ? "Uploading…" : `📷 Add ${type === "before" ? "Before" : "After"} Photos`}
+      </button>
+    </>
+  );
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: colours.muted, marginBottom: 16 }}>
+        Take before & after photos on site. They'll be auto-attached to this job and included in completion reports.
+      </p>
+
+      {/* Before Photos */}
+      <div style={{ marginBottom: 24 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 style={{ fontSize: 15, fontWeight: 800, color: colours.text, margin: 0 }}>📷 Before Photos <span style={{ fontSize: 12, fontWeight: 500, color: colours.muted }}>({(photos.before || []).length})</span></h3>
+          <UploadButton type="before" inputRef={beforeRef} />
+        </div>
+        {(photos.before || []).length > 0 ? <PhotoGrid items={photos.before} type="before" /> :
+          <div style={{ background: "#F8FAFC", border: "2px dashed #E2E8F0", borderRadius: 12, padding: 24, textAlign: "center", marginTop: 8, color: colours.muted, fontSize: 13, cursor: "pointer" }}
+            onClick={() => beforeRef.current?.click()}>
+            Tap to add before photos
+          </div>
+        }
+      </div>
+
+      {/* After Photos */}
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 style={{ fontSize: 15, fontWeight: 800, color: colours.text, margin: 0 }}>✅ After Photos <span style={{ fontSize: 12, fontWeight: 500, color: colours.muted }}>({(photos.after || []).length})</span></h3>
+          <UploadButton type="after" inputRef={afterRef} />
+        </div>
+        {(photos.after || []).length > 0 ? <PhotoGrid items={photos.after} type="after" /> :
+          <div style={{ background: "#F8FAFC", border: "2px dashed #E2E8F0", borderRadius: 12, padding: 24, textAlign: "center", marginTop: 8, color: colours.muted, fontSize: 13, cursor: "pointer" }}
+            onClick={() => afterRef.current?.click()}>
+            Tap to add after photos
+          </div>
+        }
+      </div>
+
+      {/* Lightbox */}
+      {viewImg && (
+        <div onClick={() => setViewImg(null)} style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "zoom-out" }}>
+          <img src={viewImg} alt="Full size" style={{ maxWidth: "90vw", maxHeight: "90vh", borderRadius: 8, objectFit: "contain" }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 export default function SchedulingPage({
   jobs = [], clients = [], properties = [], quotes = [], invoices = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
   inputStyle, labelStyle, DashboardHero, InsightChip, MetricCard, SectionCard, DataTable, EmptyState,
