@@ -102,7 +102,7 @@ export default function DocumentsPage(props) {
         ) : (
           <div style={{ color: colours.muted, fontSize: 14 }}>No documents uploaded yet.</div>
         )}
-        {documentEditorOpen && documentEditorForm ? (
+        {documentEditorOpen && documentEditorForm && (
           <div style={{ marginTop: 20, ...cardStyle, padding: 20 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 16 }}>
               <h3 style={{ margin: 0, fontSize: 18 }}>View / Edit Document</h3>
@@ -124,7 +124,10 @@ export default function DocumentsPage(props) {
               <button style={buttonPrimary} onClick={saveDocumentEdits}>Save Changes</button>
             </div>
           </div>
-        ) : <EmptyState icon="" title="No documents yet" message="Upload receipts, contracts and generated PDFs here. All documents are stored securely against your account." />}
+        )}
+        {!documents.length && !documentEditorOpen && (
+          <EmptyState icon="📁" title="No documents yet" message="Upload receipts, contracts and generated PDFs here. All documents are stored securely against your account." />
+        )}
       </SectionCard>
     </div>
     );
