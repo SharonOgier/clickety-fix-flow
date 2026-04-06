@@ -4046,6 +4046,54 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       };
     }, [clientRevenueRows, totals, invoices, monthlyFinance, expenses, expenseCategoryRows]);
 
+      {/* -- Recurring Jobs Modal -- */}
+      {showRecurringJobsModal && recurringJobsDue.length > 0 && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 99995, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: "#fff", borderRadius: 18, padding: 28, width: "100%", maxWidth: 500, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", fontFamily: "sans-serif" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+              <div style={{ fontSize: 28 }}>🔄</div>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: "#14202B" }}>Recurring Jobs Due</div>
+                <div style={{ fontSize: 13, color: "#64748B", marginTop: 2 }}>{recurringJobsDue.length} job{recurringJobsDue.length !== 1 ? "s" : ""} ready to be rescheduled</div>
+              </div>
+            </div>
+            <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
+              {recurringJobsDue.map((job) => (
+                <div key={job.id} onClick={() => setRecurringJobsSelected(prev => prev.includes(job.id) ? prev.filter(x => x !== job.id) : [...prev, job.id])}
+                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12, cursor: "pointer",
+                    background: recurringJobsSelected.includes(job.id) ? colours.lightPurple : "#F8FAFC",
+                    border: "1px solid " + (recurringJobsSelected.includes(job.id) ? colours.purple : colours.border) }}>
+                  <input type="checkbox" checked={recurringJobsSelected.includes(job.id)}
+                    onChange={() => setRecurringJobsSelected(prev => prev.includes(job.id) ? prev.filter(x => x !== job.id) : [...prev, job.id])}
+                    onClick={e => e.stopPropagation()} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: colours.text }}>{job.title}</div>
+                    <div style={{ fontSize: 12, color: colours.muted, marginTop: 2 }}>
+                      {job.clientName} · {job.recurs} · Next: {formatDateAU(job.nextDate)}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: colours.purple, background: colours.lightPurple, padding: "2px 8px", borderRadius: 6 }}>
+                    {job.recurs}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 12, color: "#64748B", marginBottom: 16 }}>
+              ✅ A draft invoice will also be created for each job with a linked contact.
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => { setShowRecurringJobsModal(false); setRecurringJobsDue([]); setRecurringJobsSelected([]); }}
+                style={{ background: "#F1F5F9", color: "#475569", border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+                Skip
+              </button>
+              <button onClick={confirmRecurringJobs} disabled={recurringJobsSelected.length === 0}
+                style={{ background: recurringJobsSelected.length === 0 ? "#9CA3AF" : colours.purple, color: "#fff", border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 700, cursor: recurringJobsSelected.length === 0 ? "not-allowed" : "pointer", fontSize: 14 }}>
+                Create {recurringJobsSelected.length} Job{recurringJobsSelected.length !== 1 ? "s" : ""} + Invoice{recurringJobsSelected.length !== 1 ? "s" : ""}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     if (!authReady) {
     return (
