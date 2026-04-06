@@ -443,7 +443,7 @@ export default function TimesheetsPage({
     const idx = entries.findIndex(t => t.date === dateStr);
     const entry = { date: dateStr, hours: Number(hours) || 0, staff: selectedStaff !== "all" ? selectedStaff : (job.assignedTo || profile.businessName || "Owner"), updatedAt: new Date().toISOString() };
     if (idx >= 0) entries[idx] = entry; else entries.push(entry);
-    await saveJob({ ...job, timeEntries: entries });
+    await saveJob({ ...job, timeEntries: entries }, { silent: true });
     setEditingCell(null);
   };
 
