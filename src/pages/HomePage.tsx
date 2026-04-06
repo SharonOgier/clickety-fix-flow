@@ -123,7 +123,7 @@ export default function HomePage() {
                   </p>
                   <div className="flex gap-3 flex-wrap mb-5">
                     <Link to="/landing" className="inline-flex justify-center items-center px-6 py-3 rounded-md font-extrabold bg-primary text-primary-foreground">
-                      Portal Login
+                      Mustered Login
                     </Link>
                     <a
                       href="https://calendly.com/sharonogier-info"
