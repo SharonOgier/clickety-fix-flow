@@ -610,13 +610,22 @@ function QuotesPageInner(props) {
                       Email
                     </button>
                     {row.status !== "Declined" && row.status !== "Expired" && (
-                      <button
-                        style={{ ...buttonSecondary, color: colours.teal, borderColor: colours.teal }}
-                        onClick={() => convertQuoteToInvoice(row)}
-                        title="Mark as Accepted and create a Draft invoice"
-                      >
-                        Convert to Invoice
-                      </button>
+                      <>
+                        <button
+                          style={{ ...buttonSecondary, color: colours.teal, borderColor: colours.teal }}
+                          onClick={() => convertQuoteToInvoice(row)}
+                          title="Mark as Accepted and create a Draft invoice"
+                        >
+                          → Invoice
+                        </button>
+                        <button
+                          style={{ ...buttonSecondary, color: "#2E7D32", borderColor: "#2E7D32" }}
+                          onClick={() => convertQuoteToJob(row)}
+                          title="Mark as Accepted and create a scheduled Job"
+                        >
+                          → Job
+                        </button>
+                      </>
                     )}
                     <button style={buttonSecondary} onClick={() => deleteQuote(row.id)}>
                       Delete
