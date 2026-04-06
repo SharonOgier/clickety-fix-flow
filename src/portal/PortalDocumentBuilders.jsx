@@ -1247,6 +1247,38 @@ ${job.assignedTo ? `
 </div>
 ` : ""}
 
+${(() => {
+  const photos = job.photos || { before: [], after: [] };
+  const hasBefore = (photos.before || []).length > 0;
+  const hasAfter = (photos.after || []).length > 0;
+  if (!hasBefore && !hasAfter) return "";
+  const photoGrid = (items) => items.map((p) => `
+    <div style="border-radius:8px; overflow:hidden; border:1px solid #E2E8F0;">
+      <img src="${escapeHtml(p.url || "")}" alt="Job photo" style="width:100%; height:180px; object-fit:cover; display:block;" />
+    </div>
+  `).join("");
+  return `
+  <div class="section" style="page-break-before: auto;">
+    <div class="section-title">Site Photos</div>
+    ${hasBefore ? `
+      <div style="margin-bottom:16px;">
+        <div style="font-size:13px; font-weight:700; color:#64748B; margin-bottom:8px;">📷 Before</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px;">
+          ${photoGrid(photos.before)}
+        </div>
+      </div>
+    ` : ""}
+    ${hasAfter ? `
+      <div>
+        <div style="font-size:13px; font-weight:700; color:#64748B; margin-bottom:8px;">✅ After</div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(160px, 1fr)); gap:10px;">
+          ${photoGrid(photos.after)}
+        </div>
+      </div>
+    ` : ""}
+  </div>`;
+})()}
+
 <!-- On-site Checklist (blank lines for manual use) -->
 <div class="section">
   <div class="section-title">On-Site Checklist</div>
