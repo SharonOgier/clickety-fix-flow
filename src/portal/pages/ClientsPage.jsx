@@ -391,7 +391,7 @@ export default function ClientsPage(props) {
               buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
               onSave={saveClientEdits} onCancel={closeClientEditor} isEditing
             />
-            <RelatedJobsSection contact={clientEditorForm} colours={colours} cardStyle={cardStyle} />
+            <RelatedJobsSection contact={clientEditorForm} jobs={jobs} colours={colours} cardStyle={cardStyle} />
           </>
         ) : (
           <ContactForm
