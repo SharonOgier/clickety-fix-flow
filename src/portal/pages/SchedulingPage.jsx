@@ -477,6 +477,7 @@ export default function SchedulingPage({
                 colours={colours} cardStyle={cardStyle} inputStyle={inputStyle} labelStyle={labelStyle}
                 buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
                 currency={currency} quotes={quotes} invoices={invoices}
+                authUser={authUser}
               />
             )}
           </div>

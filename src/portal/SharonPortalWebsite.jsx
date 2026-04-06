@@ -4493,6 +4493,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveJob={saveJob} deleteJob={deleteJob} confirm={confirm}
               setActivePage={setActivePage} currency={currency}
+              authUser={authUser}
             />}
             {activePage === "jobs report" && <JobsReportPage
               jobs={jobs} invoices={invoices} quotes={quotes} clients={clients}
