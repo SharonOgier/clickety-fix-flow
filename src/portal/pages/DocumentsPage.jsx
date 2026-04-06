@@ -126,7 +126,7 @@ export default function DocumentsPage(props) {
             </div>
           </div>
         )}
-        {!documents.length && !documentEditorOpen && (
+        {!safeDocuments.length && !documentEditorOpen && (
           <EmptyState icon="📁" title="No documents yet" message="Upload receipts, contracts and generated PDFs here. All documents are stored securely against your account." />
         )}
       </SectionCard>
