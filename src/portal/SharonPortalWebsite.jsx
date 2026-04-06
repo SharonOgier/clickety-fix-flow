@@ -4468,7 +4468,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               clientEditorOpen={clientEditorOpen} clientEditorForm={clientEditorForm}
               setClientEditorForm={setClientEditorForm} closeClientEditor={closeClientEditor}
               saveClientEdits={saveClientEdits} saveClient={saveClient} todayLocal={todayLocal}
-              blankClient={blankClient}
+               blankClient={blankClient} jobs={jobs}
             />}
             {activePage === "services" && <ServicesPage
               services={services} serviceSearch={serviceSearch} setServiceSearch={setServiceSearch}
