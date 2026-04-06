@@ -299,29 +299,78 @@ export default function LandingPage() {
           <div className="fade-in">
             <p className="text-xs font-bold tracking-[2px] uppercase text-primary mb-4">Pricing</p>
             <h2 className="text-3xl lg:text-[42px] font-black text-foreground">Simple, honest pricing</h2>
-            <p className="text-base text-muted-foreground font-light mt-4 max-w-[560px] mx-auto">One plan. Everything included. No nasty surprises.</p>
+            <p className="text-base text-muted-foreground font-light mt-4 max-w-[560px] mx-auto">Start free for 14 days. No credit card required. Cancel anytime.</p>
           </div>
-          <div className="max-w-[480px] mx-auto mt-14 bg-card border-2 border-primary rounded-xl p-12 shadow-brand relative overflow-hidden fade-in">
-            <div className="font-serif text-7xl font-black text-primary leading-none mb-1">$59</div>
-            <div className="text-base text-muted-foreground font-light mb-2">per month · or $49/month billed annually</div>
-            <div className="bg-teal-light text-accent rounded-lg p-3.5 text-sm font-semibold mb-6">
-              🎉 Start free 14-day trial — No credit card required
-            </div>
-            <ul className="grid gap-3 mb-9 text-left">
-              {priceFeatures.map((f) => (
-                <li key={f} className="flex items-center gap-3 text-[15px]">
-                  <span className="flex items-center justify-center w-[22px] h-[22px] bg-secondary text-primary rounded-full text-xs font-extrabold flex-shrink-0">✓</span>
-                  {f}
-                </li>
-              ))}
-            </ul>
-            <Link to="/auth?mode=signup" className="w-full flex justify-center items-center py-4 px-8 rounded-md font-bold bg-primary text-primary-foreground text-base">
-              Start free 14-day trial
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-14 items-stretch">
+            {tiers.map((tier) => (
+              <div
+                key={tier.key}
+                className={`relative bg-card rounded-[20px] p-8 text-left fade-in flex flex-col ${
+                  tier.recommended
+                    ? "border-2 border-primary shadow-brand md:scale-105 z-10"
+                    : "border border-border"
+                }`}
+              >
+                {tier.recommended && (
+                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[11px] font-extrabold px-4 py-1 rounded-full uppercase tracking-wide">
+                    Most popular
+                  </div>
+                )}
+                <h3 className="text-xl font-black text-foreground mb-1">{tier.name}</h3>
+                <p className="text-sm text-muted-foreground mb-5">{tier.tag}</p>
+                <div className="flex items-baseline gap-1 mb-5">
+                  <span className="text-[42px] font-black text-primary leading-none">${tier.price}</span>
+                  <span className="text-sm text-muted-foreground">/month inc. GST</span>
+                </div>
+                <div className="text-xs font-bold uppercase tracking-wide text-foreground mb-3">Included:</div>
+                <ul className="grid gap-2 mb-4">
+                  {tier.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-[13px] text-foreground">
+                      <span className="text-accent font-extrabold flex-shrink-0 mt-0.5">✓</span>
+                      <span>
+                        {f}
+                        {tier.comingSoon?.some((c) => f.toLowerCase().includes(c.toLowerCase())) && (
+                          <span className="inline-block ml-1.5 bg-muted text-muted-foreground text-[10px] font-bold px-2 py-0.5 rounded-full">
+                            Coming Soon
+                          </span>
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {tier.locked && tier.locked.length > 0 && (
+                  <>
+                    <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground mb-2">Not included:</div>
+                    <ul className="grid gap-1.5 mb-4">
+                      {tier.locked.map((f) => (
+                        <li key={f} className="flex items-center gap-2 text-[13px] text-muted-foreground/60">
+                          <span className="text-xs">🔒</span> {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+                <div className="mt-auto">
+                  <Link
+                    to="/auth?mode=signup"
+                    className={`w-full flex justify-center items-center py-3.5 px-6 rounded-md font-bold text-sm ${
+                      tier.recommended
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-secondary text-primary border border-primary/20"
+                    }`}
+                  >
+                    Start free trial
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-muted-foreground mt-6 fade-in">
+            Already have an account?{" "}
+            <Link to="/auth?mode=signin" className="text-primary font-bold hover:underline">
+              Log in here
             </Link>
-            <p className="text-sm text-muted-foreground mt-3.5 italic">
-              Adding STP payroll? Coming soon at $99/month — be first to know.
-            </p>
-          </div>
+          </p>
         </div>
       </section>
 
