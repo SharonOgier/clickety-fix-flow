@@ -3012,7 +3012,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
 
       if (result?.ok) {
         const updatedInvoice = {
-3014:           ...invoice,
+...invoice,
           ...(result.updatedDocumentRecord || {}),
           stripeCheckoutUrl:
             result.stripeCheckoutUrl ||
