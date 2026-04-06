@@ -637,6 +637,51 @@ export default function SchedulingPage({
                   if (w) writeJobSheetPreviewToWindow(w, detailJob, { profile, clients, properties });
                 }}>📄 Job Sheet</button>
               </div>
+
+              {/* ── Customer Notifications ── */}
+              {detailJob.clientId && (
+                <div style={{ marginTop: 20, padding: 16, background: "#F8FAFC", borderRadius: 12, border: "1px solid #E2E8F0" }}>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: colours.text, marginBottom: 10 }}>📧 Customer Notifications</div>
+                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                    <button
+                      style={{ ...buttonSecondary, fontSize: 12, padding: "6px 14px", opacity: notifSending ? 0.6 : 1 }}
+                      disabled={!!notifSending}
+                      onClick={() => sendJobNotification(detailJob, "job-booked")}
+                    >
+                      {notifSending === "job-booked" ? "Sending…" : "📩 Send Booking Confirmation"}
+                    </button>
+                    <button
+                      style={{ ...buttonSecondary, fontSize: 12, padding: "6px 14px", opacity: notifSending ? 0.6 : 1 }}
+                      disabled={!!notifSending}
+                      onClick={() => sendJobNotification(detailJob, "day-before-reminder")}
+                    >
+                      {notifSending === "day-before-reminder" ? "Sending…" : "⏰ Send Reminder"}
+                    </button>
+                    <button
+                      style={{ ...buttonSecondary, fontSize: 12, padding: "6px 14px", color: "#2E7D32", borderColor: "#2E7D32", opacity: notifSending ? 0.6 : 1 }}
+                      disabled={!!notifSending}
+                      onClick={() => {
+                        // Find linked invoice if exists
+                        const linkedInv = invoices.find(inv => String(inv.jobId) === String(detailJob.id));
+                        sendJobNotification(detailJob, "job-completed", linkedInv ? {
+                          invoiceNumber: linkedInv.invoiceNumber,
+                          total: linkedInv.total,
+                          dueDate: linkedInv.dueDate,
+                          paymentLink: linkedInv.paymentLink || "",
+                        } : null);
+                      }}
+                    >
+                      {notifSending === "job-completed" ? "Sending…" : "✅ Send Completion + Invoice"}
+                    </button>
+                  </div>
+                  {/* Sent indicators */}
+                  <div style={{ marginTop: 8, display: "flex", gap: 12, flexWrap: "wrap" }}>
+                    {detailJob.bookingConfirmationSent && <span style={{ fontSize: 11, color: "#2E7D32" }}>✓ Booking sent {new Date(detailJob.bookingConfirmationSent).toLocaleDateString()}</span>}
+                    {detailJob.dayBeforeReminderSent && <span style={{ fontSize: 11, color: "#1E88E5" }}>✓ Reminder sent {new Date(detailJob.dayBeforeReminderSent).toLocaleDateString()}</span>}
+                    {detailJob.completionNotificationSent && <span style={{ fontSize: 11, color: "#2E7D32" }}>✓ Completion sent {new Date(detailJob.completionNotificationSent).toLocaleDateString()}</span>}
+                  </div>
+                </div>
+              )}
             </>)}
 
             {detailTab === "photos" && (
