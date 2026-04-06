@@ -1,4 +1,5 @@
 import React from "react";
+import EntityLink from "../EntityLink";
 import { exportToCSV } from "../PortalHelpers";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
