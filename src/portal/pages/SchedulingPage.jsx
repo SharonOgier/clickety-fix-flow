@@ -56,9 +56,9 @@ const PriorityBadge = ({ priority }) => {
 
 /* ═══════════════════════════════════════════════════════════════════════ */
 export default function SchedulingPage({
-  jobs = [], clients = [], properties = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
+  jobs = [], clients = [], properties = [], quotes = [], invoices = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
   inputStyle, labelStyle, DashboardHero, InsightChip, MetricCard, SectionCard, DataTable, EmptyState,
-  saveJob, deleteJob, confirm, setActivePage,
+  saveJob, deleteJob, confirm, setActivePage, currency = (v) => `$${Number(v||0).toFixed(2)}`,
 }) {
   const colours = c;
   const today = new Date();
