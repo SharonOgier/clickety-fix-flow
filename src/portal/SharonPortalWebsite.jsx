@@ -1313,8 +1313,32 @@ export default function AccountingPortalPrototype() {
       },
     });
   };
+  const saveProperty = async (payload) => {
+    try {
+      const saved = await upsertRecordInDatabase(SUPABASE_TABLES.properties, payload);
+      setProperties((prev) => {
+        const exists = prev.find((p) => p.id === payload.id);
+        return exists ? prev.map((p) => p.id === payload.id ? saved : p) : [...prev, saved];
+      });
+      toast.success(payload.id && properties.find(p => p.id === payload.id) ? "Property updated!" : "Property saved!");
+    } catch (err) { toast.error(err.message || "Failed to save property"); }
+  };
 
-  const saveClientFromModal = async () => {
+  const deleteProperty = (id) => {
+    confirm({
+      title: "Delete Property",
+      message: "Are you sure you want to delete this property and all its sub-locations?",
+      onConfirm: async () => {
+        try {
+          await deleteRecordFromDatabase(SUPABASE_TABLES.properties, id);
+          setProperties((prev) => prev.filter((p) => p.id !== id));
+          toast.success("Property deleted");
+        } catch (err) { toast.error(err.message || "Failed to delete property"); }
+      },
+    });
+  };
+
+
     if (!clientModalForm.name.trim()) { toast.warning("Client name is required"); return; }
     try {
       const payload = { ...clientModalForm, id: editingClientId || Date.now() };
