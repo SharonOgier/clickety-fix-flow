@@ -189,7 +189,7 @@ function ContactForm({ form, setForm, colours, inputStyle, labelStyle, cardStyle
 // ---------------------------------------------------------------------------
 // RELATED JOBS SECTION
 // ---------------------------------------------------------------------------
-function RelatedJobsSection({ contact, jobs = [], colours, cardStyle }) {
+function RelatedJobsSection({ contact, jobs = [], invoices = [], quotes = [], expenses = [], colours, cardStyle, currency, safeNumber, setActivePage, formatDateAU }) {
   const contactId = String(contact.id);
   const contactName = (contact.name || "").toLowerCase();
   const linked = (jobs || []).filter(j => {
@@ -198,29 +198,104 @@ function RelatedJobsSection({ contact, jobs = [], colours, cardStyle }) {
     if (j.clientName && j.clientName.toLowerCase() === contactName) return true;
     return false;
   });
+  const linkedInvoices = (invoices || []).filter(inv => String(inv.clientId) === contactId);
+  const linkedQuotes = (quotes || []).filter(q => String(q.clientId) === contactId);
+  const linkedExpenses = (expenses || []).filter(e => String(e.contactId) === contactId);
+
+  const sectionStyle = { ...cardStyle, padding: 16, marginTop: 16, background: "#FAFAFA", border: `1px solid ${colours.border}` };
+  const headerStyle = { fontSize: 13, fontWeight: 800, textTransform: "uppercase", color: colours.muted, marginBottom: 8 };
+  const itemStyle = { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 10, background: "#fff", border: `1px solid ${colours.border}`, cursor: "pointer" };
 
   return (
-    <div style={{ ...cardStyle, padding: 16, marginTop: 16, background: "#FAFAFA", border: `1px solid ${colours.border}` }}>
-      <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", color: colours.muted, marginBottom: 8 }}>Related Jobs</div>
-      {linked.length === 0 ? (
-        <div style={{ fontSize: 13, color: colours.muted }}>
-          No jobs linked to <strong>{contact.name}</strong> yet.
-        </div>
-      ) : (
-        <div style={{ display: "grid", gap: 8 }}>
-          {linked.map((job, i) => (
-            <div key={job.id || i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 10, background: "#fff", border: `1px solid ${colours.border}` }}>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: colours.text }}>{job.title || job.name || `Job #${job.id}`}</div>
-                <div style={{ fontSize: 12, color: colours.muted }}>{job.status || "—"} · {job.scheduledDate || ""}</div>
+    <div style={{ display: "grid", gap: 12 }}>
+      {/* Related Jobs */}
+      <div style={sectionStyle}>
+        <div style={headerStyle}>Related Jobs ({linked.length})</div>
+        {linked.length === 0 ? (
+          <div style={{ fontSize: 13, color: colours.muted }}>No jobs linked to <strong>{contact.name}</strong> yet.</div>
+        ) : (
+          <div style={{ display: "grid", gap: 8 }}>
+            {linked.map((job, i) => (
+              <div key={job.id || i} style={itemStyle} onClick={() => setActivePage("scheduling")}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: colours.purple }}>{job.title || job.name || `Job #${job.id}`}</div>
+                  <div style={{ fontSize: 12, color: colours.muted }}>{job.status || "—"} · {job.scheduledDate || ""}</div>
+                </div>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
+                  background: job.status === "Completed" ? "#DCFCE7" : job.status === "In Progress" ? "#FEF3C7" : "#DBEAFE",
+                  color: job.status === "Completed" ? "#166534" : job.status === "In Progress" ? "#92400E" : "#1E40AF",
+                }}>{job.status || "Unscheduled"}</span>
               </div>
-              <span style={{
-                fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
-                background: job.status === "Completed" ? "#DCFCE7" : job.status === "In Progress" ? "#FEF3C7" : "#DBEAFE",
-                color: job.status === "Completed" ? "#166534" : job.status === "In Progress" ? "#92400E" : "#1E40AF",
-              }}>{job.status || "Unscheduled"}</span>
-            </div>
-          ))}
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Related Invoices */}
+      <div style={sectionStyle}>
+        <div style={headerStyle}>Related Invoices ({linkedInvoices.length})</div>
+        {linkedInvoices.length === 0 ? (
+          <div style={{ fontSize: 13, color: colours.muted }}>No invoices for this contact.</div>
+        ) : (
+          <div style={{ display: "grid", gap: 8 }}>
+            {linkedInvoices.slice(0, 10).map((inv, i) => (
+              <div key={inv.id || i} style={itemStyle} onClick={() => setActivePage("invoices")}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: colours.purple }}>{inv.invoiceNumber || `INV #${inv.id}`}</div>
+                  <div style={{ fontSize: 12, color: colours.muted }}>{formatDateAU ? formatDateAU(inv.invoiceDate) : inv.invoiceDate} · {currency ? currency(safeNumber(inv.total)) : inv.total}</div>
+                </div>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
+                  background: inv.status === "Paid" ? "#DCFCE7" : inv.status === "Overdue" ? "#FFEBEE" : "#F1F5F9",
+                  color: inv.status === "Paid" ? "#166534" : inv.status === "Overdue" ? "#C62828" : "#64748B",
+                }}>{inv.status || "Draft"}</span>
+              </div>
+            ))}
+            {linkedInvoices.length > 10 && <div style={{ fontSize: 12, color: colours.muted, textAlign: "center" }}>+ {linkedInvoices.length - 10} more</div>}
+          </div>
+        )}
+      </div>
+
+      {/* Related Quotes */}
+      <div style={sectionStyle}>
+        <div style={headerStyle}>Related Quotes ({linkedQuotes.length})</div>
+        {linkedQuotes.length === 0 ? (
+          <div style={{ fontSize: 13, color: colours.muted }}>No quotes for this contact.</div>
+        ) : (
+          <div style={{ display: "grid", gap: 8 }}>
+            {linkedQuotes.slice(0, 10).map((q, i) => (
+              <div key={q.id || i} style={itemStyle} onClick={() => setActivePage("quotes")}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: colours.purple }}>{q.quoteNumber || `QTE #${q.id}`}</div>
+                  <div style={{ fontSize: 12, color: colours.muted }}>{formatDateAU ? formatDateAU(q.quoteDate) : q.quoteDate} · {currency ? currency(safeNumber(q.total)) : q.total}</div>
+                </div>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
+                  background: q.status === "Accepted" ? "#DCFCE7" : q.status === "Declined" ? "#FFEBEE" : "#F1F5F9",
+                  color: q.status === "Accepted" ? "#166534" : q.status === "Declined" ? "#C62828" : "#64748B",
+                }}>{q.status || "Draft"}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Related Expenses */}
+      {linkedExpenses.length > 0 && (
+        <div style={sectionStyle}>
+          <div style={headerStyle}>Related Expenses ({linkedExpenses.length})</div>
+          <div style={{ display: "grid", gap: 8 }}>
+            {linkedExpenses.slice(0, 10).map((exp, i) => (
+              <div key={exp.id || i} style={itemStyle} onClick={() => setActivePage("expenses")}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: colours.purple }}>{exp.supplier || exp.description || `Expense #${exp.id}`}</div>
+                  <div style={{ fontSize: 12, color: colours.muted }}>{formatDateAU ? formatDateAU(exp.date) : exp.date} · {currency ? currency(safeNumber(exp.amount)) : exp.amount}</div>
+                </div>
+                <span style={{ fontSize: 12, color: colours.muted }}>{exp.category || "—"}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </div>
