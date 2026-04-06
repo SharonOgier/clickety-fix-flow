@@ -79,7 +79,6 @@ export default function SetupWizardPage(props) {
   const canProceedFromPlan = Boolean(wizardForm.selectedTier);
   const canProceedFromBusiness = (wizardForm.businessName || "").trim().length > 0;
   const canProceedFromPersonal = (wizardForm.firstName || "").trim().length > 0;
-  const canProceedFromPersonal = (wizardForm.firstName || "").trim().length > 0;
 
   const purple = colours.purple || "#6A1B9A";
   const teal = colours.teal || "#00897B";
