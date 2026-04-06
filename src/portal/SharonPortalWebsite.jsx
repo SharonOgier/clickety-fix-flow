@@ -1338,20 +1338,6 @@ export default function AccountingPortalPrototype() {
     });
   };
 
-  const saveClient = async () => {
-    if (!clientModalForm.name.trim()) { toast.warning("Client name is required"); return; }
-    try {
-      const payload = { ...clientModalForm, id: editingClientId || Date.now() };
-      const saved = await upsertRecordInDatabase(SUPABASE_TABLES.clients, payload);
-      setClients((prev) => editingClientId
-        ? prev.map((c) => c.id === editingClientId ? saved : c)
-        : [...prev, saved]);
-      toast.success(editingClientId ? "Client updated!" : "Client saved!");
-      setShowClientModal(false);
-      setClientModalForm({ name: "", businessName: "", email: "", phone: "", address: "", abn: "", defaultCurrency: "AUD $", workType: "" });
-      setEditingClientId(null);
-    } catch (err) { toast.error(err.message || "Failed to save client"); }
-  };
 
   const downloadTemplate = (type) => {
     const clientHeaders = "Name,Business Name,Email,Phone,Address,ABN,Currency,Work Type";
