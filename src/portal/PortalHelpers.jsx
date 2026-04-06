@@ -37,7 +37,7 @@ export const navSections = [
   },
   {
     title: "Workspace",
-    items: ["clients", "services", "assets", "properties", "scheduling", "bills / payables", "income sources", "documents"],
+    items: ["clients", "services", "assets", "properties", "scheduling", "timesheets", "bills / payables", "income sources", "documents"],
   },
   {
     title: "Admin",
@@ -59,6 +59,7 @@ export const navLabels = {
   assets: "Assets & Depreciation",
   properties: "Properties",
   scheduling: "Scheduling",
+  timesheets: "Timesheets",
   "bank reconciliation": "Bank Reconciliation",
   "jobs report": "Jobs Report",
   "bas report": "BAS Report",

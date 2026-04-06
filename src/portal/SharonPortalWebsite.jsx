@@ -105,6 +105,7 @@ import SettingsPage         from "./pages/SettingsPage";
 import ATOTaxFormPage       from "./ATOTaxFormPage";
 import BankReconciliationPage from "./pages/BankReconciliationPage";
 import SubcontractorPortal from "./pages/SubcontractorPortal";
+import TimesheetsPage from "./pages/TimesheetsPage";
 // -----------------------------------------------------------------------------
 
 
@@ -4630,6 +4631,16 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               saveJob={saveJob} deleteJob={deleteJob} confirm={confirm}
               setActivePage={setActivePage} currency={currency}
               authUser={authUser} profile={profile}
+            />}
+            {activePage === "timesheets" && <TimesheetsPage
+              jobs={jobs} clients={clients}
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              inputStyle={inputStyle} labelStyle={labelStyle}
+              currency={currency}
+              DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
+              SectionCard={SectionCard} EmptyState={EmptyState}
+              saveJob={saveJob} profile={profile}
             />}
             {activePage === "jobs report" && <JobsReportPage
               jobs={jobs} invoices={invoices} quotes={quotes} clients={clients}
