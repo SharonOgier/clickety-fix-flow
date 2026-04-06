@@ -186,15 +186,42 @@ function ContactForm({ form, setForm, colours, inputStyle, labelStyle, cardStyle
 }
 
 // ---------------------------------------------------------------------------
-// RELATED JOBS SECTION (placeholder — no jobs system yet)
+// RELATED JOBS SECTION
 // ---------------------------------------------------------------------------
-function RelatedJobsSection({ contact, colours, cardStyle }) {
+function RelatedJobsSection({ contact, jobs = [], colours, cardStyle }) {
+  const contactId = String(contact.id);
+  const contactName = (contact.name || "").toLowerCase();
+  const linked = (jobs || []).filter(j => {
+    if (String(j.clientId) === contactId || String(j.contactId) === contactId) return true;
+    if (j.assignedTo && String(j.assignedTo) === contactId) return true;
+    if (j.clientName && j.clientName.toLowerCase() === contactName) return true;
+    return false;
+  });
+
   return (
     <div style={{ ...cardStyle, padding: 16, marginTop: 16, background: "#FAFAFA", border: `1px solid ${colours.border}` }}>
       <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", color: colours.muted, marginBottom: 8 }}>Related Jobs</div>
-      <div style={{ fontSize: 13, color: colours.muted }}>
-        No jobs system connected yet. When jobs are added, all linked jobs for <strong>{contact.name}</strong> will appear here — whether as customer, assigned staff, or subcontractor.
-      </div>
+      {linked.length === 0 ? (
+        <div style={{ fontSize: 13, color: colours.muted }}>
+          No jobs linked to <strong>{contact.name}</strong> yet.
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: 8 }}>
+          {linked.map((job, i) => (
+            <div key={job.id || i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 10, background: "#fff", border: `1px solid ${colours.border}` }}>
+              <div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: colours.text }}>{job.title || job.name || `Job #${job.id}`}</div>
+                <div style={{ fontSize: 12, color: colours.muted }}>{job.status || "—"} · {job.scheduledDate || ""}</div>
+              </div>
+              <span style={{
+                fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
+                background: job.status === "Completed" ? "#DCFCE7" : job.status === "In Progress" ? "#FEF3C7" : "#DBEAFE",
+                color: job.status === "Completed" ? "#166534" : job.status === "In Progress" ? "#92400E" : "#1E40AF",
+              }}>{job.status || "Unscheduled"}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
