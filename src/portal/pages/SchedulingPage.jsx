@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import JobCostingPanel, { computeJobFinancials } from "./JobCostingPanel";
 
 /* ─── helpers ──────────────────────────────────────────────────────────── */
 const VIEWS = ["month", "week", "day", "list"];
