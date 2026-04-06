@@ -198,8 +198,39 @@ export default function SetupWizardPage(props) {
           </div>
         );
 
-      /* ── Step 1: Business Details ─────────────────────────────── */
+      /* ── Step 1: Choose Plan ──────────────────────────────────── */
       case 1:
+        return (
+          <div style={{ display: "grid", gap: 20 }}>
+            <div style={{ textAlign: "center" }}>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 900, color: navy, margin: "0 0 8px" }}>
+                Choose your plan
+              </h2>
+              <p style={{ fontSize: 14, color: colours.muted || "#64748B", lineHeight: 1.7, margin: 0 }}>
+                Start free for 14 days. No credit card required. Cancel anytime.
+              </p>
+            </div>
+            <PlanSelectionCards
+              currentTier={wizardForm.selectedTier || null}
+              onSelect={(tierKey) => update("selectedTier", tierKey)}
+              mode="signup"
+              colours={colours}
+            />
+            <div style={{ textAlign: "center", fontSize: 13, color: colours.muted || "#64748B", marginTop: 8 }}>
+              Already have an account?{" "}
+              <button
+                type="button"
+                onClick={() => { if (props.onSwitchToLogin) props.onSwitchToLogin(); }}
+                style={{ background: "none", border: "none", color: purple, cursor: "pointer", fontWeight: 700, fontSize: 13, textDecoration: "underline" }}
+              >
+                Log in here
+              </button>
+            </div>
+          </div>
+        );
+
+      /* ── Step 2: Business Details ─────────────────────────────── */
+      case 2:
         return (
           <div style={{ display: "grid", gap: 20 }}>
             <div>
