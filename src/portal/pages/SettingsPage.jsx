@@ -51,8 +51,8 @@ export default function SettingsPage(props) {
   const [invitePermission, setInvitePermission] = useState("viewer");
   const [sendingInvite, setSendingInvite] = useState(false);
 
-  const MASTER_EMAILS = ["info@sharonogier.com", "sharon@sharonogier.com"];
-  const isOwner = MASTER_EMAILS.includes((authUserEmail || "").toLowerCase().trim());
+  const OWNER_OVERRIDE_EMAILS = ["info@sharonogier.com", "sharonlogier@gmail.com"];
+  const isOwner = OWNER_OVERRIDE_EMAILS.includes((authUserEmail || "").toLowerCase().trim());
 
   const LOGO_PREVIEW_MAX_HEIGHT = 140;
   const LOGO_PREVIEW_MAX_WIDTH = 320;
