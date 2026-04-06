@@ -413,6 +413,25 @@ export default function ExpensesPage(props) {
           rows={expenses}
         />
       </SectionCard>
+
+      <MileageSection
+        expenses={expenses}
+        setExpenseForm={setExpenseForm}
+        saveExpense={saveExpense}
+        deleteExpense={deleteExpense}
+        confirm={confirm}
+        colours={colours}
+        cardStyle={cardStyle}
+        buttonPrimary={buttonPrimary}
+        buttonSecondary={buttonSecondary}
+        inputStyle={inputStyle}
+        labelStyle={labelStyle}
+        currency={currency}
+        formatDateAU={formatDateAU}
+        safeNumber={safeNumber}
+        SectionCard={SectionCard}
+        DataTable={DataTable}
+      />
     </div>
     );
 
