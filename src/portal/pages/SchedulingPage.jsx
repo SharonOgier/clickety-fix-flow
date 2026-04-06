@@ -642,6 +642,24 @@ export default function SchedulingPage({
     return p?.subLocations || [];
   };
 
+  const getJobAddress = (job) => {
+    const prop = propertyMap[String(job.propertyId)];
+    if (prop?.address) return prop.address;
+    const client = clientMap[String(job.clientId)];
+    return client?.address || client?.addressDetails || "";
+  };
+
+  const openNavigation = (address) => {
+    if (!address) { alert("No address found for this job. Add an address to the linked property or contact."); return; }
+    const encoded = encodeURIComponent(address);
+    // Detect iOS/macOS for Apple Maps, otherwise Google Maps
+    const isApple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
+    const url = isApple
+      ? `https://maps.apple.com/?daddr=${encoded}`
+      : `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
+    window.open(url, "_blank");
+  };
+
   /* ── filter + search ─────────────────────────────────────── */
   const filtered = useMemo(() => {
     let list = jobs;
@@ -895,8 +913,15 @@ export default function SchedulingPage({
               <div style={{ flex: 1, padding: "4px 8px", display: "flex", flexWrap: "wrap", gap: 4, alignItems: "flex-start" }}>
                 {slotJobs.map(j => (
                   <div key={j.id} onClick={() => setDetailJob(j)}
-                    style={{ background: j.colour || colours.purple, color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, fontWeight: 600, minWidth: 120 }}>
-                    <div>{j.title}</div>
+                    style={{ background: j.colour || colours.purple, color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, fontWeight: 600, minWidth: 120, position: "relative" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>{j.title}</div>
+                      {getJobAddress(j) && (
+                        <button onClick={(e) => { e.stopPropagation(); openNavigation(getJobAddress(j)); }}
+                          style={{ background: "rgba(255,255,255,0.25)", border: "none", borderRadius: 6, padding: "2px 6px", cursor: "pointer", color: "#fff", fontSize: 12, fontWeight: 700, marginLeft: 6, flexShrink: 0 }}
+                          title="Navigate to job site">📍</button>
+                      )}
+                    </div>
                     <div style={{ fontSize: 11, opacity: 0.85 }}>{fmtTime(j.startTime)} – {fmtTime(j.endTime)}</div>
                     {j.clientId && <div style={{ fontSize: 10, opacity: 0.7 }}>👤 {getClientName(j.clientId)}</div>}
                   </div>
@@ -1052,6 +1077,16 @@ export default function SchedulingPage({
                 <div><span style={{ color: colours.muted, fontWeight: 600 }}>🕐 Time</span><br/>{fmtTime(detailJob.startTime)} – {fmtTime(detailJob.endTime)}</div>
                 {detailJob.clientId && <div><span style={{ color: colours.muted, fontWeight: 600 }}>👤 Contact</span><br/>{getClientName(detailJob.clientId)}</div>}
                 {detailJob.propertyId && <div><span style={{ color: colours.muted, fontWeight: 600 }}>🏠 Property</span><br/>{getPropertyName(detailJob.propertyId)}{detailJob.subLocationId ? ` › ${getSubLocations(detailJob.propertyId).find(s => s.id === detailJob.subLocationId)?.name || ""}` : ""}</div>}
+                {getJobAddress(detailJob) && (
+                  <div>
+                    <span style={{ color: colours.muted, fontWeight: 600 }}>📍 Address</span><br/>
+                    <span>{getJobAddress(detailJob)}</span>
+                    <button onClick={() => openNavigation(getJobAddress(detailJob))}
+                      style={{ background: "#1565C0", color: "#fff", border: "none", borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer", marginLeft: 8, verticalAlign: "middle" }}>
+                      🧭 Navigate
+                    </button>
+                  </div>
+                )}
                 {detailJob.assignedTo && <div><span style={{ color: colours.muted, fontWeight: 600 }}>👷 Assigned to</span><br/>{detailJob.assignedTo}</div>}
                 {detailJob.description && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📝 Description</span><br/>{detailJob.description}</div>}
                 {detailJob.notes && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📌 Notes</span><br/>{detailJob.notes}</div>}
@@ -1075,6 +1110,11 @@ export default function SchedulingPage({
                 <button style={buttonPrimary} onClick={() => openEdit(detailJob)}>Edit Job</button>
                 <button style={{ ...buttonSecondary, color: "#C62828" }} onClick={() => handleDelete(detailJob)}>Delete</button>
                 <button style={buttonSecondary} onClick={() => setDetailTab("costs")}>View Costs</button>
+                {getJobAddress(detailJob) && (
+                  <button style={{ ...buttonSecondary, color: "#1565C0", borderColor: "#1565C0" }} onClick={() => openNavigation(getJobAddress(detailJob))}>
+                    📍 Navigate to Site
+                  </button>
+                )}
                 <button style={{ ...buttonSecondary, color: "#6A1B9A", borderColor: "#6A1B9A" }} onClick={() => {
                   const w = window.open("", "_blank");
                   if (w) writeJobSheetPreviewToWindow(w, detailJob, { profile, clients, properties });
