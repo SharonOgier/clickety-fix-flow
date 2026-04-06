@@ -873,7 +873,15 @@ export default function AccountingPortalPrototype() {
         const { data, error } = await supabase.functions.invoke("check-subscription");
         if (error) { console.error("check-subscription error:", error); return; }
         if (data?.subscribed) {
-          setProfile((prev) => ({ ...prev, subscriptionStatus: "active" }));
+          const tierKey = data.product_id ? (PRODUCT_TO_TIER[data.product_id] || null) : null;
+          setProfile((prev) => ({
+            ...prev,
+            subscriptionStatus: data.subscription_status === "trialing" ? "trialing" : "active",
+            subscriptionProductId: data.product_id || prev.subscriptionProductId,
+            subscriptionTier: tierKey || prev.subscriptionTier,
+            subscriptionEnd: data.subscription_end || prev.subscriptionEnd,
+            subscriptionId: data.subscription_id || prev.subscriptionId,
+          }));
         }
       } catch (e) { console.error("check-subscription fetch error:", e); }
     };
