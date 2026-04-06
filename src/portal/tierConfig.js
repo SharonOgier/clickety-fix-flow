@@ -79,6 +79,7 @@ const STARTER_ALLOWED_PAGES = new Set([
   "quotes",
   "expenses",
   "clients",
+  "documents",
   "settings",
 ]);
 
