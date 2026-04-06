@@ -882,14 +882,41 @@ export default function AccountingPortalPrototype() {
         if (error) { console.error("check-subscription error:", error); return; }
         if (data?.subscribed) {
           const tierKey = data.product_id ? (PRODUCT_TO_TIER[data.product_id] || null) : null;
-          setProfile((prev) => ({
-            ...prev,
-            subscriptionStatus: data.subscription_status === "trialing" ? "trialing" : "active",
-            subscriptionProductId: data.product_id || prev.subscriptionProductId,
-            subscriptionTier: tierKey || prev.subscriptionTier,
-            subscriptionEnd: data.subscription_end || prev.subscriptionEnd,
-            subscriptionId: data.subscription_id || prev.subscriptionId,
-          }));
+          setProfile((prev) => {
+            const updated = {
+              ...prev,
+              subscriptionStatus: data.subscription_status === "trialing" ? "trialing" : "active",
+              subscriptionProductId: data.product_id || prev.subscriptionProductId,
+              subscriptionTier: tierKey || prev.subscriptionTier,
+              subscriptionEnd: data.subscription_end || prev.subscriptionEnd,
+              subscriptionId: data.subscription_id || prev.subscriptionId,
+            };
+            // Persist tier change to database so it survives reloads
+            const tierChanged = updated.subscriptionTier !== prev.subscriptionTier ||
+              updated.subscriptionProductId !== prev.subscriptionProductId ||
+              updated.subscriptionStatus !== prev.subscriptionStatus;
+            if (tierChanged) {
+              saveProfileToSupabase(updated).catch((e) => console.error("Auto-save tier error:", e));
+            }
+            return updated;
+          });
+        } else {
+          // User has no active subscription — clear tier if it was previously set from Stripe
+          setProfile((prev) => {
+            if (prev.subscriptionStatus && prev.subscriptionStatus !== "trialing") {
+              const updated = {
+                ...prev,
+                subscriptionStatus: "",
+                subscriptionTier: "",
+                subscriptionProductId: "",
+                subscriptionEnd: "",
+                subscriptionId: "",
+              };
+              saveProfileToSupabase(updated).catch((e) => console.error("Auto-save tier clear error:", e));
+              return updated;
+            }
+            return prev;
+          });
         }
       } catch (e) { console.error("check-subscription fetch error:", e); }
     };
@@ -900,6 +927,9 @@ export default function AccountingPortalPrototype() {
       window.history.replaceState({}, "", window.location.pathname);
       checkSub();
     }
+    // Poll every 60 seconds so tier changes auto-update
+    const interval = setInterval(checkSub, 60000);
+    return () => clearInterval(interval);
   }, [authUser, hasLoadedUserProfile]);
 
   useEffect(() => {
