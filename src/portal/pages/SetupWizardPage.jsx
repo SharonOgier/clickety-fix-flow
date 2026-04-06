@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import PlanSelectionCards from "../components/PlanSelectionCards";
 
 const STEPS = [
   { key: "businessType", label: "Business Type" },
+  { key: "plan", label: "Choose Plan" },
   { key: "business", label: "Business Details" },
   { key: "personal", label: "Your Details" },
   { key: "getStarted", label: "Get Started" },
@@ -74,6 +76,7 @@ export default function SetupWizardPage(props) {
 
   const selectedType = BUSINESS_TYPES.find((b) => b.key === wizardForm.businessType);
   const canProceedFromType = Boolean(wizardForm.businessType);
+  const canProceedFromPlan = Boolean(wizardForm.selectedTier);
   const canProceedFromBusiness = (wizardForm.businessName || "").trim().length > 0;
   const canProceedFromPersonal = (wizardForm.firstName || "").trim().length > 0;
 
@@ -194,8 +197,39 @@ export default function SetupWizardPage(props) {
           </div>
         );
 
-      /* ── Step 1: Business Details ─────────────────────────────── */
+      /* ── Step 1: Choose Plan ──────────────────────────────────── */
       case 1:
+        return (
+          <div style={{ display: "grid", gap: 20 }}>
+            <div style={{ textAlign: "center" }}>
+              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 28, fontWeight: 900, color: navy, margin: "0 0 8px" }}>
+                Choose your plan
+              </h2>
+              <p style={{ fontSize: 14, color: colours.muted || "#64748B", lineHeight: 1.7, margin: 0 }}>
+                Start free for 14 days. No credit card required. Cancel anytime.
+              </p>
+            </div>
+            <PlanSelectionCards
+              currentTier={wizardForm.selectedTier || null}
+              onSelect={(tierKey) => update("selectedTier", tierKey)}
+              mode="signup"
+              colours={colours}
+            />
+            <div style={{ textAlign: "center", fontSize: 13, color: colours.muted || "#64748B", marginTop: 8 }}>
+              Already have an account?{" "}
+              <button
+                type="button"
+                onClick={() => { if (props.onSwitchToLogin) props.onSwitchToLogin(); }}
+                style={{ background: "none", border: "none", color: purple, cursor: "pointer", fontWeight: 700, fontSize: 13, textDecoration: "underline" }}
+              >
+                Log in here
+              </button>
+            </div>
+          </div>
+        );
+
+      /* ── Step 2: Business Details ─────────────────────────────── */
+      case 2:
         return (
           <div style={{ display: "grid", gap: 20 }}>
             <div>
@@ -252,8 +286,8 @@ export default function SetupWizardPage(props) {
           </div>
         );
 
-      /* ── Step 2: Personal Details ─────────────────────────────── */
-      case 2:
+      /* ── Step 3: Personal Details ─────────────────────────────── */
+      case 3:
         return (
           <div style={{ display: "grid", gap: 20 }}>
             <div>
@@ -274,8 +308,8 @@ export default function SetupWizardPage(props) {
           </div>
         );
 
-      /* ── Step 3: Quick Start ──────────────────────────────────── */
-      case 3: {
+      /* ── Step 4: Quick Start ──────────────────────────────────── */
+      case 4: {
         const items = QUICK_START[wizardForm.businessType] || QUICK_START.tradie;
         return (
           <div style={{ display: "grid", gap: 20 }}>
@@ -360,8 +394,9 @@ export default function SetupWizardPage(props) {
 
   const canProceed = () => {
     if (step === 0) return canProceedFromType;
-    if (step === 1) return canProceedFromBusiness;
-    if (step === 2) return canProceedFromPersonal;
+    if (step === 1) return canProceedFromPlan;
+    if (step === 2) return canProceedFromBusiness;
+    if (step === 3) return canProceedFromPersonal;
     return true;
   };
 

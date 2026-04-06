@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useTerminology } from "../TerminologyContext";
+import { getUserTier } from "../tierConfig";
 
 
 // -----------------------------------------------------------------------------
@@ -88,6 +89,30 @@ export default function DashboardPage(props) {
 
       return (
     <div style={{ display: "grid", gap: 20 }}>
+      {/* Starter tier upgrade banner */}
+      {(!getUserTier(profile) || getUserTier(profile) === "starter") && profile.setupComplete && (
+        <div style={{
+          background: "linear-gradient(135deg, #F5ECFB 0%, #E7F6F5 100%)",
+          border: `1px solid ${colours.border || "#E2E8F0"}`,
+          borderRadius: 16, padding: "16px 22px",
+          display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap",
+        }}>
+          <span style={{ fontSize: 22 }}>⚡</span>
+          <span style={{ fontSize: 14, color: colours.text, flex: 1, lineHeight: 1.6 }}>
+            You're on the <strong>Starter</strong> plan. Upgrade to <strong>Pro</strong> to unlock scheduling, properties and your full business toolkit.
+          </span>
+          <button
+            onClick={() => { setActivePage("settings"); setActiveSettingsTab("Plan & Billing"); }}
+            style={{
+              background: colours.purple || "#6A1B9A", color: "#fff", border: "none",
+              borderRadius: 10, padding: "10px 20px", fontWeight: 800,
+              fontSize: 13, cursor: "pointer", whiteSpace: "nowrap",
+            }}
+          >
+            Upgrade now →
+          </button>
+        </div>
+      )}
       {!allDone && (
         <div style={{ ...cardStyle, padding: 24, background: "linear-gradient(135deg, #F5ECFB 0%, #EDE9FE 100%)", border: "1px solid #E9D5FF" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>

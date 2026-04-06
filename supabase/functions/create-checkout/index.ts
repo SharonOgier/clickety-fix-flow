@@ -8,7 +8,14 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const PRICE_ID = "price_1TJBf8S5sTpTZ9LTGcfjwM2V";
+// Default to Pro if no price specified
+const DEFAULT_PRICE_ID = "price_1TJBf8S5sTpTZ9LTGcfjwM2V";
+
+const VALID_PRICE_IDS = new Set([
+  "price_1TJBrFS5sTpTZ9LTZY7BKrw2", // Starter $39
+  "price_1TJBf8S5sTpTZ9LTGcfjwM2V", // Pro $59
+  "price_1TJBrlS5sTpTZ9LTGBltjJMB", // Premium $99
+]);
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -27,6 +34,17 @@ serve(async (req) => {
     const user = data.user;
     if (!user?.email) throw new Error("User not authenticated");
 
+    // Accept optional priceId from request body
+    let priceId = DEFAULT_PRICE_ID;
+    try {
+      const body = await req.json();
+      if (body?.priceId && VALID_PRICE_IDS.has(body.priceId)) {
+        priceId = body.priceId;
+      }
+    } catch {
+      // No body or invalid JSON — use default
+    }
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });
@@ -42,8 +60,11 @@ serve(async (req) => {
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       customer_email: customerId ? undefined : user.email,
-      line_items: [{ price: PRICE_ID, quantity: 1 }],
+      line_items: [{ price: priceId, quantity: 1 }],
       mode: "subscription",
+      subscription_data: {
+        trial_period_days: 14,
+      },
       success_url: `${origin}/?subscribed=1`,
       cancel_url: `${origin}/?subscribed=0`,
     });

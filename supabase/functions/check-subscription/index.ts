@@ -36,7 +36,7 @@ serve(async (req) => {
     const customers = await stripe.customers.list({ email: user.email, limit: 1 });
 
     if (customers.data.length === 0) {
-      return new Response(JSON.stringify({ subscribed: false }), {
+      return new Response(JSON.stringify({ subscribed: false, product_id: null, subscription_end: null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,
       });
@@ -49,17 +49,38 @@ serve(async (req) => {
       limit: 1,
     });
 
-    const hasActiveSub = subscriptions.data.length > 0;
-    let subscriptionEnd = null;
-
-    if (hasActiveSub) {
-      subscriptionEnd = new Date(
-        subscriptions.data[0].current_period_end * 1000
-      ).toISOString();
+    // Also check trialing subscriptions
+    let activeSub = subscriptions.data[0] || null;
+    if (!activeSub) {
+      const trialingSubs = await stripe.subscriptions.list({
+        customer: customerId,
+        status: "trialing",
+        limit: 1,
+      });
+      activeSub = trialingSubs.data[0] || null;
     }
 
+    if (!activeSub) {
+      return new Response(JSON.stringify({ subscribed: false, product_id: null, subscription_end: null }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
+    const subscriptionEnd = new Date(activeSub.current_period_end * 1000).toISOString();
+    const productId = activeSub.items.data[0]?.price?.product || null;
+    const priceId = activeSub.items.data[0]?.price?.id || null;
+    const status = activeSub.status;
+
     return new Response(
-      JSON.stringify({ subscribed: hasActiveSub, subscription_end: subscriptionEnd }),
+      JSON.stringify({
+        subscribed: true,
+        product_id: productId,
+        price_id: priceId,
+        subscription_end: subscriptionEnd,
+        subscription_status: status,
+        subscription_id: activeSub.id,
+      }),
       {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
         status: 200,

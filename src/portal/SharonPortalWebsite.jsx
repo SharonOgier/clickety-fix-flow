@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./client";
 import { TerminologyProvider } from "./TerminologyContext";
 import MobileWizard from "./MobileWizard";
+import { isPageAllowed, getUserTier, TIERS, PRODUCT_TO_TIER, TIER_ORDER } from "./tierConfig";
+import UpgradePrompt from "./components/UpgradePrompt";
 import {
   ToastContainer,
   useToast,
@@ -484,6 +486,7 @@ export default function AccountingPortalPrototype() {
       setupCompletedAt: new Date().toISOString(),
       trialStartedAt: new Date().toISOString(),
       subscriptionStatus: "trialing",
+      subscriptionTier: wizardForm.selectedTier || "pro",
     };
     const wizardErrors = collectValidationErrors(
       !nextProfile.businessName && "Please enter your business name.",
@@ -871,7 +874,15 @@ export default function AccountingPortalPrototype() {
         const { data, error } = await supabase.functions.invoke("check-subscription");
         if (error) { console.error("check-subscription error:", error); return; }
         if (data?.subscribed) {
-          setProfile((prev) => ({ ...prev, subscriptionStatus: "active" }));
+          const tierKey = data.product_id ? (PRODUCT_TO_TIER[data.product_id] || null) : null;
+          setProfile((prev) => ({
+            ...prev,
+            subscriptionStatus: data.subscription_status === "trialing" ? "trialing" : "active",
+            subscriptionProductId: data.product_id || prev.subscriptionProductId,
+            subscriptionTier: tierKey || prev.subscriptionTier,
+            subscriptionEnd: data.subscription_end || prev.subscriptionEnd,
+            subscriptionId: data.subscription_id || prev.subscriptionId,
+          }));
         }
       } catch (e) { console.error("check-subscription fetch error:", e); }
     };
@@ -4302,6 +4313,9 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                 <div style={{ display: "grid", gap: 2 }}>
                   {section.items.map((item) => {
                     const isActive = activePage === item;
+                    const userTier = getUserTier(profile);
+                    const pageAccess = isPageAllowed(item, userTier);
+                    const isLocked = !pageAccess.allowed;
                     const iconMap = {
                       "dashboard": "⬡", "financial insights": "📊", "invoices": "📄", "quotes": "📋",
                       "clients": "👥", "services": "⚙", "expenses": "💳", "bills / payables": "🧾",
@@ -4313,9 +4327,20 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                         key={item}
                         className={`sas-nav-item${isActive ? " active" : ""}`}
                         onClick={() => { setActivePage(item); setSidebarOpen(false); }}
+                        style={isLocked ? { opacity: 0.5 } : {}}
                       >
                         <span className="sas-nav-icon" style={{ fontSize: 15 }}>{iconMap[item] || "•"}</span>
-                        {navLabels[item] || (item.charAt(0).toUpperCase() + item.slice(1))}
+                        <span style={{ flex: 1 }}>{navLabels[item] || (item.charAt(0).toUpperCase() + item.slice(1))}</span>
+                        {isLocked && (
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                            fontSize: 9, fontWeight: 800, color: "#fff",
+                            background: colours.purple, borderRadius: 8,
+                            padding: "2px 7px", letterSpacing: 0.3,
+                          }}>
+                            🔒 Upgrade
+                          </span>
+                        )}
                       </button>
                     );
                   })}
@@ -4340,6 +4365,31 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         <main className="sas-main">
           <div className="sas-page-wrap">
             <div className="sas-page-inner sas-page-panel" style={{ maxWidth: 1480, margin: "0 auto" }}>
+            {(() => {
+              const userTier = getUserTier(profile);
+              const pageAccess = isPageAllowed(activePage, userTier);
+              if (!pageAccess.allowed) {
+                const featureIconMap = {
+                  "financial insights": "📊", "services": "⚙", "bills / payables": "🧾",
+                  "income sources": "💰", "documents": "📁", "properties": "🏠",
+                  "scheduling": "📅", "bank reconciliation": "🏦", "bas report": "📑",
+                  "ato tax form": "🏛", "tax estimator": "🧮", "assets": "📦",
+                  "jobs report": "📋",
+                };
+                return (
+                  <UpgradePrompt
+                    featureName={navLabels[activePage] || activePage}
+                    featureIcon={featureIconMap[activePage] || "🔒"}
+                    currentTier={userTier}
+                    onUpgrade={() => { setActivePage("settings"); setActiveSettingsTab("Plan & Billing"); }}
+                    onViewPlans={() => { setActivePage("settings"); setActiveSettingsTab("Plan & Billing"); }}
+                    colours={colours}
+                  />
+                );
+              }
+              return null;
+            })()}
+            {isPageAllowed(activePage, getUserTier(profile)).allowed && <>
             {activePage === "dashboard" && <DashboardPage
               profile={profile} clients={clients} invoices={invoices} quotes={quotes}
               expenses={expenses} documents={documents} services={services}
@@ -4708,6 +4758,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               teamInvitations={teamInvitations} setTeamInvitations={setTeamInvitations}
               supabase={supabase} authUser={authUser}
             />}
+            </>}
             </div>
           </div>
         </main>
