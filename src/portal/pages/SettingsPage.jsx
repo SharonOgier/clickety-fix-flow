@@ -734,7 +734,7 @@ export default function SettingsPage(props) {
                   const { error } = await supabase.from("sas_team_invitations").insert({ inviter_user_id: authUser.id, email: inviteEmail.trim().toLowerCase(), permission: invitePermission });
                   if (error) throw error;
                   // Send invite email
-                  await supabase.functions.invoke("send-document-email", { body: { to: [inviteEmail.trim()], subject: `You've been invited to ${profile.businessName || "a portal"}`, html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px;"><h2 style="color:#6A1B9A;">Team Invitation</h2><p>${profile.businessName || "A business"} has invited you to join their accounting portal as a <strong>${invitePermission}</strong>.</p><p>Sign up or log in at <a href="https://sharonogier.com/portal">sharonogier.com/portal</a> to get started.</p></div>` } });
+                  await supabase.functions.invoke("send-document-email", { body: { to: [inviteEmail.trim()], subject: `You've been invited to ${profile.businessName || "a portal"}`, html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px;"><h2 style="color:#6A1B9A;">Team Invitation</h2><p>${profile.businessName || "A business"} has invited you to join their accounting portal as a <strong>${invitePermission}</strong>.</p><p>Sign up or log in at <a href="${window.location.origin}/portal">${window.location.host}/portal</a> to get started.</p></div>` } });
                   const { data: updated } = await supabase.from("sas_team_invitations").select("*").eq("inviter_user_id", authUser.id);
                   setTeamInvitations(updated || []);
                   setInviteEmail("");
