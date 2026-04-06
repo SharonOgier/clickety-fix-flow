@@ -142,7 +142,7 @@ export default function AuthPage(props) {
           >
             <div>
               <div style={{ fontSize: 28, fontWeight: 900, color: colours.text, marginBottom: 8 }}>
-                {authMode === "signup" ? "Create your portal account" : "Portal login"}
+                {authMode === "signup" ? "Create your Mustered account" : "Mustered Login"}
               </div>
               <div style={{ fontSize: 14, color: colours.muted, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
                 {authMode === "signup"
