@@ -8,6 +8,7 @@ const pages = [
   { id: "about", label: "About" },
   { id: "mustered", label: "Mustered", badge: true },
   { id: "why", label: "Why Sharon" },
+  { id: "why-mitchell", label: "Why Mitchell" },
   { id: "contact", label: "Contact" },
 ];
 
