@@ -1054,6 +1054,20 @@ function JobNotesTasksPanel({ job, onUpdate, colours, buttonPrimary, buttonSecon
                 {detailJob.assignedTo && <div><span style={{ color: colours.muted, fontWeight: 600 }}>👷 Assigned to</span><br/>{detailJob.assignedTo}</div>}
                 {detailJob.description && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📝 Description</span><br/>{detailJob.description}</div>}
                 {detailJob.notes && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📌 Notes</span><br/>{detailJob.notes}</div>}
+                {/* Task progress summary */}
+                {(detailJob.checklist || []).length > 0 && (() => {
+                  const tasks = detailJob.checklist || [];
+                  const done = tasks.filter(t => t.done).length;
+                  return (
+                    <div onClick={() => setDetailTab("notes")} style={{ cursor: "pointer" }}>
+                      <span style={{ color: colours.muted, fontWeight: 600 }}>✅ Tasks</span><br/>
+                      <span style={{ fontWeight: 700, color: done === tasks.length ? "#2E7D32" : colours.text }}>{done}/{tasks.length} completed</span>
+                      <div style={{ height: 4, background: "#F1F5F9", borderRadius: 99, marginTop: 4, width: 120 }}>
+                        <div style={{ height: "100%", width: `${Math.round((done/tasks.length)*100)}%`, background: done === tasks.length ? "#2E7D32" : colours.purple, borderRadius: 99 }} />
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div style={{ display: "flex", gap: 10, marginTop: 28, flexWrap: "wrap" }}>
