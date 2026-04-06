@@ -82,15 +82,15 @@ export default function LandingPage() {
           <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">How it works</a>
           <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Pricing</a>
           <Link to="/auth?mode=signin" className="text-sm font-bold text-primary bg-secondary border border-primary/20 rounded-md px-4 py-2.5 hover:bg-secondary/80 transition-colors">
-            Sign in
+            Mustered Login
           </Link>
           <Link to="/auth?mode=signup" className="text-sm font-bold bg-primary text-primary-foreground rounded-md px-5 py-2.5 hover:opacity-90 transition-opacity">
             Start free 14-day trial
           </Link>
         </div>
         <Link to="/auth?mode=signin" className="md:hidden text-sm font-bold text-primary bg-secondary border border-primary/20 rounded-md px-4 py-2.5">
-          Login
-        </Link>
+            Mustered Login
+          </Link>
       </nav>
 
       {/* HERO */}
@@ -349,7 +349,7 @@ export default function LandingPage() {
           <Link to="/" className="text-sm text-slate-500 hover:text-card transition-colors">Home</Link>
           <a href="#features" className="text-sm text-slate-500 hover:text-card transition-colors">Features</a>
           <a href="#pricing" className="text-sm text-slate-500 hover:text-card transition-colors">Pricing</a>
-          <Link to="/auth?mode=signin" className="text-sm text-slate-500 hover:text-card transition-colors">Portal Login</Link>
+          <Link to="/auth?mode=signin" className="text-sm text-slate-500 hover:text-card transition-colors">Mustered Login</Link>
         </div>
         <p className="text-xs text-slate-600 mt-6">© {new Date().getFullYear()} Mustered. All rights reserved.</p>
       </footer>

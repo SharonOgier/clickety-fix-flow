@@ -76,7 +76,7 @@ export default function AuthPage(props) {
               boxShadow: "0 10px 24px rgba(106,27,154,0.18)",
             }}
           >
-            Login to Portal
+            Mustered Login
           </a>
         </div>
 
@@ -142,12 +142,12 @@ export default function AuthPage(props) {
           >
             <div>
               <div style={{ fontSize: 28, fontWeight: 900, color: colours.text, marginBottom: 8 }}>
-                {authMode === "signup" ? "Create your portal account" : "Portal login"}
+                {authMode === "signup" ? "Create your Mustered account" : "Mustered Login"}
               </div>
               <div style={{ fontSize: 14, color: colours.muted, lineHeight: 1.7, fontFamily: "'DM Sans', sans-serif" }}>
                 {authMode === "signup"
                   ? "Create your account and our setup wizard will guide you through configuring your business profile, branding, and preferences — all in a few easy steps."
-                  : "Sign in to access your invoices, quotes, expenses, reports and client records."}
+                  : "Log in to access your invoices, quotes, expenses, reports and client records."}
               </div>
             </div>
 
@@ -198,7 +198,7 @@ export default function AuthPage(props) {
 
             <div style={{ display: "grid", gap: 10 }}>
               <button type="button" style={{ ...buttonPrimary, width: "100%", justifyContent: "center" }} onClick={handleAuthSubmit} disabled={authLoading}>
-                {authLoading ? "Working..." : authMode === "signup" ? "Create Account" : "Login to Portal"}
+                {authLoading ? "Working..." : authMode === "signup" ? "Create Account" : "Mustered Login"}
               </button>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 <button
@@ -206,7 +206,7 @@ export default function AuthPage(props) {
                   style={{ ...buttonSecondary, flex: 1, minWidth: 150 }}
                   onClick={() => setAuthMode((prev) => (prev === "signup" ? "signin" : "signup"))}
                 >
-                  {authMode === "signup" ? "Use Sign In" : "Create Account"}
+                  {authMode === "signup" ? "Use Login" : "Create Account"}
                 </button>
                 <button type="button" style={{ ...buttonSecondary, flex: 1, minWidth: 150 }} onClick={handlePasswordReset}>
                   Reset Password

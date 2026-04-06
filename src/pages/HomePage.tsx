@@ -6,7 +6,6 @@ const pages = [
   { id: "services", label: "Services" },
   { id: "farm-equipment", label: "Farm Equipment" },
   { id: "about", label: "About" },
-  { id: "portal", label: "Portal" },
   { id: "mustered", label: "Mustered", badge: true },
   { id: "why", label: "Why Sharon" },
   { id: "contact", label: "Contact" },
@@ -51,7 +50,7 @@ export default function HomePage() {
         <a href="tel:1300017167" className="text-primary-foreground flex items-center gap-1">📞 1300 017 167</a>
         <a href="mailto:info@sharonogier.com" className="text-primary-foreground flex items-center gap-1">✉ info@sharonogier.com</a>
         <Link to="/landing" className="bg-primary-foreground/20 text-primary-foreground px-4 py-1 rounded-full font-extrabold">
-          Portal Login
+          Mustered Login
         </Link>
       </div>
 
@@ -92,7 +91,7 @@ export default function HomePage() {
 
           <div className="grid gap-3">
             <Link to="/landing" className="flex justify-center items-center w-full py-3 px-4 rounded-md font-extrabold bg-primary text-primary-foreground">
-              Portal Login
+              Mustered Login
             </Link>
             <a
               href="https://calendly.com/sharonogier-info"
@@ -124,7 +123,7 @@ export default function HomePage() {
                   </p>
                   <div className="flex gap-3 flex-wrap mb-5">
                     <Link to="/landing" className="inline-flex justify-center items-center px-6 py-3 rounded-md font-extrabold bg-primary text-primary-foreground">
-                      Portal Login
+                      Mustered Login
                     </Link>
                     <a
                       href="https://calendly.com/sharonogier-info"
@@ -316,37 +315,6 @@ export default function HomePage() {
             </section>
           )}
 
-          {/* PORTAL */}
-          {activePage === "portal" && (
-            <section>
-              <div className="bg-card border border-border rounded-xl shadow-brand p-6 mb-5">
-                <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-4">Client Portal</span>
-                <h2 className="text-3xl font-black mb-3 text-foreground">Your Portal</h2>
-                <p className="text-muted-foreground leading-relaxed mb-5">
-                  Access invoices, quotes, expenses, documents and financial reports — all in one secure place. The portal is included with every client engagement.
-                </p>
-                <div className="flex gap-3 flex-wrap">
-                  <Link to="/landing" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-primary text-primary-foreground">
-                    Go to Portal Login
-                  </Link>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[
-                  { icon: "🧾", title: "Invoices & Quotes", desc: "Create, send and manage professional invoices and quotes." },
-                  { icon: "💸", title: "Expense Tracking", desc: "Categorise expenses, track GST credits and manage receipts." },
-                  { icon: "📊", title: "Financial Reports", desc: "Live insights, receivables, cash flow and BAS support." },
-                  { icon: "📁", title: "Document Storage", desc: "Upload and organise business documents securely." },
-                ].map((f) => (
-                  <div key={f.title} className="bg-card border border-border rounded-lg shadow-brand p-5">
-                    <div className="text-2xl mb-3">{f.icon}</div>
-                    <h3 className="text-base font-bold mb-1 text-foreground font-sans">{f.title}</h3>
-                    <p className="text-muted-foreground text-sm">{f.desc}</p>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
 
           {/* MUSTERED */}
           {activePage === "mustered" && (
@@ -372,7 +340,7 @@ export default function HomePage() {
                     Try Mustered free for 14 days →
                   </Link>
                   <Link to="/landing" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-card text-primary border border-border">
-                    Portal Login
+                    Mustered Login
                   </Link>
                 </div>
                 <p className="text-muted-foreground text-xs mt-3">$59/month. 14-day free trial. No credit card required.</p>
@@ -442,7 +410,7 @@ export default function HomePage() {
                         Book a Review
                       </a>
                       <Link to="/landing" className="inline-flex px-5 py-2.5 rounded-md font-bold bg-card text-primary border border-border text-sm">
-                        Portal Login
+                        Mustered Login
                       </Link>
                     </div>
                   </div>
