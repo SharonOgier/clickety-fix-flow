@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/resend";
 
-type NotificationType = "job-booked" | "day-before-reminder" | "job-completed";
+type NotificationType = "job-booked" | "day-before-reminder" | "job-completed" | "review-request";
 
 function escapeHtml(s: string): string {
   return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
