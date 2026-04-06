@@ -32,8 +32,7 @@ const calcHours = (start, end) => {
 };
 
 // ── Log Time Wizard ────────────────────────────────────────────────────────
-function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPrimary, buttonSecondary, profile, saveJob, onClose }) {
-  const ADMIN_ID = "__admin__";
+function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPrimary, buttonSecondary, profile, saveJob, saveProfileToSupabase, onClose }) {
   const ADMIN_CATEGORIES = [
     { id: "__admin__", label: "General / Admin" },
     { id: "__travel__", label: "Travel" },
@@ -53,53 +52,70 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
   const [saving, setSaving] = useState(false);
 
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [String(c.id), c])), [clients]);
+  const realJobs = useMemo(() => jobs.filter((j) => !j.isAdminJob), [jobs]);
 
   const isAdminEntry = ADMIN_CATEGORIES.some(c => c.id === selectedJobId);
   const adminLabel = ADMIN_CATEGORIES.find(c => c.id === selectedJobId)?.label || "Admin";
 
   const computedHours = useManual ? (Number(manualHours) || 0) : calcHours(startTime, endTime);
 
-  // Find or create an admin pseudo-job for overhead time entries
-  const getOrCreateAdminJob = () => {
-    const existing = jobs.find(j => j.isAdminJob === true);
-    if (existing) return existing;
-    // Return a new admin job shell — saveJob will persist it
-    return {
-      id: "admin-time-" + Date.now(),
-      title: "Admin & Overheads",
-      isAdminJob: true,
-      status: "active",
-      timeEntries: [],
-    };
-  };
-
   const handleSave = async () => {
-    if ((!selectedJobId) || computedHours <= 0) return;
+    if (!selectedJobId || computedHours <= 0) return;
     setSaving(true);
     try {
-      let job;
       if (isAdminEntry) {
-        job = getOrCreateAdminJob();
+        const entry = {
+          id: `${selectedStaffName || profile.businessName || "Owner"}-${selectedJobId}-${entryDate}`,
+          date: entryDate,
+          hours: computedHours,
+          staff: selectedStaffName || profile.businessName || "Owner",
+          startTime: useManual ? null : startTime,
+          endTime: useManual ? null : endTime,
+          notes: notes.trim() || "",
+          category: adminLabel,
+          updatedAt: new Date().toISOString(),
+        };
+        const existingEntries = Array.isArray(profile.overheadTimeEntries) ? profile.overheadTimeEntries : [];
+        const idx = existingEntries.findIndex((t) =>
+          t.date === entry.date &&
+          t.staff === entry.staff &&
+          (t.category || "") === (entry.category || "")
+        );
+        const nextEntries = idx >= 0
+          ? existingEntries.map((t, i) => (i === idx ? entry : t))
+          : [...existingEntries, entry];
+        const savedProfile = await saveProfileToSupabase?.({
+          ...profile,
+          overheadTimeEntries: nextEntries,
+        });
+        if (!savedProfile) {
+          setSaving(false);
+          return;
+        }
       } else {
-        job = jobs.find(j => String(j.id) === String(selectedJobId));
+        const job = realJobs.find((j) => String(j.id) === String(selectedJobId));
+        if (!job || !saveJob) {
+          setSaving(false);
+          return;
+        }
+        const entries = [...(job.timeEntries || [])];
+        const entry = {
+          date: entryDate,
+          hours: computedHours,
+          staff: selectedStaffName || profile.businessName || "Owner",
+          startTime: useManual ? undefined : startTime,
+          endTime: useManual ? undefined : endTime,
+          notes: notes.trim() || undefined,
+          updatedAt: new Date().toISOString(),
+        };
+        const idx = entries.findIndex(t => t.date === entryDate && t.staff === entry.staff);
+        if (idx >= 0) entries[idx] = entry; else entries.push(entry);
+        const savedJob = await saveJob({ ...job, timeEntries: entries }, { silent: true });
+        if (!savedJob) {
+          setSaving(false);
+          return;
+        }
       }
-      if (!job || !saveJob) { setSaving(false); return; }
-
-      const entries = [...(job.timeEntries || [])];
-      const entry = {
-        date: entryDate,
-        hours: computedHours,
-        staff: selectedStaffName || profile.businessName || "Owner",
-        startTime: useManual ? undefined : startTime,
-        endTime: useManual ? undefined : endTime,
-        notes: notes.trim() || undefined,
-        category: isAdminEntry ? adminLabel : undefined,
-        updatedAt: new Date().toISOString(),
-      };
-      // Replace existing entry for same date+staff+category or append
-      const idx = entries.findIndex(t => t.date === entryDate && t.staff === entry.staff && (t.category || "") === (entry.category || ""));
-      if (idx >= 0) entries[idx] = entry; else entries.push(entry);
-      await saveJob({ ...job, timeEntries: entries }, { silent: true });
       setStep(3);
     } catch (err) {
       console.error("Failed to save time entry:", err);
