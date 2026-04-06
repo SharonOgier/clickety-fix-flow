@@ -29,6 +29,8 @@ import {
   navSections,
   navLabels,
   settingsTabs,
+  getNavSections,
+  getNavLabels,
   isValidEmail,
   collectValidationErrors,
   summariseValidationErrors,
@@ -4464,7 +4466,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
           )}
 
           <div style={{ display: "grid", gap: 16, flex: 1 }}>
-            {navSections.map((section) => (
+            {getNavSections(profile.businessType).map((section) => (
               <div key={section.title} style={{ display: "grid", gap: 4 }}>
                 <div style={{ fontSize: 10, fontWeight: 800, letterSpacing: 0.8, textTransform: "uppercase", color: colours.muted, padding: "4px 12px 6px", opacity: 0.7 }}>
                   {section.title}
@@ -4489,7 +4491,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                         style={isLocked ? { opacity: 0.5 } : {}}
                       >
                         <span className="sas-nav-icon" style={{ fontSize: 15 }}>{iconMap[item] || "•"}</span>
-                        <span style={{ flex: 1 }}>{navLabels[item] || (item.charAt(0).toUpperCase() + item.slice(1))}</span>
+                        <span style={{ flex: 1 }}>{getNavLabels(profile.businessType)[item] || (item.charAt(0).toUpperCase() + item.slice(1))}</span>
                         {isLocked && (
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: 4,
@@ -4537,7 +4539,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                 };
                 return (
                   <UpgradePrompt
-                    featureName={navLabels[activePage] || activePage}
+                    featureName={getNavLabels(profile.businessType)[activePage] || activePage}
                     featureIcon={featureIconMap[activePage] || "🔒"}
                     currentTier={userTier}
                     onUpgrade={() => { setActivePage("settings"); setActiveSettingsTab("Plan & Billing"); }}
