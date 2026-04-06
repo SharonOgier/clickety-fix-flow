@@ -2664,6 +2664,23 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     setDocumentEditorOpen(false);
     setDocumentEditorForm(null);
     };
+    const openDocumentFile = (item) => {
+    const directUrl = String(item?.url || "").trim();
+    const storageUrl = !directUrl && item?.filePath && supabase
+      ? supabase.storage.from(SUPABASE_STORAGE_BUCKET).getPublicUrl(item.filePath)?.data?.publicUrl || ""
+      : "";
+    const targetUrl = directUrl || storageUrl;
+
+    if (!targetUrl) {
+      toast.warning("This document does not have a file link yet");
+      return;
+    }
+
+    const openedWindow = window.open(targetUrl, "_blank", "noopener,noreferrer");
+    if (!openedWindow) {
+      toast.warning("Please allow pop-ups to open this document");
+    }
+    };
     const saveClientEdits = async () => {
     if (!clientEditorForm) return;
     const payload = { ...clientEditorForm,
