@@ -4462,6 +4462,16 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               saveProperty={saveProperty} deleteProperty={deleteProperty} confirm={confirm}
               setActivePage={setActivePage}
             />}
+            {activePage === "scheduling" && <SchedulingPage
+              jobs={jobs} clients={clients} properties={properties}
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              inputStyle={inputStyle} labelStyle={labelStyle}
+              DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
+              SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
+              saveJob={saveJob} deleteJob={deleteJob} confirm={confirm}
+              setActivePage={setActivePage}
+            />}
             {activePage === "bills / payables" && <BillsPage
               profile={profile} expenses={expenses} suppliers={suppliers} clients={clients}
               expenseForm={expenseForm} setExpenseForm={setExpenseForm}
