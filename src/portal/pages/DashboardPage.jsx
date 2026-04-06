@@ -53,6 +53,8 @@ export default function DashboardPage(props) {
     getClientName = () => "",
   } = props;
 
+  const { businessType, t } = useTerminology();
+
   const [showPL, setShowPL] = useState(false);
   const [showGST, setShowGST] = useState(false);
   const [showCashMovement, setShowCashMovement] = useState(false);
