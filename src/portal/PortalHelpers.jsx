@@ -186,6 +186,7 @@ export const SUPABASE_TABLES = {
   documents: "sas_documents",
   suppliers: "sas_suppliers",
   assets: "sas_assets",
+  properties: "sas_properties",
 };
 
 export const SUPABASE_SCHEMA_SQL = `-- Run this once in Supabase SQL Editor
