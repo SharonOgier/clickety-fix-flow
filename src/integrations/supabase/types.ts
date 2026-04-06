@@ -275,6 +275,93 @@ export type Database = {
         }
         Relationships: []
       }
+      sas_subcontractor_assignments: {
+        Row: {
+          created_at: string
+          id: string
+          job_id: string
+          job_owner_user_id: string
+          status: string
+          subcontractor_user_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          job_id: string
+          job_owner_user_id: string
+          status?: string
+          subcontractor_user_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          job_id?: string
+          job_owner_user_id?: string
+          status?: string
+          subcontractor_user_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sas_subcontractor_costs: {
+        Row: {
+          amount: number
+          cost_type: string
+          created_at: string
+          description: string
+          hours: number | null
+          id: string
+          job_id: string
+          job_owner_user_id: string
+          notes: string | null
+          rate: number | null
+          receipt_url: string | null
+          reviewed_at: string | null
+          status: string
+          subcontractor_user_id: string
+          submitted_at: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          cost_type?: string
+          created_at?: string
+          description?: string
+          hours?: number | null
+          id?: string
+          job_id: string
+          job_owner_user_id: string
+          notes?: string | null
+          rate?: number | null
+          receipt_url?: string | null
+          reviewed_at?: string | null
+          status?: string
+          subcontractor_user_id: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          cost_type?: string
+          created_at?: string
+          description?: string
+          hours?: number | null
+          id?: string
+          job_id?: string
+          job_owner_user_id?: string
+          notes?: string | null
+          rate?: number | null
+          receipt_url?: string | null
+          reviewed_at?: string | null
+          status?: string
+          subcontractor_user_id?: string
+          submitted_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sas_suppliers: {
         Row: {
           data: Json
@@ -386,7 +473,7 @@ export type Database = {
       }
     }
     Enums: {
-      app_role: "admin" | "owner" | "member"
+      app_role: "admin" | "owner" | "member" | "subcontractor"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -514,7 +601,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "owner", "member"],
+      app_role: ["admin", "owner", "member", "subcontractor"],
     },
   },
 } as const

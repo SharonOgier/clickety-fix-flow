@@ -101,6 +101,7 @@ import TaxEstimatorPage     from "./pages/TaxEstimatorPage";
 import SettingsPage         from "./pages/SettingsPage";
 import ATOTaxFormPage       from "./ATOTaxFormPage";
 import BankReconciliationPage from "./pages/BankReconciliationPage";
+import SubcontractorPortal from "./pages/SubcontractorPortal";
 // -----------------------------------------------------------------------------
 
 
@@ -209,6 +210,7 @@ export default function AccountingPortalPrototype() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   // Multi-user state
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSubcontractor, setIsSubcontractor] = useState(false);
   const [viewingAsUserId, setViewingAsUserId] = useState(null);
   const [allPortalUsers, setAllPortalUsers] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
@@ -759,7 +761,9 @@ export default function AccountingPortalPrototype() {
       try {
         const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", authUser.id);
         const adminRole = (roles || []).some(r => r.role === "admin");
+        const subRole = (roles || []).some(r => r.role === "subcontractor");
         setIsAdmin(adminRole);
+        setIsSubcontractor(subRole);
         if (adminRole) {
           const { data: profiles } = await supabase.from("sas_profile").select("id, data, user_id");
           setAllPortalUsers((profiles || []).map(p => ({
@@ -3931,6 +3935,17 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     );
     }
 
+    // Subcontractor limited portal
+    if (isSubcontractor && !isAdmin) {
+      return (
+        <>
+          <ToastContainer toasts={toasts} removeToast={removeToast} />
+          {confirmModal}
+          <SubcontractorPortal authUser={authUser} onSignOut={handleSignOut} />
+        </>
+      );
+    }
+
     if (profile?.accountStatus === "closed") {
     return (
       <div style={{ minHeight: "100vh", background: colours.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "sans-serif" }}>
@@ -4478,6 +4493,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveJob={saveJob} deleteJob={deleteJob} confirm={confirm}
               setActivePage={setActivePage} currency={currency}
+              authUser={authUser}
             />}
             {activePage === "jobs report" && <JobsReportPage
               jobs={jobs} invoices={invoices} quotes={quotes} clients={clients}

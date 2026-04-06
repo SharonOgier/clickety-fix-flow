@@ -532,6 +532,24 @@ export default function SettingsPage(props) {
                 ))}
               </div>
             )}
+
+            {/* Subcontractor invitations section */}
+            <div style={{ marginTop: 24, borderTop: `1px solid ${colours.border}`, paddingTop: 20 }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 4 }}>Subcontractors</div>
+              <div style={{ fontSize: 13, color: colours.muted, lineHeight: 1.6, marginBottom: 12 }}>
+                Subcontractors get a limited portal where they can view assigned jobs and submit their costs (labour, materials, receipts).
+                Assign them to specific jobs from the Scheduling → Job Costing panel.
+              </div>
+              <div style={{ background: "#F3E5F5", borderRadius: 12, padding: 14 }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: "#6A1B9A", marginBottom: 4 }}>How it works</div>
+                <ol style={{ fontSize: 12, color: "#4A148C", lineHeight: 1.7, margin: 0, paddingLeft: 20 }}>
+                  <li>The subcontractor creates an account at your portal login page</li>
+                  <li>You assign the <strong>subcontractor</strong> role to their account (contact admin)</li>
+                  <li>Assign them to jobs from the Scheduling page → Job Costing → Subcontractor tab</li>
+                  <li>They'll see only their assigned jobs and can submit costs with receipts</li>
+                </ol>
+              </div>
+            </div>
           </div>
         )}
 

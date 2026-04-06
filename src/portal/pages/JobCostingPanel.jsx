@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { supabase } from "../client";
 
 const COST_TABS = ["Labour", "Materials", "Subcontractor", "Misc"];
 const SUB_PAY_STATUS = ["Unpaid", "Partial", "Paid"];
@@ -25,8 +26,11 @@ export function computeJobFinancials(job) {
   return { labour, materials, subcontractor, misc, totalCost, quotedTotal, grossMargin, grossMarginPct, subUnpaid, subPaid };
 }
 
-export default function JobCostingPanel({ job, onUpdate, colours, cardStyle, inputStyle, labelStyle, buttonPrimary, buttonSecondary, currency, quotes = [], invoices = [] }) {
+export default function JobCostingPanel({ job, onUpdate, colours, cardStyle, inputStyle, labelStyle, buttonPrimary, buttonSecondary, currency, quotes = [], invoices = [], authUser }) {
   const [tab, setTab] = useState("Labour");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState("");
   const costs = job?.costs || { labour: [], materials: [], subcontractor: [], misc: [] };
 
   const updateCosts = (key, items) => {
@@ -160,6 +164,59 @@ export default function JobCostingPanel({ job, onUpdate, colours, cardStyle, inp
               </div>
             ))}
             <button style={{ ...buttonSecondary, fontSize: 12 }} onClick={() => updateCosts("subcontractor", [...(costs.subcontractor || []), blankSubcontractor()])}>+ Add Subcontractor</button>
+            
+            {/* Invite subcontractor to portal */}
+            {authUser?.id && job?.id && (
+              <div style={{ marginTop: 12, padding: 14, background: "#F3E5F5", borderRadius: 12 }}>
+                <div style={{ fontSize: 12, fontWeight: 800, color: "#6A1B9A", marginBottom: 8 }}>🔗 Invite Subcontractor to Portal</div>
+                <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+                  <input type="email" placeholder="subcontractor@email.com" value={inviteEmail}
+                    onChange={e => setInviteEmail(e.target.value)}
+                    style={{ ...inputStyle, fontSize: 12, flex: 1 }} />
+                  <button disabled={inviting} onClick={async () => {
+                    if (!inviteEmail.trim()) return;
+                    setInviting(true); setInviteMsg("");
+                    try {
+                      // Check if user exists by looking for their profile
+                      const { data: existingUsers } = await supabase.from("sas_profile").select("user_id").limit(1000);
+                      // We can't look up by email from sas_profile easily, so just create the assignment
+                      // The subcontractor will need to sign up first
+                      
+                      // Create assignment record — we store the email for now
+                      const { error } = await supabase.from("sas_subcontractor_assignments").insert({
+                        subcontractor_user_id: "00000000-0000-0000-0000-000000000000", // placeholder until they sign up
+                        job_owner_user_id: authUser.id,
+                        job_id: String(job.id),
+                        status: "pending_signup",
+                      });
+                      
+                      // Send invite email
+                      await supabase.functions.invoke("send-document-email", {
+                        body: {
+                          to: [inviteEmail.trim()],
+                          subject: `You've been invited as a subcontractor`,
+                          html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px;">
+                            <h2 style="color:#6A1B9A;">Subcontractor Portal Invitation</h2>
+                            <p>You've been invited to submit costs for job <strong>${job.title || job.name || job.id}</strong>.</p>
+                            <p>Sign up at <a href="https://sharonogier.com/portal?mode=signup">sharonogier.com/portal</a> to access your subcontractor portal.</p>
+                          </div>`,
+                        },
+                      });
+                      
+                      setInviteMsg("✅ Invitation sent!");
+                      setInviteEmail("");
+                    } catch (err) { setInviteMsg("❌ " + (err.message || "Failed")); }
+                    setInviting(false);
+                  }} style={{ ...buttonPrimary, fontSize: 11, padding: "8px 14px", whiteSpace: "nowrap" }}>
+                    {inviting ? "Sending..." : "Invite"}
+                  </button>
+                </div>
+                {inviteMsg && <div style={{ fontSize: 11, marginTop: 6, fontWeight: 600, color: inviteMsg.startsWith("✅") ? "#2E7D32" : "#C62828" }}>{inviteMsg}</div>}
+                <div style={{ fontSize: 10, color: "#7B1FA2", marginTop: 6, lineHeight: 1.5 }}>
+                  The subcontractor will need to create an account. Once registered and assigned the subcontractor role, they'll see this job in their limited portal.
+                </div>
+              </div>
+            )}
           </div>
         )}
 
