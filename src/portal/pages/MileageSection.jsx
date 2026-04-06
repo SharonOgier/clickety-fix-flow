@@ -94,6 +94,7 @@ export default function MileageSection({
       description,
       gst: "0",
       expenseType: "Motor Vehicle",
+      jobId: trip.jobId || "",
     }));
 
     setTrip(emptyTrip());
