@@ -3012,7 +3012,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
 
       if (result?.ok) {
         const updatedInvoice = {
-          ...invoice,
+3014:           ...invoice,
           ...(result.updatedDocumentRecord || {}),
           stripeCheckoutUrl:
             result.stripeCheckoutUrl ||
@@ -3021,6 +3021,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             "",
           emailedAt: new Date().toISOString(),
           emailRecipients: result.recipients || [],
+          viewStatus: "Sent",
+          status: invoice.status === "Draft" ? "Sent" : invoice.status,
         };
         const savedInvoice = await upsertRecordInDatabase(SUPABASE_TABLES.invoices, updatedInvoice);
         setInvoices((prev) =>
