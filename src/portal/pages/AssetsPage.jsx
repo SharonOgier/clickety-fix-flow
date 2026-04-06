@@ -80,6 +80,7 @@ export default function AssetsPage(props) {
     purchasePrice: "", salvageValue: "0", effectiveLife: "",
     depreciationMethod: "prime_cost", status: "Active", notes: "",
     previousOwners: "", serialNumber: "", location: "",
+    linkedExpenseId: "",
   });
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
