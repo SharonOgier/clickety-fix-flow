@@ -652,6 +652,11 @@ function InvoicesPageInner(props) {
               { key: "invoiceDate", label: "Date", render: (v) => formatDateAU(v) },
               { key: "dueDate", label: "Due", render: (v) => formatDateAU(v) },
               { key: "total", label: "Total", render: (v, row) => formatCurrencyByCode(v, row.currencyCode || getClientCurrencyCode(getClientById(row.clientId))) },
+              { key: "jobId", label: "Job", render: (v) => {
+                if (!v) return <span style={{ color: colours.muted }}>—</span>;
+                const job = jobs.find(j => String(j.id) === String(v));
+                return <EntityLink label={job ? job.title : `#${v}`} targetPage="scheduling" setActivePage={setActivePage} icon="📋" />;
+              }},
               { key: "status", label: "Status", render: (v, row) => {
                 const isOverdue = v !== "Paid" && row.dueDate && new Date(row.dueDate) < new Date();
                 const displayStatus = row.type === "credit_note" ? "CN" : isOverdue && v !== "Paid" ? "Overdue" : row.viewStatus || v || "Draft";
