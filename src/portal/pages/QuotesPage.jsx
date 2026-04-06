@@ -89,6 +89,7 @@ function QuotesPageInner(props) {
     setShowImportModal = () => {},
     sendQuoteFromPreview,
     convertQuoteToInvoice,
+    convertQuoteToJob,
     openQuotePreview,
   } = props;
 
