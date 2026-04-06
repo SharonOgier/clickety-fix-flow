@@ -3246,6 +3246,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
           workType: profile.workType,
           receiptFileName: "",
           receiptUrl: "",
+          jobId: "",
+          contactId: "",
         });
         setBillLineItems([blankBillLine()]);
         setBillWizardStep(1);
