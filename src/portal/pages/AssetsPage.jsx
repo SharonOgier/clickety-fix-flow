@@ -65,7 +65,7 @@ function calcDepreciation(asset) {
 
 export default function AssetsPage(props) {
   const {
-    assets = [],
+    assets = [], expenses = [],
     colours, cardStyle, buttonPrimary, buttonSecondary,
     inputStyle, labelStyle, currency, formatDateAU, safeNumber,
     todayLocal, DashboardHero, InsightChip, MetricCard,
