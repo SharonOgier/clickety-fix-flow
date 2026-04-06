@@ -2058,6 +2058,21 @@ export default function AccountingPortalPrototype() {
   let emailDocumentRecord = { ...(documentRecord || {}) };
   let stripeCheckoutUrl = emailDocumentRecord?.stripeCheckoutUrl || "";
 
+  // ── Generate publicToken for quotes so clients can accept/decline online ──
+  if (documentType === "quote" && !emailDocumentRecord.publicToken) {
+    const publicToken = crypto.randomUUID();
+    emailDocumentRecord.publicToken = publicToken;
+    emailDocumentRecord.status = emailDocumentRecord.status === "Draft" ? "Sent" : emailDocumentRecord.status;
+    // Save the token to the quote immediately
+    try {
+      const saved = await upsertRecordInDatabase(SUPABASE_TABLES.quotes, emailDocumentRecord);
+      setQuotes((prev) => prev.map((q) => q.id === emailDocumentRecord.id ? saved : q));
+      emailDocumentRecord = { ...saved };
+    } catch (e) {
+      console.error("Failed to save publicToken to quote:", e);
+    }
+  }
+
   const client = getClientById(emailDocumentRecord?.clientId);
 
   const recipientList = Array.from(
