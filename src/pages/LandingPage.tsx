@@ -1,5 +1,20 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { TIERS, TIER_ORDER } from "../portal/tierConfig";
+
+const tiers = TIER_ORDER.map((key) => {
+  const t = TIERS[key as keyof typeof TIERS];
+  return {
+    key: t.key,
+    name: t.label,
+    price: t.price,
+    tag: t.tag,
+    recommended: !!(t as any).recommended,
+    features: t.features,
+    locked: t.lockedFeatures || [],
+    comingSoon: (t as any).comingSoon || [],
+  };
+});
 
 const features = [
   { icon: "🔨", title: "Jobs & Scheduling", desc: "Plan your week, assign jobs to your team, and see exactly who is where — all from your phone." },
