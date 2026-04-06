@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import PlanSelectionCards from "../components/PlanSelectionCards";
 
 const STEPS = [
   { key: "businessType", label: "Business Type" },
+  { key: "plan", label: "Choose Plan" },
   { key: "business", label: "Business Details" },
   { key: "personal", label: "Your Details" },
   { key: "getStarted", label: "Get Started" },
