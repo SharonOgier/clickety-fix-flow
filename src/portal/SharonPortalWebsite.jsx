@@ -203,6 +203,10 @@ export default function AccountingPortalPrototype() {
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [recurringSelected, setRecurringSelected] = useState([]);
   const recurringShownRef = useRef(false);
+  const [recurringJobsDue, setRecurringJobsDue] = useState([]);
+  const [showRecurringJobsModal, setShowRecurringJobsModal] = useState(false);
+  const [recurringJobsSelected, setRecurringJobsSelected] = useState([]);
+  const recurringJobsShownRef = useRef(false);
   const [quoteWizardStep, setQuoteWizardStep] = useState(1);
   const [activePage, setActivePageRaw] = useState("dashboard");
   const isPopstateRef = useRef(false);
