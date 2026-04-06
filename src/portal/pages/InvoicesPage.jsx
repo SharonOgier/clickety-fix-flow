@@ -104,6 +104,7 @@ function InvoicesPageInner(props) {
     setImportError = () => {},
     setShowImportModal = () => {},
     sendInvoiceFromPreview,
+    jobs = [],
   } = props;
 
   if (typeof computeLineItemTotals !== "function") {
