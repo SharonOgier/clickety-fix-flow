@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import JobCostingPanel, { computeJobFinancials } from "./JobCostingPanel";
-import { writeJobSheetPreviewToWindow } from "../PortalDocumentBuilders";
+import { writeJobSheetPreviewToWindow, writeCertificatePreviewToWindow, buildCertificateHtml } from "../PortalDocumentBuilders";
 import { supabase } from "@/integrations/supabase/client";
 
 /* ─── helpers ──────────────────────────────────────────────────────────── */
