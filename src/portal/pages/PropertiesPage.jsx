@@ -118,7 +118,7 @@ function PropertyForm({ form, setForm, clients = [], inputStyle, labelStyle, car
 // ---------------------------------------------------------------------------
 // PROPERTY DETAIL VIEW
 // ---------------------------------------------------------------------------
-function PropertyDetail({ property, clients, colours, cardStyle, buttonSecondary, setActivePage }) {
+function PropertyDetail({ property, clients, colours, cardStyle, buttonSecondary, setActivePage, jobs = [] }) {
   const client = clients.find(c => String(c.id) === String(property.clientId));
   const subs = property.subLocations || [];
   const hasCoords = property.gpsLat && property.gpsLng;
@@ -194,13 +194,34 @@ function PropertyDetail({ property, clients, colours, cardStyle, buttonSecondary
         )}
       </div>
 
-      {/* Related Jobs placeholder */}
-      <div style={{ ...cardStyle, padding: 16, background: "#FAFAFA", border: `1px solid ${colours.border}` }}>
-        <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", color: colours.muted, marginBottom: 8 }}>Job History</div>
-        <div style={{ fontSize: 13, color: colours.muted }}>
-          No jobs system connected yet. When jobs are added, all work history for <strong>{property.name}</strong> will appear here.
-        </div>
-      </div>
+      {/* Related Jobs */}
+      {(() => {
+        const propertyJobs = (jobs || []).filter(j => String(j.propertyId) === String(property.id) || String(j.siteId) === String(property.id));
+        return (
+          <div style={{ ...cardStyle, padding: 16, background: "#FAFAFA", border: `1px solid ${colours.border}` }}>
+            <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", color: colours.muted, marginBottom: 8 }}>Job History ({propertyJobs.length})</div>
+            {propertyJobs.length === 0 ? (
+              <div style={{ fontSize: 13, color: colours.muted }}>No jobs linked to <strong>{property.name}</strong> yet.</div>
+            ) : (
+              <div style={{ display: "grid", gap: 8 }}>
+                {propertyJobs.map((job, i) => (
+                  <div key={job.id || i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 10, background: "#fff", border: `1px solid ${colours.border}` }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: colours.text }}>{job.title || job.name || `Job #${job.id}`}</div>
+                      <div style={{ fontSize: 12, color: colours.muted }}>{job.status || "—"}</div>
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
+                      background: job.status === "Completed" ? "#DCFCE7" : job.status === "In Progress" ? "#FEF3C7" : "#DBEAFE",
+                      color: job.status === "Completed" ? "#166534" : job.status === "In Progress" ? "#92400E" : "#1E40AF",
+                    }}>{job.status || "Unscheduled"}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
@@ -208,7 +229,7 @@ function PropertyDetail({ property, clients, colours, cardStyle, buttonSecondary
 // ---------------------------------------------------------------------------
 // MAP VIEW (OpenStreetMap embeds for all properties with coords)
 // ---------------------------------------------------------------------------
-function MapView({ properties, colours, cardStyle, onSelect }) {
+function MapView({ properties, colours, cardStyle, onSelect, jobs = [] }) {
   const withCoords = properties.filter(p => p.gpsLat && p.gpsLng);
 
   if (withCoords.length === 0) {
@@ -269,6 +290,8 @@ function MapView({ properties, colours, cardStyle, onSelect }) {
             <div style={{ fontSize: 11, color: colours.muted, marginTop: 6 }}>
               {(p.subLocations || []).length} sub-location{(p.subLocations || []).length !== 1 ? "s" : ""}
               <span style={{ margin: "0 6px" }}>•</span>
+              {(() => { const cnt = (jobs || []).filter(j => String(j.propertyId) === String(p.id) || String(j.siteId) === String(p.id)).length; return cnt > 0 ? <span style={{ color: colours.teal, fontWeight: 700 }}>{cnt} active job{cnt !== 1 ? "s" : ""}</span> : <span>No active jobs</span>; })()}
+              <span style={{ margin: "0 6px" }}>•</span>
               <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${p.gpsLat},${p.gpsLng}`}
                 target="_blank" rel="noopener noreferrer"
@@ -317,7 +340,8 @@ export default function PropertiesPage(props) {
     saveProperty = () => {},
     deleteProperty = () => {},
     confirm = null,
-    setActivePage = () => {},
+     setActivePage = () => {},
+     jobs = [],
   } = props;
 
   // ---- View states ----
@@ -388,6 +412,7 @@ export default function PropertiesPage(props) {
             colours={colours} cardStyle={cardStyle}
             buttonSecondary={buttonSecondary}
             setActivePage={setActivePage}
+            jobs={jobs}
           />
         </SectionCard>
       </div>
@@ -426,6 +451,7 @@ export default function PropertiesPage(props) {
             properties={properties}
             colours={colours} cardStyle={cardStyle}
             onSelect={handleViewDetail}
+            jobs={jobs}
           />
         </SectionCard>
       </div>

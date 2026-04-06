@@ -1,31 +1,54 @@
-## Multi-User Access System
 
-### Part 1: Accountant Access (Sharon viewing/editing all client portals)
+# Master Brief — Gap Implementation Plan
 
-Sharon's master accounts (`info@sharonogier.com`, `sharon@sharonogier.com`) already exist in the system. We need:
+## Gap 1: Terminology Adaptation System
+**What:** Build a context provider that maps generic terms (Job, Site, Sub-location, etc.) to business-type-specific labels (Tradie/Farmer/Small Business) as defined in the brief's terminology table.
 
-1. **Database: User roles table** — Create `user_roles` table with roles: `admin` (Sharon), `owner` (business owner), `member` (invited team)
-2. **Database: Security definer function** — `has_role()` function to check roles without RLS recursion
-3. **Update RLS policies** — All `sas_*` tables need updated policies:
-   - Admins can access ALL rows
-   - Owners access their own rows
-   - Members access rows of the user who invited them
-4. **Client switcher UI** — Sharon sees a dropdown/list of all portal users and can switch between them
-5. **Seed admin role** — Insert admin role for Sharon's accounts
+**Implementation:**
+- Create `src/portal/TerminologyContext.jsx` — a React context that reads `businessType` from the user's profile and exposes a `t()` helper function
+- Terminology map: Job→Job/Task/Booking, Site→Site/Property/Premises, Sub-location→Area/Paddock/Zone, Subcontractor→Subcontractor/Contractor/Freelancer, Materials→Parts & Materials/Inputs & Supplies/Consumables, Schedule→Job Schedule/Work Planner/Booking Calendar, Customer→Customer/Client/Customer
+- Wrap the portal in this provider
+- Update all page headers, buttons, and labels to use `t("job")` instead of hardcoded strings
+- Allow custom overrides stored in profile settings
 
-### Part 2: Team Member Invitations
+## Gap 2: Onboarding Business Type Selection
+**What:** Add the 3-card business type selector to the Setup Wizard (Step 1) with Tradie (hard hat icon), Farmer (tractor icon), Small Business (storefront icon).
 
-1. **Database: Team invitations table** — `sas_team_invitations` (inviter_id, email, role, status, accepted_at)
-2. **Database: Team members table** — `sas_team_members` (owner_user_id, member_user_id, role, created_at)
-3. **RLS updates** — Members can access data belonging to their team owner
-4. **Invitation flow** — Owner sends invite email → recipient signs up → auto-linked to team
-5. **Settings UI** — "Team" tab in settings to manage members and send invitations
-6. **Permission levels** — `viewer` (read-only) and `editor` (full access) for team members
+**Implementation:**
+- Update `SetupWizardPage.jsx` to add a new first step with 3 large cards
+- Step 2 adapts: trade/industry dropdown changes based on selection (Electrician/Plumber/Builder for Tradie, Broadacre/Livestock/Horticulture for Farmer, Retail/Hospitality/Cleaning for Small Biz)
+- Save `businessType` to `sas_profile.data`
+- Step 3: "What do you want to set up first?" checklist adapted per type
 
-### Implementation Order
-1. Create all database tables and functions (single migration)
-2. Update RLS policies on all sas_* tables
-3. Seed Sharon's admin role
-4. Build the client switcher UI for admin
-5. Build the team management UI
-6. Build the invitation email flow
+## Gap 3: Dashboard Adaptation
+**What:** Make the dashboard layout change based on business type.
+
+**Implementation:**
+- Tradie: Today's dispatch view (jobs grouped by assigned person with map links), unscheduled jobs, who is where
+- Farmer: Seasonal overview, property/paddock summary, contractor schedule
+- Small Business: Today's bookings, staff roster, outstanding invoices
+- Update `DashboardPage.jsx` to read `businessType` from profile and render the appropriate layout
+- All three share the same underlying data, just different presentation
+
+## Gap 4: Role-Specific Contact Fields
+**What:** Ensure each contact role unlocks the correct additional fields as specified in the brief.
+
+**Implementation:**
+- Verify/add fields per role in `ClientsPage.jsx`:
+  - Subcontractor: ABN, trade type, insurance expiry, licence number ✅ (mostly done)
+  - Supplier: product categories, account number, payment terms
+  - Staff: position/title, start date, hourly rate, emergency contact
+  - Customer: billing address, preferred contact method
+- Add "Related Jobs" section on contact detail showing all linked jobs
+
+## Gap 5: Properties Map View
+**What:** Full-screen map showing all properties as pins, clicking opens summary with active jobs.
+
+**Implementation:**
+- Enhance existing `PropertiesPage.jsx` map view
+- Ensure pin click opens property summary card with sub-locations and active job count
+- Add link to open full property detail from map
+
+---
+
+**Order of implementation:** Gap 1 → Gap 2 → Gap 3 → Gap 4 → Gap 5 (terminology first since it affects all subsequent UI work)

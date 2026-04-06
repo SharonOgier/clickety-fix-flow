@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./client";
+import { TerminologyProvider } from "./TerminologyContext";
 import MobileWizard from "./MobileWizard";
 import {
   ToastContainer,
@@ -470,8 +471,10 @@ export default function AccountingPortalPrototype() {
       address,
       personalAddress: address,
       abn: String(wizardForm.abn || "").trim(),
-      workType: wizardForm.workType || "Financial / Management Accountant",
+      workType: wizardForm.workType || "",
       gstRegistered: Boolean(wizardForm.gstRegistered),
+      businessType: wizardForm.businessType || "tradie",
+      industry: wizardForm.industry || "",
     };
   };
 
@@ -4025,6 +4028,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     }
 
     return (
+    <TerminologyProvider businessType={profile.businessType} customOverrides={profile.terminologyOverrides}>
     <div
       style={{
         minHeight: "100vh",
@@ -4328,7 +4332,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               Log out
             </button>
             <div style={{ fontSize: 10, color: colours.muted, textAlign: "center", marginTop: 10, opacity: 0.6 }}>
-              Sharon's Accounting Service
+              Mustered
             </div>
           </div>
         </aside>
@@ -4357,7 +4361,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               exportToATOForm={exportToATOForm}
               restorePortalStateFromSupabase={restorePortalStateFromSupabase}
               saveAllCurrentStateToSupabase={saveAllCurrentStateToSupabase}
-              supabaseSyncStatus={supabaseSyncStatus} getClientName={getClientName}
+               supabaseSyncStatus={supabaseSyncStatus} getClientName={getClientName}
+               properties={properties} jobs={jobs}
             />}
             {activePage === "financial insights" && <FinancialInsightsPage
               profile={profile} totals={totals} invoiceAllocations={invoiceAllocations}
@@ -4463,7 +4468,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               clientEditorOpen={clientEditorOpen} clientEditorForm={clientEditorForm}
               setClientEditorForm={setClientEditorForm} closeClientEditor={closeClientEditor}
               saveClientEdits={saveClientEdits} saveClient={saveClient} todayLocal={todayLocal}
-              blankClient={blankClient}
+               blankClient={blankClient} jobs={jobs}
             />}
             {activePage === "services" && <ServicesPage
               services={services} serviceSearch={serviceSearch} setServiceSearch={setServiceSearch}
@@ -4533,7 +4538,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveProperty={saveProperty} deleteProperty={deleteProperty} confirm={confirm}
-              setActivePage={setActivePage}
+               setActivePage={setActivePage} jobs={jobs}
             />}
             {activePage === "scheduling" && <SchedulingPage
               jobs={jobs} clients={clients} properties={properties}
@@ -5254,5 +5259,6 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       )}
       <style>{`@keyframes toastIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }`}</style>
     </div> 
+    </TerminologyProvider>
     );
 }

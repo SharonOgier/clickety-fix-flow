@@ -180,6 +180,41 @@ export default function SettingsPage(props) {
                 onChange={(e) => setProfile({ ...profile, address: e.target.value })}
               />
             </div>
+
+            {/* Business Type & Industry */}
+            <div style={{ gridColumn: "1 / -1", borderTop: `1px solid ${colours.border || "#E2E8F0"}`, paddingTop: 20, marginTop: 8 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: colours.text, marginBottom: 12 }}>Business Type</div>
+              <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+                {[
+                  { key: "tradie", icon: "🪖", label: "Tradie" },
+                  { key: "farmer", icon: "🚜", label: "Farmer / Agriculture" },
+                  { key: "smallbusiness", icon: "🏪", label: "Small Business" },
+                ].map((bt) => {
+                  const sel = profile.businessType === bt.key;
+                  return (
+                    <button
+                      key={bt.key}
+                      type="button"
+                      onClick={() => setProfile({ ...profile, businessType: bt.key })}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 10,
+                        padding: "12px 20px", borderRadius: 14, cursor: "pointer",
+                        border: `2px solid ${sel ? colours.purple : (colours.border || "#E2E8F0")}`,
+                        background: sel ? `${colours.purple}0A` : "#fff",
+                        fontWeight: 700, fontSize: 14, transition: "all 0.2s ease",
+                      }}
+                    >
+                      <span style={{ fontSize: 22 }}>{bt.icon}</span>
+                      <span style={{ color: sel ? colours.purple : colours.text }}>{bt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ fontSize: 12, color: colours.muted, lineHeight: 1.6, marginBottom: 12 }}>
+                This changes dashboard layout and labels throughout the app. Your data stays the same.
+              </div>
+            </div>
+
             <div style={{ gridColumn: "1 / -1", display: "flex", justifyContent: "flex-end", marginTop: 8 }}>
               <button style={buttonPrimary} onClick={async () => {
                 try {
