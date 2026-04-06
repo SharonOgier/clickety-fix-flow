@@ -209,10 +209,10 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
                 ))}
 
                 <div style={{ fontSize: 11, fontWeight: 700, color: colours.muted, textTransform: "uppercase", marginTop: 16, marginBottom: 6, letterSpacing: 0.5 }}>Jobs</div>
-                {jobs.length === 0 ? (
+                {realJobs.length === 0 ? (
                   <div style={{ textAlign: "center", padding: 20, color: colours.muted, fontSize: 13 }}>No jobs found.</div>
                 ) : (
-                  jobs.map(j => {
+                  realJobs.map(j => {
                     const client = clientMap[String(j.clientId)];
                     return (
                       <button key={j.id} style={optionBtn(selectedJobId === j.id)} onClick={() => setSelectedJobId(j.id)}>
