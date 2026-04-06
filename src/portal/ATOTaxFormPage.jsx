@@ -146,7 +146,23 @@ export default function ATOTaxFormPage({
     });
     return Object.values(groups);
   })();
-  const portalExp = expenses.map(e=>({date:e.date||"",type:e.category||e.expenseType||"Other",supplier:e.supplier||e.description||"",amount:safeNumber(e.amount),gstIncl:e.gstIncluded!==false?"yes":"no"}));
+  const isMileageExp = e => e.category === "Mileage" || e.expenseType === "Motor Vehicle";
+  const portalExp = [
+    ...expenses.map(e=>({
+      date:e.date||"",
+      type: isMileageExp(e) ? "Car (cents/km)" : (e.category||e.expenseType||"Other"),
+      supplier:e.supplier||e.description||"",
+      amount:safeNumber(e.amount),
+      gstIncl: isMileageExp(e) ? "no" : (e.gstIncluded!==false?"yes":"no"),
+    })),
+    ...subcontractorCosts.filter(c => c.status === "approved").map(c => ({
+      date: c.submitted_at ? c.submitted_at.slice(0,10) : "",
+      type: "Subcontractor",
+      supplier: `Subcontractor — ${c.description || c.cost_type}`,
+      amount: safeNumber(c.amount),
+      gstIncl: "no",
+    })),
+  ];
 
   // Asset depreciation totals
   const totalDepreciation = assets.filter(a => (a.status || "Active") === "Active").reduce((s, a) => s + calcAssetAnnualDep(a), 0);
