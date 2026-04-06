@@ -30,7 +30,21 @@ const navItems = [
   "settings",
 ];
 
-export const navSections = [
+// ── Business-type-aware navigation ──────────────────────────────────────────
+// Items available per business type. "all" items appear for every type.
+const NAV_ITEMS_BY_TYPE = {
+  all: [
+    "dashboard", "financial insights", "invoices", "quotes", "expenses",
+    "clients", "services", "timesheets", "bills / payables", "income sources",
+    "documents", "bank reconciliation", "bas report", "ato tax form",
+    "tax estimator", "settings",
+  ],
+  tradie: ["scheduling", "assets", "properties", "jobs report"],
+  farmer: ["scheduling", "assets", "properties", "jobs report"],
+  smallbusiness: ["scheduling"],
+};
+
+const NAV_SECTIONS_TEMPLATE = [
   {
     title: "Main",
     items: ["dashboard", "financial insights", "invoices", "quotes", "expenses"],
@@ -45,7 +59,7 @@ export const navSections = [
   },
 ];
 
-export const navLabels = {
+const NAV_LABELS_BASE = {
   dashboard: "Home",
   "financial insights": "Financial Insights",
   invoices: "Invoices",
@@ -67,6 +81,55 @@ export const navLabels = {
   "tax estimator": "Tax Estimator",
   settings: "Settings",
 };
+
+// Terminology-adapted label overrides per business type
+const NAV_LABEL_OVERRIDES = {
+  tradie: {
+    scheduling: "Job Schedule",
+    properties: "Sites",
+    "jobs report": "Jobs Report",
+  },
+  farmer: {
+    scheduling: "Work Planner",
+    properties: "Properties & Paddocks",
+    assets: "Farm Assets & Depreciation",
+    "jobs report": "Tasks Report",
+  },
+  smallbusiness: {
+    scheduling: "Booking Calendar",
+  },
+};
+
+/**
+ * Get nav sections filtered for the given business type.
+ * @param {string} businessType - "tradie" | "farmer" | "smallbusiness"
+ */
+export function getNavSections(businessType) {
+  const type = (businessType || "tradie").toLowerCase().replace(/[\s/]/g, "");
+  const allowed = new Set([
+    ...NAV_ITEMS_BY_TYPE.all,
+    ...(NAV_ITEMS_BY_TYPE[type] || []),
+  ]);
+  return NAV_SECTIONS_TEMPLATE
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) => allowed.has(item)),
+    }))
+    .filter((section) => section.items.length > 0);
+}
+
+/**
+ * Get nav labels adapted for the given business type.
+ * @param {string} businessType - "tradie" | "farmer" | "smallbusiness"
+ */
+export function getNavLabels(businessType) {
+  const type = (businessType || "tradie").toLowerCase().replace(/[\s/]/g, "");
+  return { ...NAV_LABELS_BASE, ...(NAV_LABEL_OVERRIDES[type] || {}) };
+}
+
+// Keep static exports for backward compat (default = tradie)
+export const navSections = NAV_SECTIONS_TEMPLATE;
+export const navLabels = NAV_LABELS_BASE;
 
 export const settingsTabs = ["Profile", "Financial", "Branding", "Plan & Billing", "Team", "Notifications", "Security"];
 
