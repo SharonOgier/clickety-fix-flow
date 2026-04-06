@@ -99,7 +99,7 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
       // Replace existing entry for same date+staff+category or append
       const idx = entries.findIndex(t => t.date === entryDate && t.staff === entry.staff && (t.category || "") === (entry.category || ""));
       if (idx >= 0) entries[idx] = entry; else entries.push(entry);
-      await saveJob({ ...job, timeEntries: entries });
+      await saveJob({ ...job, timeEntries: entries }, { silent: true });
       setStep(3);
     } catch (err) {
       console.error("Failed to save time entry:", err);
