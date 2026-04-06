@@ -1112,6 +1112,15 @@ function JobNotesTasksPanel({ job, onUpdate, colours, buttonPrimary, buttonSecon
               )}
             </>)}
 
+            {detailTab === "notes" && (
+              <JobNotesTasksPanel
+                job={detailJob}
+                onUpdate={async (updated) => { await saveJob(updated); setDetailJob(updated); }}
+                colours={colours} buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+                inputStyle={inputStyle} labelStyle={labelStyle}
+              />
+            )}
+
             {detailTab === "photos" && (
               <JobPhotosPanel
                 job={detailJob}
