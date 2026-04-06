@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { supabase } from "../client";
 
 const COST_TABS = ["Labour", "Materials", "Subcontractor", "Misc"];
 const SUB_PAY_STATUS = ["Unpaid", "Partial", "Paid"];
