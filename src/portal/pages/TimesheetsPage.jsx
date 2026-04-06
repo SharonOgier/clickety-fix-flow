@@ -8,7 +8,7 @@ const fmtDateAU = (iso) => { if (!iso) return "—"; const p = iso.split("-"); r
 const getWeekStart = (date) => {
   const d = new Date(date);
   const day = d.getDay();
-  d.setDate(d.getDate() - (day === 0 ? 6 : day - 1)); // Mon start
+  d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
   d.setHours(0,0,0,0);
   return d;
 };
@@ -31,6 +31,262 @@ const calcHours = (start, end) => {
   return diff > 0 ? Math.round(diff / 60 * 100) / 100 : 0;
 };
 
+// ── Log Time Wizard ────────────────────────────────────────────────────────
+function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPrimary, buttonSecondary, profile, saveJob, onClose }) {
+  const [step, setStep] = useState(0); // 0=staff, 1=job, 2=details, 3=done
+  const [selectedStaffName, setSelectedStaffName] = useState("");
+  const [selectedJobId, setSelectedJobId] = useState("");
+  const [entryDate, setEntryDate] = useState(fmtDate(new Date()));
+  const [startTime, setStartTime] = useState("08:00");
+  const [endTime, setEndTime] = useState("16:00");
+  const [manualHours, setManualHours] = useState("");
+  const [useManual, setUseManual] = useState(false);
+  const [notes, setNotes] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [String(c.id), c])), [clients]);
+
+  const computedHours = useManual ? (Number(manualHours) || 0) : calcHours(startTime, endTime);
+
+  const handleSave = async () => {
+    if (!selectedJobId || computedHours <= 0) return;
+    setSaving(true);
+    try {
+      const job = jobs.find(j => String(j.id) === String(selectedJobId));
+      if (!job || !saveJob) return;
+      const entries = [...(job.timeEntries || [])];
+      const entry = {
+        date: entryDate,
+        hours: computedHours,
+        staff: selectedStaffName || profile.businessName || "Owner",
+        startTime: useManual ? undefined : startTime,
+        endTime: useManual ? undefined : endTime,
+        notes: notes.trim() || undefined,
+        updatedAt: new Date().toISOString(),
+      };
+      // Replace existing entry for same date+staff or append
+      const idx = entries.findIndex(t => t.date === entryDate && t.staff === entry.staff);
+      if (idx >= 0) entries[idx] = entry; else entries.push(entry);
+      await saveJob({ ...job, timeEntries: entries });
+      setStep(3);
+    } catch (err) {
+      console.error("Failed to save time entry:", err);
+    }
+    setSaving(false);
+  };
+
+  const overlay = {
+    position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)", zIndex: 9999,
+    display: "flex", alignItems: "center", justifyContent: "center", padding: 16,
+  };
+  const modal = {
+    background: "#fff", borderRadius: 16, width: "100%", maxWidth: 480,
+    maxHeight: "90vh", overflow: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+  };
+  const header = {
+    padding: "20px 24px 16px", borderBottom: "1px solid #E2E8F0",
+    display: "flex", justifyContent: "space-between", alignItems: "center",
+  };
+  const body = { padding: "20px 24px 24px" };
+  const stepDots = { display: "flex", gap: 6, justifyContent: "center", marginBottom: 20 };
+  const dot = (active) => ({
+    width: 10, height: 10, borderRadius: "50%",
+    background: active ? (colours.purple || "#6A1B9A") : "#E2E8F0",
+    transition: "background 0.2s",
+  });
+  const optionBtn = (selected) => ({
+    display: "block", width: "100%", textAlign: "left", padding: "14px 16px",
+    border: `2px solid ${selected ? (colours.purple || "#6A1B9A") : "#E2E8F0"}`,
+    borderRadius: 12, background: selected ? "#F5ECFB" : "#fff", cursor: "pointer",
+    marginBottom: 8, fontSize: 14, fontWeight: selected ? 700 : 500, color: colours.text || "#111",
+    transition: "all 0.15s",
+  });
+  const fieldLabel = { fontSize: 12, fontWeight: 700, color: colours.muted || "#64748B", textTransform: "uppercase", marginBottom: 6, letterSpacing: 0.3 };
+  const fieldGroup = { marginBottom: 16 };
+
+  const steps = ["Staff", "Job", "Details", "Done"];
+
+  return (
+    <div style={overlay} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div style={modal}>
+        {/* Header */}
+        <div style={header}>
+          <div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: colours.purple || "#6A1B9A" }}>⏱️ Log Time</div>
+            <div style={{ fontSize: 12, color: colours.muted || "#64748B", marginTop: 2 }}>Step {Math.min(step + 1, 3)} of 3 — {steps[step]}</div>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: colours.muted || "#64748B", padding: 4 }}>✕</button>
+        </div>
+
+        <div style={body}>
+          {/* Step dots */}
+          <div style={stepDots}>
+            {[0,1,2].map(i => <div key={i} style={dot(step >= i)} />)}
+          </div>
+
+          {/* Step 0: Pick staff */}
+          {step === 0 && (
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 12 }}>Who logged the time?</div>
+              <div style={{ maxHeight: 300, overflowY: "auto" }}>
+                {allStaff.map(s => (
+                  <button key={s} style={optionBtn(selectedStaffName === s)} onClick={() => setSelectedStaffName(s)}>
+                    👤 {s}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 16 }}>
+                <button
+                  style={{ ...buttonPrimary, opacity: selectedStaffName ? 1 : 0.5, padding: "10px 28px" }}
+                  disabled={!selectedStaffName}
+                  onClick={() => setStep(1)}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 1: Pick job */}
+          {step === 1 && (
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 12 }}>Which job?</div>
+              <div style={{ maxHeight: 300, overflowY: "auto" }}>
+                {jobs.length === 0 ? (
+                  <div style={{ textAlign: "center", padding: 30, color: colours.muted }}>No jobs found. Create a job first.</div>
+                ) : (
+                  jobs.map(j => {
+                    const client = clientMap[String(j.clientId)];
+                    return (
+                      <button key={j.id} style={optionBtn(selectedJobId === j.id)} onClick={() => setSelectedJobId(j.id)}>
+                        <div style={{ fontWeight: 700 }}>{j.title || "Untitled"}</div>
+                        {client && <div style={{ fontSize: 12, color: colours.muted, marginTop: 2 }}>{client.name}</div>}
+                        {j.startDate && <div style={{ fontSize: 11, color: colours.muted, marginTop: 2 }}>📅 {fmtDateAU(j.startDate)}</div>}
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 16 }}>
+                <button style={{ ...buttonSecondary, padding: "10px 20px" }} onClick={() => setStep(0)}>← Back</button>
+                <button
+                  style={{ ...buttonPrimary, opacity: selectedJobId ? 1 : 0.5, padding: "10px 28px" }}
+                  disabled={!selectedJobId}
+                  onClick={() => setStep(2)}
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 2: Enter details */}
+          {step === 2 && (
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 16 }}>Enter time details</div>
+
+              <div style={fieldGroup}>
+                <div style={fieldLabel}>Date</div>
+                <input type="date" style={{ ...inputStyle }} value={entryDate} onChange={e => setEntryDate(e.target.value)} />
+              </div>
+
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 12 }}>
+                <button
+                  style={{ ...(!useManual ? buttonPrimary : buttonSecondary), padding: "6px 16px", fontSize: 12 }}
+                  onClick={() => setUseManual(false)}
+                >
+                  Start / End Time
+                </button>
+                <button
+                  style={{ ...(useManual ? buttonPrimary : buttonSecondary), padding: "6px 16px", fontSize: 12 }}
+                  onClick={() => setUseManual(true)}
+                >
+                  Manual Hours
+                </button>
+              </div>
+
+              {!useManual ? (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                  <div style={fieldGroup}>
+                    <div style={fieldLabel}>Start Time</div>
+                    <input type="time" style={{ ...inputStyle }} value={startTime} onChange={e => setStartTime(e.target.value)} />
+                  </div>
+                  <div style={fieldGroup}>
+                    <div style={fieldLabel}>End Time</div>
+                    <input type="time" style={{ ...inputStyle }} value={endTime} onChange={e => setEndTime(e.target.value)} />
+                  </div>
+                </div>
+              ) : (
+                <div style={fieldGroup}>
+                  <div style={fieldLabel}>Hours</div>
+                  <input type="number" step="0.25" min="0" max="24" style={{ ...inputStyle }} value={manualHours} onChange={e => setManualHours(e.target.value)} placeholder="e.g. 8" />
+                </div>
+              )}
+
+              <div style={{
+                background: "#F5ECFB", borderRadius: 10, padding: "12px 16px", marginBottom: 16,
+                display: "flex", alignItems: "center", gap: 10,
+              }}>
+                <span style={{ fontSize: 24 }}>⏱️</span>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: colours.muted }}>Calculated Hours</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: colours.purple || "#6A1B9A" }}>{computedHours.toFixed(1)}h</div>
+                </div>
+              </div>
+
+              <div style={fieldGroup}>
+                <div style={fieldLabel}>Notes (optional)</div>
+                <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={notes} onChange={e => setNotes(e.target.value)} placeholder="Any notes about this time entry..." />
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+                <button style={{ ...buttonSecondary, padding: "10px 20px" }} onClick={() => setStep(1)}>← Back</button>
+                <button
+                  style={{ ...buttonPrimary, opacity: computedHours > 0 ? 1 : 0.5, padding: "10px 28px" }}
+                  disabled={computedHours <= 0 || saving}
+                  onClick={handleSave}
+                >
+                  {saving ? "Saving..." : "Save Entry ✓"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Done */}
+          {step === 3 && (
+            <div style={{ textAlign: "center", padding: "20px 0" }}>
+              <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: colours.text, marginBottom: 6 }}>Time logged!</div>
+              <div style={{ fontSize: 14, color: colours.muted, marginBottom: 8 }}>
+                {computedHours.toFixed(1)}h for <strong>{selectedStaffName}</strong>
+              </div>
+              <div style={{ fontSize: 13, color: colours.muted, marginBottom: 24 }}>
+                {fmtDateAU(entryDate)} · {jobs.find(j => String(j.id) === String(selectedJobId))?.title || ""}
+              </div>
+              <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+                <button style={{ ...buttonSecondary, padding: "10px 20px" }} onClick={onClose}>Done</button>
+                <button style={{ ...buttonPrimary, padding: "10px 20px" }} onClick={() => {
+                  setStep(0);
+                  setSelectedStaffName("");
+                  setSelectedJobId("");
+                  setEntryDate(fmtDate(new Date()));
+                  setStartTime("08:00");
+                  setEndTime("16:00");
+                  setManualHours("");
+                  setNotes("");
+                }}>
+                  Log Another
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Main TimesheetsPage ────────────────────────────────────────────────────
 export default function TimesheetsPage({
   jobs = [], clients = [], colours = {}, cardStyle = {}, buttonPrimary = {}, buttonSecondary = {},
   inputStyle = {}, labelStyle = {}, currency = v => `$${Number(v||0).toFixed(2)}`,
@@ -45,8 +301,9 @@ export default function TimesheetsPage({
   const weekDates = getWeekDates(weekStart);
   const weekEnd = weekDates[6];
   const [selectedStaff, setSelectedStaff] = useState("all");
-  const [editingCell, setEditingCell] = useState(null); // { jobId, dateStr }
+  const [editingCell, setEditingCell] = useState(null);
   const [editHours, setEditHours] = useState("");
+  const [showWizard, setShowWizard] = useState(false);
 
   const weekLabel = `${fmtDateAU(fmtDate(weekStart))} – ${fmtDateAU(fmtDate(weekEnd))}`;
 
@@ -54,39 +311,32 @@ export default function TimesheetsPage({
   const nextWeek = () => { const d = new Date(weekStart); d.setDate(d.getDate() + 7); setWeekStart(d); };
   const goThisWeek = () => setWeekStart(getWeekStart(today));
 
-  // Build client map
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [String(c.id), c])), [clients]);
 
-  // Collect all unique staff from jobs
   const allStaff = useMemo(() => {
     const set = new Set();
     jobs.forEach(j => {
       if (j.assignedTo) set.add(j.assignedTo);
-      // Also check timeEntries for staff names
       (j.timeEntries || []).forEach(te => { if (te.staff) set.add(te.staff); });
     });
-    // Add the owner/profile name
     const ownerName = profile.businessName || profile.name || "Owner";
     set.add(ownerName);
     return Array.from(set).sort();
   }, [jobs, profile]);
 
-  // Filter jobs that fall within the selected week
   const weekJobs = useMemo(() => {
     const ws = fmtDate(weekStart);
     const we = fmtDate(weekEnd);
     return jobs.filter(j => {
       const jStart = j.startDate || "";
       const jEnd = j.endDate || jStart;
-      // Job overlaps with week if job start <= week end AND job end >= week start
       return jStart <= we && jEnd >= ws;
     });
   }, [jobs, weekStart, weekEnd]);
 
-  // Build timesheet data: for each job, for each day, calculate hours
   const timesheetData = useMemo(() => {
     const ownerName = profile.businessName || profile.name || "Owner";
-    const data = []; // { jobId, jobTitle, clientName, assignedTo, days: { dateStr: hours }, totalHours }
+    const data = [];
 
     const filteredJobs = selectedStaff === "all" ? weekJobs : weekJobs.filter(j => {
       const assigned = j.assignedTo || ownerName;
@@ -103,12 +353,10 @@ export default function TimesheetsPage({
         const dateStr = fmtDate(d);
         let hrs = 0;
 
-        // Check manual time entries first
         const te = (j.timeEntries || []).find(t => t.date === dateStr && (!selectedStaff || selectedStaff === "all" || t.staff === selectedStaff));
         if (te) {
           hrs = Number(te.hours || 0);
         } else if (j.startDate === dateStr || (j.startDate <= dateStr && (j.endDate || j.startDate) >= dateStr)) {
-          // Auto-calculate from job start/end times
           hrs = calcHours(j.startTime, j.endTime);
         }
 
@@ -124,7 +372,6 @@ export default function TimesheetsPage({
     return data;
   }, [weekJobs, weekDates, selectedStaff, clientMap, profile]);
 
-  // Totals per day
   const dayTotals = useMemo(() => {
     const totals = {};
     weekDates.forEach(d => { totals[fmtDate(d)] = 0; });
@@ -136,7 +383,6 @@ export default function TimesheetsPage({
 
   const grandTotal = timesheetData.reduce((s, r) => s + r.totalHours, 0);
 
-  // Staff summary for metrics
   const staffSummary = useMemo(() => {
     const map = {};
     timesheetData.forEach(row => {
@@ -146,7 +392,6 @@ export default function TimesheetsPage({
     return Object.entries(map).map(([name, hours]) => ({ name, hours })).sort((a, b) => b.hours - a.hours);
   }, [timesheetData]);
 
-  // Save manual time entry
   const saveTimeEntry = async (jobId, dateStr, hours) => {
     const job = jobs.find(j => String(j.id) === String(jobId));
     if (!job || !saveJob) return;
@@ -158,7 +403,6 @@ export default function TimesheetsPage({
     setEditingCell(null);
   };
 
-  // CSV Export
   const exportTimesheet = () => {
     const rows = timesheetData.map(row => {
       const r = {
@@ -172,7 +416,6 @@ export default function TimesheetsPage({
       if (row.hourlyRate) r["Amount"] = (row.totalHours * row.hourlyRate).toFixed(2);
       return r;
     });
-    // Add totals row
     const totalsRow = { "Staff": "", "Job": "TOTALS", "Client": "" };
     weekDates.forEach((d, i) => { totalsRow[DAYS[i] + " " + fmtDateAU(fmtDate(d))] = dayTotals[fmtDate(d)] || 0; });
     totalsRow["Total Hours"] = grandTotal;
@@ -215,6 +458,7 @@ export default function TimesheetsPage({
       {/* Controls */}
       <SectionCard title="Weekly Timesheet" right={
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <button style={{ ...buttonPrimary, padding: "8px 18px", fontSize: 13 }} onClick={() => setShowWizard(true)}>⏱️ Log Time</button>
           <select style={{ ...inputStyle, width: "auto", minWidth: 140 }} value={selectedStaff} onChange={e => setSelectedStaff(e.target.value)}>
             <option value="all">All Staff</option>
             {allStaff.map(s => <option key={s} value={s}>{s}</option>)}
@@ -231,7 +475,7 @@ export default function TimesheetsPage({
         </div>
 
         {timesheetData.length === 0 ? (
-          <EmptyState icon="⏱️" title="No time recorded this week" message="Jobs with scheduled times will appear here automatically. You can also click any cell to log hours manually." />
+          <EmptyState icon="⏱️" title="No time recorded this week" message="Jobs with scheduled times will appear here automatically. Use the Log Time button or click any cell to log hours manually." />
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
@@ -321,6 +565,22 @@ export default function TimesheetsPage({
           </div>
         )}
       </SectionCard>
+
+      {/* Log Time Wizard Modal */}
+      {showWizard && (
+        <LogTimeWizard
+          jobs={jobs}
+          clients={clients}
+          allStaff={allStaff}
+          colours={colours}
+          inputStyle={inputStyle}
+          buttonPrimary={buttonPrimary}
+          buttonSecondary={buttonSecondary}
+          profile={profile}
+          saveJob={saveJob}
+          onClose={() => setShowWizard(false)}
+        />
+      )}
     </div>
   );
 }
