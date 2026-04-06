@@ -283,15 +283,14 @@ export default function SchedulingPage({
       <DataTable
         columns={[
           { key: "title", label: "Job Title" },
-          { key: "startDate", label: "Date", render: (r) => fmtDateAU(r.startDate) },
-          { key: "startTime", label: "Time", render: (r) => fmtTime(r.startTime) },
-          { key: "clientId", label: "Contact", render: (r) => getClientName(r.clientId) },
-          { key: "propertyId", label: "Property", render: (r) => getPropertyName(r.propertyId) },
-          { key: "status", label: "Status", render: (r) => <StatusBadge status={r.status} colours={colours} /> },
-          { key: "priority", label: "Priority", render: (r) => <PriorityBadge priority={r.priority} /> },
+          { key: "startDate", label: "Date", render: (_v, r) => fmtDateAU(r.startDate) },
+          { key: "startTime", label: "Time", render: (_v, r) => fmtTime(r.startTime) },
+          { key: "clientId", label: "Contact", render: (_v, r) => getClientName(r.clientId) },
+          { key: "propertyId", label: "Property", render: (_v, r) => getPropertyName(r.propertyId) },
+          { key: "status", label: "Status", render: (_v, r) => <StatusBadge status={r.status} colours={colours} /> },
+          { key: "priority", label: "Priority", render: (_v, r) => <PriorityBadge priority={r.priority} /> },
         ]}
-        data={sorted}
-        onRowClick={(row) => setDetailJob(row)}
+        rows={sorted}
       />
     );
   };
