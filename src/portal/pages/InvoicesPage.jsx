@@ -622,19 +622,26 @@ function InvoicesPageInner(props) {
               { key: "invoiceDate", label: "Date", render: (v) => formatDateAU(v) },
               { key: "dueDate", label: "Due", render: (v) => formatDateAU(v) },
               { key: "total", label: "Total", render: (v, row) => formatCurrencyByCode(v, row.currencyCode || getClientCurrencyCode(getClientById(row.clientId))) },
-              { key: "status", label: "Status", render: (v, row) => (
-                <span style={{
-                  display: "inline-block",
-                  padding: "3px 10px",
-                  borderRadius: 20,
-                  fontSize: 12,
-                  fontWeight: 700,
-                  background: row.type === "credit_note" ? "#F5ECFB" : v === "Paid" ? "#dcfce7" : v === "Draft" ? "#f1f5f9" : "#fef9c3",
-                  color: row.type === "credit_note" ? colours.purple : v === "Paid" ? "#16a34a" : v === "Draft" ? "#64748b" : "#b45309",
-                }}>
-                  {row.type === "credit_note" ? "CN" : v === "Paid" ? "Paid" : v || "Draft"}
-                </span>
-              )},
+              { key: "status", label: "Status", render: (v, row) => {
+                const isOverdue = v !== "Paid" && row.dueDate && new Date(row.dueDate) < new Date();
+                const displayStatus = row.type === "credit_note" ? "CN" : isOverdue && v !== "Paid" ? "Overdue" : row.viewStatus || v || "Draft";
+                const statusColors = {
+                  Paid: { bg: "#dcfce7", color: "#16a34a" },
+                  Draft: { bg: "#f1f5f9", color: "#64748b" },
+                  Sent: { bg: "#E3F2FD", color: "#1565C0" },
+                  Viewed: { bg: "#F3E5F5", color: "#6A1B9A" },
+                  "Partially Paid": { bg: "#FFF3E0", color: "#E65100" },
+                  Overdue: { bg: "#FFEBEE", color: "#C62828" },
+                  CN: { bg: "#F5ECFB", color: colours.purple },
+                };
+                const sc = statusColors[displayStatus] || { bg: "#fef9c3", color: "#b45309" };
+                return (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 10px", borderRadius: 20, fontSize: 12, fontWeight: 700, background: sc.bg, color: sc.color }}>
+                    {displayStatus}
+                    {row.viewedAt && displayStatus !== "CN" && <span title={`Viewed ${row.viewedAt}`} style={{ fontSize: 10 }}>👁</span>}
+                  </span>
+                );
+              }},
               {
                 key: "actions",
                 label: "",
