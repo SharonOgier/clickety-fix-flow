@@ -58,7 +58,7 @@ export default function AuthPage(props) {
       <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gap: 20 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
           <div style={{ fontSize: 24, fontWeight: 900, color: colours.purple }}>
-            {profile.businessName || "Sharon's Accounting Service"}
+            {profile.businessName || "My Business"}
           </div>
           <a
             href="#portal-login"

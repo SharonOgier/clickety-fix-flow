@@ -198,7 +198,7 @@ export default function JobCostingPanel({ job, onUpdate, colours, cardStyle, inp
                           html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px;">
                             <h2 style="color:#6A1B9A;">Subcontractor Portal Invitation</h2>
                             <p>You've been invited to submit costs for job <strong>${job.title || job.name || job.id}</strong>.</p>
-                            <p>Sign up at <a href="https://sharonogier.com/portal?mode=signup">sharonogier.com/portal</a> to access your subcontractor portal.</p>
+                            <p>Sign up at <a href="${window.location.origin}/portal?mode=signup">${window.location.origin}/portal</a> to access your subcontractor portal.</p>
                           </div>`,
                         },
                       });

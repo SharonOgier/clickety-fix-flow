@@ -794,10 +794,15 @@ export const formatMonthLabel = (value) => {
 const TRIAL_DAYS = 14;
 const FREE_ACCESS_EMAILS = [];
 
+// Owner override emails that always get full access (managed in tierConfig.js)
+const OWNER_OVERRIDE_EMAILS_ACCESS = new Set([
+  "info@sharonogier.com",
+  "sharonlogier@gmail.com",
+]);
+
 export function getSubscriptionAccess(profile) {
-  const MASTER_EMAILS = ["info@sharonogier.com", "sharon@sharonogier.com"];
   const email = (profile?.email || "").toLowerCase().trim();
-  if (MASTER_EMAILS.includes(email)) return { allowed: true, reason: "master" };
+  if (OWNER_OVERRIDE_EMAILS_ACCESS.has(email)) return { allowed: true, reason: "master" };
   if (FREE_ACCESS_EMAILS.includes(email)) return { allowed: true, reason: "whitelisted" };
   const status = profile?.subscriptionStatus || "";
   const trialStarted = profile?.trialStartedAt || profile?.setupCompletedAt || "";
