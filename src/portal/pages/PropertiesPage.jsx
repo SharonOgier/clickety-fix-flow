@@ -118,7 +118,7 @@ function PropertyForm({ form, setForm, clients = [], inputStyle, labelStyle, car
 // ---------------------------------------------------------------------------
 // PROPERTY DETAIL VIEW
 // ---------------------------------------------------------------------------
-function PropertyDetail({ property, clients, colours, cardStyle, buttonSecondary, setActivePage }) {
+function PropertyDetail({ property, clients, colours, cardStyle, buttonSecondary, setActivePage, jobs = [] }) {
   const client = clients.find(c => String(c.id) === String(property.clientId));
   const subs = property.subLocations || [];
   const hasCoords = property.gpsLat && property.gpsLng;
