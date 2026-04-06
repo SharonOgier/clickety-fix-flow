@@ -168,6 +168,25 @@ export default function AssetsPage(props) {
               <input type="number" style={inputStyle} value={form.purchasePrice} onChange={e => setForm(p => ({ ...p, purchasePrice: e.target.value }))} />
             </div>
             <div>
+              <label style={labelStyle}>Linked Purchase Expense</label>
+              <select style={inputStyle} value={form.linkedExpenseId || ""} onChange={e => {
+                const exp = expenses.find(ex => String(ex.id) === e.target.value);
+                setForm(p => ({
+                  ...p,
+                  linkedExpenseId: e.target.value,
+                  purchasePrice: exp ? String(safeNumber(exp.amount)) : p.purchasePrice,
+                  purchaseDate: exp?.date || p.purchaseDate,
+                }));
+              }}>
+                <option value="">— none —</option>
+                {expenses.filter(e => safeNumber(e.amount) > 0).map(e => (
+                  <option key={e.id} value={e.id}>
+                    {e.date} — {e.supplier || e.category} — {currency(safeNumber(e.amount))}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
               <label style={labelStyle}>Depreciation Method</label>
               <select style={inputStyle} value={form.depreciationMethod} onChange={e => setForm(p => ({ ...p, depreciationMethod: e.target.value }))}>
                 {DEPRECIATION_METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
