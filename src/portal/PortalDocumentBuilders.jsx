@@ -1053,4 +1053,246 @@ const blob = new Blob([html], { type: "text/html" });
 openBlobUrlInWindow(w, blob);
 }
 
+// ── Job Sheet / Run Sheet Builder ─────────────────────────────────────────
+export function buildJobSheetHtml(job, ctx = {}) {
+  const { profile = {}, clients = [], properties = [] } = ctx;
+  const getClientById = (id) => clients.find((c) => String(c.id) === String(id) || c.id === safeNumber(id));
+  const getPropertyById = (id) => properties.find((p) => String(p.id) === String(id) || p.id === safeNumber(id));
+  const getDocumentBusinessName = () => profile.hideLegalNameOnDocs || !profile.legalBusinessName ? profile.businessName : profile.legalBusinessName;
+  const getDocumentAddress = () => profile.hideAddressOnDocs ? "" : profile.address || "";
+
+  const client = getClientById(job.clientId);
+  const property = getPropertyById(job.propertyId);
+  const subLocation = job.subLocationId && property?.subLocations
+    ? (property.subLocations || []).find((s) => String(s.id) === String(job.subLocationId))
+    : null;
+
+  const businessName = escapeHtml(getDocumentBusinessName() || "");
+  const businessAddress = escapeHtml(getDocumentAddress());
+  const businessEmail = escapeHtml(profile.email || "");
+  const businessPhone = escapeHtml(profile.phone || "");
+  const businessAbn = escapeHtml(profile.abn || "");
+  const clientName = escapeHtml(client?.name || "");
+  const clientPhone = escapeHtml(client?.phone || "");
+  const clientEmail = escapeHtml(client?.email || "");
+  const clientAddress = escapeHtml(client?.address || client?.addressDetails || "");
+  const propertyName = escapeHtml(property?.name || "");
+  const propertyAddress = escapeHtml(property?.address || "");
+  const subLocName = escapeHtml(subLocation?.name || "");
+
+  const fmtDate = (iso) => {
+    if (!iso) return "—";
+    const p = iso.split("-");
+    return `${p[2]}/${p[1]}/${p[0]}`;
+  };
+  const fmtTime = (t) => {
+    if (!t) return "";
+    const [h, m] = t.split(":");
+    const hh = +h;
+    return `${hh > 12 ? hh - 12 : hh || 12}:${m} ${hh >= 12 ? "pm" : "am"}`;
+  };
+
+  // Gather materials from job costs
+  const materials = (job.costs?.materials || []).filter((m) => m.description || m.item);
+  const hasMaterials = materials.length > 0;
+
+  return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Job Sheet — ${escapeHtml(job.title || "")}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: Arial, sans-serif; padding: 32px 40px; color: #14202B; margin: 0; }
+  .print-toolbar { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .print-button { background: #6A1B9A; color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-weight: 700; cursor: pointer; text-decoration: none; display: inline-block; font-size: 14px; }
+  .email-button { background: #006D6D; color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-weight: 700; cursor: pointer; font-size: 14px; }
+  @media print {
+    .print-toolbar { display: none !important; }
+    body { padding: 16px; }
+  }
+
+  .header { display: flex; justify-content: space-between; border-bottom: 2px solid #6A1B9A; padding-bottom: 16px; margin-bottom: 20px; }
+  .header-left .logo img { max-height: 50px; max-width: 180px; object-fit: contain; margin-bottom: 8px; }
+  .header-left h1 { font-size: 26px; font-weight: 900; color: #6A1B9A; margin: 0; }
+  .header-left .biz-info { font-size: 12px; color: #475569; margin-top: 4px; }
+  .header-right { text-align: right; font-size: 13px; }
+  .header-right div { margin-bottom: 4px; }
+
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 14px; font-weight: 800; color: #6A1B9A; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; font-size: 13px; }
+  .info-grid .label { font-weight: 700; color: #64748B; }
+  .info-grid .value { color: #14202B; }
+
+  .description-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px; font-size: 14px; line-height: 1.6; min-height: 60px; white-space: pre-wrap; }
+
+  table.materials { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  table.materials th { text-align: left; padding: 8px 10px; border-bottom: 2px solid #E2E8F0; color: #64748B; font-size: 12px; font-weight: 700; }
+  table.materials td { padding: 8px 10px; border-bottom: 1px solid #F1F5F9; font-size: 13px; }
+
+  .notes-box { background: #FFFBEB; border: 1px solid #FDE68A; border-radius: 10px; padding: 14px; font-size: 13px; line-height: 1.5; min-height: 40px; white-space: pre-wrap; }
+
+  .checklist { list-style: none; padding: 0; margin: 0; }
+  .checklist li { padding: 8px 0; border-bottom: 1px solid #F1F5F9; font-size: 13px; display: flex; align-items: center; gap: 10px; }
+  .checklist li .checkbox { width: 18px; height: 18px; border: 2px solid #CBD5E1; border-radius: 4px; flex-shrink: 0; }
+
+  .signature-area { margin-top: 40px; border-top: 2px solid #E2E8F0; padding-top: 24px; }
+  .sig-row { display: flex; gap: 40px; margin-top: 20px; }
+  .sig-block { flex: 1; }
+  .sig-line { border-bottom: 1px solid #14202B; height: 50px; margin-bottom: 6px; }
+  .sig-label { font-size: 12px; color: #64748B; font-weight: 600; }
+
+  .footer { margin-top: 30px; font-size: 11px; color: #94A3B8; text-align: center; border-top: 1px solid #E2E8F0; padding-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="print-toolbar">
+  <div style="font-size: 13px; color: #64748B;">Job Sheet — ${escapeHtml(job.title || "")}</div>
+  <div style="display: flex; gap: 10px;">
+    <a href="javascript:void(0)" class="print-button" onclick="window.print()">Print / Download PDF</a>
+  </div>
+</div>
+
+<div class="header">
+  <div class="header-left">
+    ${safeLogoDataUrl(profile.logoDataUrl) ? `<div class="logo"><img src="${safeLogoDataUrl(profile.logoDataUrl)}" alt="Logo" /></div>` : ""}
+    <h1>JOB SHEET</h1>
+    <div class="biz-info">${businessName}</div>
+    ${businessAddress ? `<div class="biz-info">${businessAddress}</div>` : ""}
+    <div class="biz-info">${businessEmail}${businessPhone ? ` | ${businessPhone}` : ""}</div>
+    ${businessAbn ? `<div class="biz-info">ABN: ${businessAbn}</div>` : ""}
+  </div>
+  <div class="header-right">
+    <div><strong>Job ref:</strong> #${escapeHtml(String(job.id || ""))}</div>
+    <div><strong>Status:</strong> ${escapeHtml(job.status || "Scheduled")}</div>
+    <div><strong>Priority:</strong> ${escapeHtml(job.priority || "Medium")}</div>
+    <div><strong>Date:</strong> ${fmtDate(job.startDate)}${job.endDate && job.endDate !== job.startDate ? ` – ${fmtDate(job.endDate)}` : ""}</div>
+    <div><strong>Time:</strong> ${fmtTime(job.startTime)} – ${fmtTime(job.endTime)}</div>
+  </div>
+</div>
+
+<!-- Customer / Contact Details -->
+<div class="section">
+  <div class="section-title">Customer Details</div>
+  <div class="info-grid">
+    <div><span class="label">Name:</span></div><div class="value">${clientName || "—"}</div>
+    <div><span class="label">Phone:</span></div><div class="value">${clientPhone || "—"}</div>
+    <div><span class="label">Email:</span></div><div class="value">${clientEmail || "—"}</div>
+    <div><span class="label">Address:</span></div><div class="value">${clientAddress || "—"}</div>
+  </div>
+</div>
+
+${property ? `
+<!-- Property / Site Details -->
+<div class="section">
+  <div class="section-title">Property / Site</div>
+  <div class="info-grid">
+    <div><span class="label">Property:</span></div><div class="value">${propertyName}</div>
+    <div><span class="label">Address:</span></div><div class="value">${propertyAddress || "—"}</div>
+    ${subLocName ? `<div><span class="label">Area:</span></div><div class="value">${subLocName}</div>` : ""}
+  </div>
+</div>
+` : ""}
+
+<!-- Job Description -->
+<div class="section">
+  <div class="section-title">Job Description</div>
+  <div class="description-box">${escapeHtml(job.title || "")}\n${escapeHtml(job.description || "No description provided.")}</div>
+</div>
+
+${hasMaterials ? `
+<!-- Materials Needed -->
+<div class="section">
+  <div class="section-title">Materials Required</div>
+  <table class="materials">
+    <thead>
+      <tr>
+        <th>Item / Description</th>
+        <th style="text-align:right; width:80px;">Qty</th>
+        <th style="text-align:right; width:120px;">Cost</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${materials.map((m) => `
+        <tr>
+          <td>${escapeHtml(m.description || m.item || "")}</td>
+          <td style="text-align:right">${m.quantity || m.qty || "—"}</td>
+          <td style="text-align:right">${m.amount ? formatCurrencyByCode(safeNumber(m.amount), "AUD") : "—"}</td>
+        </tr>
+      `).join("")}
+    </tbody>
+  </table>
+</div>
+` : `
+<div class="section">
+  <div class="section-title">Materials Required</div>
+  <div class="description-box" style="color:#64748B;">No materials listed yet. Add materials to the Job Costing panel.</div>
+</div>
+`}
+
+<!-- Notes -->
+${job.notes ? `
+<div class="section">
+  <div class="section-title">Internal Notes</div>
+  <div class="notes-box">${escapeHtml(job.notes)}</div>
+</div>
+` : ""}
+
+${job.assignedTo ? `
+<div class="section">
+  <div class="section-title">Assigned To</div>
+  <div style="font-size:14px; font-weight:700;">${escapeHtml(job.assignedTo)}</div>
+</div>
+` : ""}
+
+<!-- On-site Checklist (blank lines for manual use) -->
+<div class="section">
+  <div class="section-title">On-Site Checklist</div>
+  <ul class="checklist">
+    <li><div class="checkbox"></div> Site inspection completed</li>
+    <li><div class="checkbox"></div> Safety hazards identified</li>
+    <li><div class="checkbox"></div> Materials on site</li>
+    <li><div class="checkbox"></div> Work completed to standard</li>
+    <li><div class="checkbox"></div> Site cleaned up</li>
+    <li><div class="checkbox"></div> Customer walkthrough done</li>
+  </ul>
+</div>
+
+<!-- Customer Signature -->
+<div class="signature-area">
+  <div class="section-title">Customer Acceptance</div>
+  <p style="font-size: 13px; color: #475569; margin: 0 0 8px;">
+    I confirm the work described above has been completed to my satisfaction.
+  </p>
+  <div class="sig-row">
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-label">Customer Signature</div>
+    </div>
+    <div class="sig-block">
+      <div class="sig-line"></div>
+      <div class="sig-label">Print Name</div>
+    </div>
+    <div class="sig-block" style="max-width: 160px;">
+      <div class="sig-line"></div>
+      <div class="sig-label">Date</div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  ${businessName} ${businessAbn ? `| ABN: ${businessAbn}` : ""} | Generated by Mustered
+</div>
+
+</body>
+</html>`;
+}
+
+export function writeJobSheetPreviewToWindow(w, job, ctx = {}) {
+  const html = buildJobSheetHtml(job, ctx);
+  const blob = new Blob([html], { type: "text/html" });
+  openBlobUrlInWindow(w, blob);
+}
 

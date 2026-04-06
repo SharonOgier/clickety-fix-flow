@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import JobCostingPanel, { computeJobFinancials } from "./JobCostingPanel";
+import { writeJobSheetPreviewToWindow } from "../PortalDocumentBuilders";
 
 /* ─── helpers ──────────────────────────────────────────────────────────── */
 const VIEWS = ["month", "week", "day", "list"];
@@ -59,7 +60,7 @@ export default function SchedulingPage({
   jobs = [], clients = [], properties = [], quotes = [], invoices = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
   inputStyle, labelStyle, DashboardHero, InsightChip, MetricCard, SectionCard, DataTable, EmptyState,
   saveJob, deleteJob, confirm, setActivePage, currency = (v) => `$${Number(v||0).toFixed(2)}`,
-  authUser,
+  authUser, profile = {},
 }) {
   const colours = c;
   const today = new Date();
@@ -464,10 +465,14 @@ export default function SchedulingPage({
                 {detailJob.notes && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📌 Notes</span><br/>{detailJob.notes}</div>}
               </div>
 
-              <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
+              <div style={{ display: "flex", gap: 10, marginTop: 28, flexWrap: "wrap" }}>
                 <button style={buttonPrimary} onClick={() => openEdit(detailJob)}>Edit Job</button>
                 <button style={{ ...buttonSecondary, color: "#C62828" }} onClick={() => handleDelete(detailJob)}>Delete</button>
                 <button style={buttonSecondary} onClick={() => setDetailTab("costs")}>View Costs</button>
+                <button style={{ ...buttonSecondary, color: "#6A1B9A", borderColor: "#6A1B9A" }} onClick={() => {
+                  const w = window.open("", "_blank");
+                  if (w) writeJobSheetPreviewToWindow(w, detailJob, { profile, clients, properties });
+                }}>📄 Job Sheet</button>
               </div>
             </>)}
 
