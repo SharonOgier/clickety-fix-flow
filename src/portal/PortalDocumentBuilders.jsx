@@ -753,7 +753,7 @@ const cardPaymentUrl = safeHref(stripeCheckoutUrl || invoice?.stripeCheckoutUrl 
 const documentOrigin =
   typeof window !== "undefined" && window.location?.origin
     ? window.location.origin
-    : "https://sharonogier.com";
+    : "";
 const cardCheckoutFunctionUrl = safeHref(
   SUPABASE_FUNCTIONS_BASE_URL
     ? `${SUPABASE_FUNCTIONS_BASE_URL}/functions/v1/create-invoice-checkout`

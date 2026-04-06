@@ -623,7 +623,7 @@ export default function ATOTaxFormPage({
 
       </div>
       <div style={{padding:"10px 18px",borderTop:`1px solid ${BORDER}`,fontSize:12,color:"#666",background:"#fff",textAlign:"center"}}>
-        © Sharon's Accounting Service — Teal #006d6d · Purple #6a1b9a
+        © {profile.businessName || "My Business"}
       </div>
     </div>
   );
