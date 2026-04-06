@@ -4361,7 +4361,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               exportToATOForm={exportToATOForm}
               restorePortalStateFromSupabase={restorePortalStateFromSupabase}
               saveAllCurrentStateToSupabase={saveAllCurrentStateToSupabase}
-              supabaseSyncStatus={supabaseSyncStatus} getClientName={getClientName}
+               supabaseSyncStatus={supabaseSyncStatus} getClientName={getClientName}
+               properties={properties} jobs={jobs}
             />}
             {activePage === "financial insights" && <FinancialInsightsPage
               profile={profile} totals={totals} invoiceAllocations={invoiceAllocations}
