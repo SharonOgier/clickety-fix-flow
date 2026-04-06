@@ -1077,6 +1077,16 @@ export default function SchedulingPage({
                 <div><span style={{ color: colours.muted, fontWeight: 600 }}>🕐 Time</span><br/>{fmtTime(detailJob.startTime)} – {fmtTime(detailJob.endTime)}</div>
                 {detailJob.clientId && <div><span style={{ color: colours.muted, fontWeight: 600 }}>👤 Contact</span><br/>{getClientName(detailJob.clientId)}</div>}
                 {detailJob.propertyId && <div><span style={{ color: colours.muted, fontWeight: 600 }}>🏠 Property</span><br/>{getPropertyName(detailJob.propertyId)}{detailJob.subLocationId ? ` › ${getSubLocations(detailJob.propertyId).find(s => s.id === detailJob.subLocationId)?.name || ""}` : ""}</div>}
+                {getJobAddress(detailJob) && (
+                  <div>
+                    <span style={{ color: colours.muted, fontWeight: 600 }}>📍 Address</span><br/>
+                    <span>{getJobAddress(detailJob)}</span>
+                    <button onClick={() => openNavigation(getJobAddress(detailJob))}
+                      style={{ background: "#1565C0", color: "#fff", border: "none", borderRadius: 8, padding: "4px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer", marginLeft: 8, verticalAlign: "middle" }}>
+                      🧭 Navigate
+                    </button>
+                  </div>
+                )}
                 {detailJob.assignedTo && <div><span style={{ color: colours.muted, fontWeight: 600 }}>👷 Assigned to</span><br/>{detailJob.assignedTo}</div>}
                 {detailJob.description && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📝 Description</span><br/>{detailJob.description}</div>}
                 {detailJob.notes && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📌 Notes</span><br/>{detailJob.notes}</div>}
