@@ -4028,6 +4028,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     }
 
     return (
+    <TerminologyProvider businessType={profile.businessType} customOverrides={profile.terminologyOverrides}>
     <div
       style={{
         minHeight: "100vh",
