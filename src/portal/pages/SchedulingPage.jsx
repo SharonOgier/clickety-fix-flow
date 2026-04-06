@@ -642,6 +642,24 @@ export default function SchedulingPage({
     return p?.subLocations || [];
   };
 
+  const getJobAddress = (job) => {
+    const prop = propertyMap[String(job.propertyId)];
+    if (prop?.address) return prop.address;
+    const client = clientMap[String(job.clientId)];
+    return client?.address || client?.addressDetails || "";
+  };
+
+  const openNavigation = (address) => {
+    if (!address) { alert("No address found for this job. Add an address to the linked property or contact."); return; }
+    const encoded = encodeURIComponent(address);
+    // Detect iOS/macOS for Apple Maps, otherwise Google Maps
+    const isApple = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
+    const url = isApple
+      ? `https://maps.apple.com/?daddr=${encoded}`
+      : `https://www.google.com/maps/dir/?api=1&destination=${encoded}`;
+    window.open(url, "_blank");
+  };
+
   /* ── filter + search ─────────────────────────────────────── */
   const filtered = useMemo(() => {
     let list = jobs;
