@@ -298,6 +298,10 @@ serve(async (req: Request) => {
         html = buildJobCompletedHtml(jobWithAddr, profile || {}, client, invoiceInfo);
         subject = `Job Completed — ${job.title || "Your job"}${invoiceInfo ? ` | Invoice #${invoiceInfo.invoiceNumber}` : ""}`;
         break;
+      case "review-request":
+        html = buildReviewRequestHtml(jobWithAddr, profile || {}, client, googleReviewUrl, portalUrl);
+        subject = `How was your experience with ${biz}? ⭐`;
+        break;
       default:
         return new Response(JSON.stringify({ error: `Unknown notification type: ${type}` }), {
           status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
