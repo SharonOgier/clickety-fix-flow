@@ -249,8 +249,13 @@ export default function ATOTaxFormPage({
     const fc      = sumKey(allInc,"franking");
     const mapped  = wages+biz+int_+for_+div;
     const other   = Math.max(0,sumKey(allInc,"gross")-mapped);
-    const ded     = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
-    setItr(p=>({...p,salary:wages||"",business:biz||"",interest:int_||"",foreign:for_||"",other:other||"",payg:payg||"",franked:franked||"",fc:fc||"",dWork:ded||"",dOther:totalDepreciation?"":""}));
+
+    // Separate mileage/car expenses from other work-related deductions
+    const carDed  = allExp.filter(x=>{const t=(x.type||"").toLowerCase();return t.includes("car")||t.includes("mileage");}).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
+    const subDed  = allExp.filter(x=>(x.type||"").toLowerCase().includes("subcontractor")).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
+    const workDed = allExp.filter(x=>{const t=(x.type||"").toLowerCase();return t!=="capital item"&&!t.includes("car")&&!t.includes("mileage")&&!t.includes("subcontractor");}).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
+
+    setItr(p=>({...p,salary:wages||"",business:biz||"",interest:int_||"",foreign:for_||"",other:other||"",payg:payg||"",franked:franked||"",fc:fc||"",dWork:workDed+subDed||"",dCar:carDed||"",dOther:totalDepreciation?"":""}));
   };
 
   const applyCGT = () => {
