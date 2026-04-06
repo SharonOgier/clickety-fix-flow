@@ -549,8 +549,14 @@ export default function ClientsPage(props) {
             {
               key: "actions", label: "",
               render: (_, row) => (
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button style={buttonSecondary} onClick={() => openClientEditor(row)}>View / Edit</button>
+                  {(row.roles || []).includes("customer") && (
+                    <button style={{ ...buttonSecondary, color: "#6A1B9A" }} onClick={(e) => {
+                      e.stopPropagation();
+                      handlePortalLink(row);
+                    }}>🔗 Portal Link</button>
+                  )}
                   <button style={{ ...buttonSecondary, color: "#DC2626" }} onClick={() => deleteClient(row.id)}>Delete</button>
                 </div>
               ),
