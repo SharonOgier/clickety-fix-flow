@@ -471,8 +471,10 @@ export default function AccountingPortalPrototype() {
       address,
       personalAddress: address,
       abn: String(wizardForm.abn || "").trim(),
-      workType: wizardForm.workType || "Financial / Management Accountant",
+      workType: wizardForm.workType || "",
       gstRegistered: Boolean(wizardForm.gstRegistered),
+      businessType: wizardForm.businessType || "tradie",
+      industry: wizardForm.industry || "",
     };
   };
 
