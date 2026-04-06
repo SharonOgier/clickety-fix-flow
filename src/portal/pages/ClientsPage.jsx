@@ -291,7 +291,8 @@ export default function ClientsPage(props) {
     editingClientId,
     setEditingClientId = () => {},
     clientModalForm,
-    setClientModalForm = () => {},
+     setClientModalForm = () => {},
+     jobs = [],
   } = props;
 
   // ---- Local fallbacks ----
