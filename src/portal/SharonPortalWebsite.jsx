@@ -2994,6 +2994,42 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       toast.error(error.message || "Could not convert quote to invoice");
     }
     };
+
+    const convertQuoteToJob = async (quote) => {
+      if (!quote?.id) return;
+      try {
+        // Mark quote as Accepted
+        const acceptedQuote = { ...quote, status: "Accepted" };
+        const savedQuote = await upsertRecordInDatabase(SUPABASE_TABLES.quotes, acceptedQuote);
+        setQuotes((prev) => prev.map((q) => q.id === quote.id ? savedQuote : q));
+
+        // Create job from quote data
+        const jobPayload = {
+          id: Date.now(),
+          title: quote.description || `Job from Quote #${quote.quoteNumber || quote.id}`,
+          clientId: quote.clientId || "",
+          status: "Scheduled",
+          priority: "Medium",
+          startDate: todayLocal(),
+          startTime: "09:00",
+          endDate: todayLocal(),
+          endTime: "17:00",
+          quoteId: String(quote.id),
+          quotedTotal: safeNumber(quote.total),
+          colour: "#6A1B9A",
+          notes: `Created from Quote #${quote.quoteNumber || quote.id}`,
+          costs: { labour: [], materials: [], subcontractor: [], misc: [] },
+        };
+        const savedJob = await upsertRecordInDatabase(SUPABASE_TABLES.jobs, jobPayload);
+        setJobs((prev) => [...prev, savedJob]);
+
+        toast.success(`Job created from Quote #${quote.quoteNumber || quote.id}!`);
+        setActivePage("scheduling");
+      } catch (error) {
+        console.error("CONVERT QUOTE TO JOB ERROR:", error);
+        toast.error(error.message || "Could not convert quote to job");
+      }
+    };
     const sendInvoiceFromPreview = async (invoiceId, previewWindow) => {
     const invoice = invoices.find((item) => String(item.id) === String(invoiceId));
     if (!invoice) {

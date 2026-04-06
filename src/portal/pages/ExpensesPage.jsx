@@ -473,6 +473,8 @@ export default function ExpensesPage(props) {
         safeNumber={safeNumber}
         SectionCard={SectionCard}
         DataTable={DataTable}
+        jobs={jobs}
+        getClientName={getClientName}
       />
     </div>
     );
