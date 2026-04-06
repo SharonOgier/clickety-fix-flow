@@ -174,6 +174,7 @@ export default function AccountingPortalPrototype() {
   const [suppliers, setSuppliers] = useState([]);
   const [assets, setAssets] = useState([]);
   const [properties, setProperties] = useState([]);
+  const [jobs, setJobs] = useState([]);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
