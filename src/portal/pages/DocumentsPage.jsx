@@ -98,7 +98,7 @@ export default function DocumentsPage(props) {
                 </div>
               )},
             ]}
-            rows={documents}
+            rows={safeDocuments}
           />
         ) : (
           <div style={{ color: colours.muted, fontSize: 14 }}>No documents uploaded yet.</div>
