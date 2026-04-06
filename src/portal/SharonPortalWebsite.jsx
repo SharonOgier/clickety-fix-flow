@@ -1338,7 +1338,7 @@ export default function AccountingPortalPrototype() {
     });
   };
 
-
+  const saveClient = async () => {
     if (!clientModalForm.name.trim()) { toast.warning("Client name is required"); return; }
     try {
       const payload = { ...clientModalForm, id: editingClientId || Date.now() };
