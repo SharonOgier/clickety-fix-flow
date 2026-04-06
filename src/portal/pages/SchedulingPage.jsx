@@ -1194,12 +1194,20 @@ export default function SchedulingPage({
                     >
                       {notifSending === "job-completed" ? "Sending…" : "✅ Send Completion + Invoice"}
                     </button>
+                    <button
+                      style={{ ...buttonSecondary, fontSize: 12, padding: "6px 14px", color: "#F57F17", borderColor: "#F57F17", opacity: notifSending ? 0.6 : 1 }}
+                      disabled={!!notifSending}
+                      onClick={() => sendReviewRequest(detailJob)}
+                    >
+                      {notifSending === "review-request" ? "Sending…" : "⭐ Request Review"}
+                    </button>
                   </div>
                   {/* Sent indicators */}
                   <div style={{ marginTop: 8, display: "flex", gap: 12, flexWrap: "wrap" }}>
                     {detailJob.bookingConfirmationSent && <span style={{ fontSize: 11, color: "#2E7D32" }}>✓ Booking sent {new Date(detailJob.bookingConfirmationSent).toLocaleDateString()}</span>}
                     {detailJob.dayBeforeReminderSent && <span style={{ fontSize: 11, color: "#1E88E5" }}>✓ Reminder sent {new Date(detailJob.dayBeforeReminderSent).toLocaleDateString()}</span>}
                     {detailJob.completionNotificationSent && <span style={{ fontSize: 11, color: "#2E7D32" }}>✓ Completion sent {new Date(detailJob.completionNotificationSent).toLocaleDateString()}</span>}
+                    {detailJob.reviewRequestSent && <span style={{ fontSize: 11, color: "#F57F17" }}>⭐ Review request sent {new Date(detailJob.reviewRequestSent).toLocaleDateString()}</span>}
                   </div>
                 </div>
               )}
