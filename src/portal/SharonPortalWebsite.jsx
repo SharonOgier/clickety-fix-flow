@@ -4469,6 +4469,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               saveExpenseEdits={saveExpenseEdits}
               resetExpenseModal={resetExpenseModal} nextExpenseModalStep={nextExpenseModalStep}
               totals={totals} uploadReceiptToSupabase={uploadReceiptToSupabase}
+              jobs={jobs} clients={clients} getClientName={getClientName}
               setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
             />}
             {activePage === "assets" && <AssetsPage
