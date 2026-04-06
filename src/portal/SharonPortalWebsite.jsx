@@ -486,6 +486,7 @@ export default function AccountingPortalPrototype() {
       setupCompletedAt: new Date().toISOString(),
       trialStartedAt: new Date().toISOString(),
       subscriptionStatus: "trialing",
+      subscriptionTier: wizardForm.selectedTier || "pro",
     };
     const wizardErrors = collectValidationErrors(
       !nextProfile.businessName && "Please enter your business name.",
