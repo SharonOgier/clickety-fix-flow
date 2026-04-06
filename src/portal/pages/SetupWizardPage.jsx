@@ -309,8 +309,8 @@ export default function SetupWizardPage(props) {
           </div>
         );
 
-      /* ── Step 3: Quick Start ──────────────────────────────────── */
-      case 3: {
+      /* ── Step 4: Quick Start ──────────────────────────────────── */
+      case 4: {
         const items = QUICK_START[wizardForm.businessType] || QUICK_START.tradie;
         return (
           <div style={{ display: "grid", gap: 20 }}>
