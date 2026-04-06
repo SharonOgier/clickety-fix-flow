@@ -4601,7 +4601,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                 <ATOTaxFormPage
                   profile={profile} invoices={invoices} expenses={expenses}
                   incomeSources={incomeSources} getClientById={getClientById}
-                  assets={assets}
+                  assets={assets} subcontractorCosts={subcontractorCosts}
                 />
               </div>
             )}
