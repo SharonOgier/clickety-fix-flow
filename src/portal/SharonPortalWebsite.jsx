@@ -3220,6 +3220,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         workType: profile.workType,
         receiptFileName: "",
         receiptUrl: "",
+        jobId: "",
+        contactId: "",
       });
       setSupabaseSyncStatus("Expense saved to Supabase database");
       setReceiptFile(null);
