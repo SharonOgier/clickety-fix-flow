@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./client";
 import { TerminologyProvider } from "./TerminologyContext";
 import MobileWizard from "./MobileWizard";
+import { isPageAllowed, getUserTier, TIERS, PRODUCT_TO_TIER, TIER_ORDER } from "./tierConfig";
+import UpgradePrompt from "./components/UpgradePrompt";
 import {
   ToastContainer,
   useToast,
