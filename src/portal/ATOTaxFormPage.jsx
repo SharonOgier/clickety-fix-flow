@@ -278,8 +278,8 @@ export default function ATOTaxFormPage({
       {/* Header */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"14px 18px",borderBottom:`1px solid ${BORDER}`,background:"#fff",gap:10,flexWrap:"wrap"}}>
         <div>
-          <div style={{fontWeight:800,color:PURPLE,fontSize:18}}>Sharon's Accounting Service</div>
-          <div style={{fontSize:12,color:"#555"}}>ABN {profile.abn||"44869154258"} · {profile.email||"info@sharonogier.com"} · {profile.businessName||""}</div>
+          <div style={{fontWeight:800,color:PURPLE,fontSize:18}}>{profile.businessName || "My Business"}</div>
+          <div style={{fontSize:12,color:"#555"}}>{profile.abn ? `ABN ${profile.abn} · ` : ""}{profile.email || ""}</div>
         </div>
         <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
           <button style={{...ss.outline,...ss.sm}} onClick={()=>dlCSV("income.csv",["date","type","payer","gross","withheld","franked_amount","franking_credit","abn"],allInc.map(r=>[r.date,r.type,r.payer,r.gross,r.withheld,r.franked,r.franking,r.abn]))}>Download Income CSV</button>
