@@ -4627,6 +4627,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               uploadDocument={uploadDocument} deleteDocument={deleteDocument}
               openDocumentEditor={openDocumentEditor} closeDocumentEditor={closeDocumentEditor}
               saveDocumentEdits={saveDocumentEdits}
+              openDocumentFile={openDocumentFile}
+              jobs={jobs} setActivePage={setActivePage} getClientName={getClientName}
             />}
             {activePage === "bank reconciliation" && <BankReconciliationPage
               invoices={invoices} expenses={expenses} clients={clients}
