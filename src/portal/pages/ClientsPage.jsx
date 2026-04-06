@@ -1,22 +1,215 @@
 import React, { useState, useMemo } from "react";
 import { exportToCSV } from "../PortalHelpers";
 
-// -----------------------------------------------------------------------------
-// ClientsPage
-// All state and handlers come from SharonPortalWebsite via props.
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// ROLE DEFINITIONS
+// ---------------------------------------------------------------------------
+const ROLES = [
+  { key: "customer",      label: "Customer",      color: "#2563EB", bg: "#DBEAFE" },
+  { key: "staff",          label: "Staff",          color: "#16A34A", bg: "#DCFCE7" },
+  { key: "subcontractor",  label: "Subcontractor",  color: "#EA580C", bg: "#FED7AA" },
+  { key: "supplier",       label: "Supplier",       color: "#7C3AED", bg: "#EDE9FE" },
+];
 
+const ROLE_MAP = Object.fromEntries(ROLES.map(r => [r.key, r]));
+
+// ---------------------------------------------------------------------------
+// ROLE-SPECIFIC FIELDS (unlocked when role selected)
+// ---------------------------------------------------------------------------
+const ROLE_FIELDS = {
+  subcontractor: [
+    { key: "abn",            label: "ABN",                type: "text" },
+    { key: "tradeType",      label: "Trade type",         type: "text" },
+    { key: "insuranceExpiry", label: "Insurance expiry",   type: "date" },
+    { key: "licenceNumber",  label: "Licence number",     type: "text" },
+  ],
+  supplier: [
+    { key: "productCategories", label: "Product categories", type: "text" },
+    { key: "accountNumber",     label: "Account number",     type: "text" },
+    { key: "paymentTerms",      label: "Payment terms",      type: "text" },
+  ],
+  staff: [
+    { key: "position",         label: "Position / Title",    type: "text" },
+    { key: "startDate",        label: "Start date",          type: "date" },
+    { key: "hourlyRate",       label: "Hourly rate ($)",     type: "number" },
+    { key: "emergencyContact", label: "Emergency contact",   type: "text" },
+  ],
+  customer: [
+    { key: "billingAddress",       label: "Billing address",         type: "text" },
+    { key: "preferredContactMethod", label: "Preferred contact method", type: "select", options: ["Phone", "Email", "SMS", "In person"] },
+  ],
+};
+
+// ---------------------------------------------------------------------------
+// ROLE BADGE COMPONENT
+// ---------------------------------------------------------------------------
+function RoleBadge({ roleKey, small }) {
+  const role = ROLE_MAP[roleKey];
+  if (!role) return null;
+  return (
+    <span style={{
+      display: "inline-block",
+      padding: small ? "2px 8px" : "3px 12px",
+      borderRadius: 999,
+      fontSize: small ? 10 : 11,
+      fontWeight: 700,
+      color: role.color,
+      background: role.bg,
+      letterSpacing: 0.3,
+      textTransform: "uppercase",
+      whiteSpace: "nowrap",
+    }}>{role.label}</span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CONTACT FORM COMPONENT
+// ---------------------------------------------------------------------------
+function ContactForm({ form, setForm, colours, inputStyle, labelStyle, cardStyle, buttonPrimary, buttonSecondary, onSave, onCancel, isEditing }) {
+  const roles = form.roles || [];
+  const toggleRole = (key) => {
+    setForm(prev => {
+      const current = prev.roles || [];
+      return { ...prev, roles: current.includes(key) ? current.filter(r => r !== key) : [...current, key] };
+    });
+  };
+
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      {/* Core fields */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+        <div>
+          <label style={labelStyle}>Contact name *</label>
+          <input style={inputStyle} value={form.name || ""} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Full name or business name" />
+        </div>
+        <div>
+          <label style={labelStyle}>Email</label>
+          <input style={inputStyle} type="email" value={form.email || ""} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} />
+        </div>
+        <div>
+          <label style={labelStyle}>Phone</label>
+          <input style={inputStyle} value={form.phone || ""} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} />
+        </div>
+        <div>
+          <label style={labelStyle}>Business name</label>
+          <input style={inputStyle} value={form.businessName || ""} onChange={e => setForm(p => ({ ...p, businessName: e.target.value }))} />
+        </div>
+        <div>
+          <label style={labelStyle}>Contact person</label>
+          <input style={inputStyle} value={form.contactPerson || ""} onChange={e => setForm(p => ({ ...p, contactPerson: e.target.value }))} />
+        </div>
+        <div style={{ gridColumn: "1 / -1" }}>
+          <label style={labelStyle}>Address</label>
+          <textarea style={{ ...inputStyle, minHeight: 60, resize: "vertical" }} value={form.address || form.addressDetails || ""} onChange={e => setForm(p => ({ ...p, address: e.target.value, addressDetails: e.target.value }))} />
+        </div>
+      </div>
+
+      {/* Role selection (checkboxes) */}
+      <div>
+        <label style={{ ...labelStyle, marginBottom: 8, display: "block" }}>Roles</label>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          {ROLES.map(r => (
+            <label key={r.key} style={{
+              display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 600,
+              padding: "8px 16px", borderRadius: 10, cursor: "pointer",
+              border: `2px solid ${roles.includes(r.key) ? r.color : colours.border}`,
+              background: roles.includes(r.key) ? r.bg : "transparent",
+              transition: "all 0.15s",
+            }}>
+              <input type="checkbox" checked={roles.includes(r.key)} onChange={() => toggleRole(r.key)} style={{ width: 18, height: 18 }} />
+              <span style={{ color: roles.includes(r.key) ? r.color : colours.text }}>{r.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Role-specific fields */}
+      {roles.map(roleKey => {
+        const fields = ROLE_FIELDS[roleKey];
+        if (!fields) return null;
+        const roleInfo = ROLE_MAP[roleKey];
+        return (
+          <div key={roleKey} style={{ ...cardStyle, padding: 16, border: `1px solid ${roleInfo.bg}`, background: `${roleInfo.bg}33` }}>
+            <div style={{ fontSize: 12, fontWeight: 800, textTransform: "uppercase", color: roleInfo.color, marginBottom: 12 }}>{roleInfo.label} details</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 12 }}>
+              {fields.map(f => (
+                <div key={f.key}>
+                  <label style={labelStyle}>{f.label}</label>
+                  {f.type === "select" ? (
+                    <select style={inputStyle} value={form[f.key] || ""} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))}>
+                      <option value="">Select…</option>
+                      {f.options.map(o => <option key={o}>{o}</option>)}
+                    </select>
+                  ) : (
+                    <input style={inputStyle} type={f.type || "text"} value={form[f.key] || ""} onChange={e => setForm(p => ({ ...p, [f.key]: e.target.value }))} />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+
+      {/* Existing accounting options (collapsed) */}
+      <details style={{ ...cardStyle, padding: 18, background: "#FAFAFA" }}>
+        <summary style={{ fontWeight: 800, cursor: "pointer" }}>Invoice & billing options</summary>
+        <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+          {[
+            ["sendToClient", "Send invoices to this contact"],
+            ["sendToMe", "Send a copy to me"],
+            ["autoReminders", "Auto-send reminders when invoices are overdue"],
+            ["sendReceipts", "Send receipts for card payments"],
+            ["outsideAustraliaOrGstExempt", "Outside Australia or GST exempt"],
+            ["feesDeducted", "Payments will have fees deducted"],
+            ["deductsTaxPrior", "Deducts tax prior to payment"],
+          ].map(([key, text]) => (
+            <label key={key} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
+              <input type="checkbox" checked={Boolean(form[key])} onChange={e => setForm(p => ({ ...p, [key]: e.target.checked }))} />
+              {text}
+            </label>
+          ))}
+          <div style={{ maxWidth: 220 }}>
+            <label style={labelStyle}>Default currency</label>
+            <select style={inputStyle} value={form.defaultCurrency || "AUD $"} onChange={e => setForm(p => ({ ...p, defaultCurrency: e.target.value }))}>
+              <option>AUD $</option><option>USD $</option><option>NZD $</option><option>GBP</option><option>EUR</option>
+            </select>
+          </div>
+        </div>
+      </details>
+
+      <div style={{ display: "flex", gap: 10, justifyContent: "space-between" }}>
+        <button style={buttonSecondary} onClick={onCancel}>Cancel</button>
+        <button style={buttonPrimary} onClick={onSave}>{isEditing ? "Save Changes" : "Save Contact"}</button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// RELATED JOBS SECTION (placeholder — no jobs system yet)
+// ---------------------------------------------------------------------------
+function RelatedJobsSection({ contact, colours, cardStyle }) {
+  return (
+    <div style={{ ...cardStyle, padding: 16, marginTop: 16, background: "#FAFAFA", border: `1px solid ${colours.border}` }}>
+      <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", color: colours.muted, marginBottom: 8 }}>Related Jobs</div>
+      <div style={{ fontSize: 13, color: colours.muted }}>
+        No jobs system connected yet. When jobs are added, all linked jobs for <strong>{contact.name}</strong> will appear here — whether as customer, assigned staff, or subcontractor.
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// MAIN CONTACTS PAGE
+// ---------------------------------------------------------------------------
 export default function ClientsPage(props) {
   const {
-    profile = {},
     clients = [],
     invoices = [],
-    setActivePage = () => {},
-    confirm = null,
-    cardStyle = {},
     colours = {},
-    currency = (v) => String(v ?? ""),
-    safeNumber = (v) => Number(v || 0),
+    currency = v => String(v ?? ""),
+    safeNumber = v => Number(v || 0),
+    cardStyle = {},
     buttonPrimary = {},
     buttonSecondary = {},
     inputStyle = {},
@@ -24,461 +217,243 @@ export default function ClientsPage(props) {
     DashboardHero = ({ children }) => <div>{children}</div>,
     InsightChip = () => null,
     MetricCard = () => null,
-    SectionCard = ({ title, children }) => <section><h3>{title}</h3>{children}</section>,
-    DataTable = ({ columns = [], rows = [], emptyState = null }) => {
-      if (!rows.length && emptyState) {
-        return <div>{emptyState.title || "No data"}</div>;
-      }
+    SectionCard = ({ title, children, right }) => <section><div style={{ display: "flex", justifyContent: "space-between" }}><h3>{title}</h3>{right}</div>{children}</section>,
+    DataTable = ({ columns = [], rows = [], emptyState }) => {
+      if (!rows.length && emptyState) return <div>{emptyState.title || "No data"}</div>;
       return (
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>{columns.map((c) => <th key={c.key || c.label} style={{ textAlign: "left", padding: 8 }}>{c.label}</th>)}</tr>
-          </thead>
-          <tbody>
-            {rows.map((row, idx) => (
-              <tr key={row.id ?? idx}>
-                {columns.map((c) => (
-                  <td key={c.key || c.label} style={{ padding: 8 }}>
-                    {c.render ? c.render(row[c.key], row) : row[c.key]}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
+          <thead><tr>{columns.map(c => <th key={c.key || c.label} style={{ textAlign: "left", padding: 8 }}>{c.label}</th>)}</tr></thead>
+          <tbody>{rows.map((row, idx) => (
+            <tr key={row.id ?? idx}>{columns.map(c => <td key={c.key || c.label} style={{ padding: 8 }}>{c.render ? c.render(row[c.key], row) : row[c.key]}</td>)}</tr>
+          ))}</tbody>
         </table>
       );
     },
     EmptyState = ({ icon, title, message }) => <div>{icon} {title} {message}</div>,
-    showClientModal = false,
-    setShowClientModal = () => {},
-    showImportModal = false,
-    setShowImportModal = () => {},
-    editingClientId = null,
-    setEditingClientId = () => {},
-    clientModalForm = {},
-    setClientModalForm = () => {},
-    importType = "clients",
-    setImportType = () => {},
-    importRows = [],
-    setImportRows = () => {},
-    importError = "",
-    setImportError = () => {},
-    invClientSearch = "",
-    setInvClientSearch = () => {},
     blankClient = {},
-    clientForm: externalClientForm,
-    setClientForm: externalSetClientForm,
-    saveClientFromModal = () => {},
+    clientForm: extClientForm,
+    setClientForm: extSetClientForm,
+    saveClient: extSaveClient,
     deleteClient = () => {},
+    openClientEditor: extOpenClientEditor,
+    clientEditorOpen: extClientEditorOpen,
+    clientEditorForm: extClientEditorForm,
+    setClientEditorForm: extSetClientEditorForm,
+    closeClientEditor: extCloseClientEditor,
+    saveClientEdits: extSaveClientEdits,
+    todayLocal: extTodayLocal,
+    saveClientFromModal = () => {},
+    showImportModal,
+    setShowImportModal = () => {},
+    importType,
+    setImportType = () => {},
+    importRows,
+    setImportRows = () => {},
+    importError,
+    setImportError = () => {},
     confirmImport = () => {},
     downloadTemplate = () => {},
     parseImportCSV = () => ({ rows: [], error: "" }),
-    openClientEditor: externalOpenClientEditor,
-    clientEditorOpen: externalClientEditorOpen,
-    clientEditorForm: externalClientEditorForm,
-    setClientEditorForm: externalSetClientEditorForm,
-    closeClientEditor: externalCloseClientEditor,
-    saveClientEdits: externalSaveClientEdits,
-    saveClient: externalSaveClient,
-    todayLocal: externalTodayLocal,
+    setActivePage = () => {},
+    confirm = null,
+    profile = {},
+    invClientSearch,
+    setInvClientSearch = () => {},
+    showClientModal,
+    setShowClientModal = () => {},
+    editingClientId,
+    setEditingClientId = () => {},
+    clientModalForm,
+    setClientModalForm = () => {},
   } = props;
 
-  const fallbackBlankClient = {
-    name: "",
-    businessName: "",
-    contactPerson: "",
-    email: "",
-    phone: "",
-    address: "",
-    addressDetails: "",
-    workType: "Financial / Management Accountant",
-    defaultCurrency: "AUD $",
-    recruiterUsed: false,
-    sendToClient: false,
-    sendToMe: true,
-    autoReminders: false,
-    includeAddressDetails: false,
-    sendReceipts: false,
-    outsideAustraliaOrGstExempt: false,
-    feesDeducted: false,
-    deductsTaxPrior: false,
-    shortTermRentalIncome: false,
-    hasPurchaseOrder: false,
+  // ---- Local fallbacks ----
+  const resolvedBlank = {
+    name: "", email: "", phone: "", address: "", contactPerson: "", businessName: "",
+    workType: "Financial / Management Accountant", addressDetails: "",
+    roles: [], defaultCurrency: "AUD $",
+    sendToClient: true, sendToMe: true, autoReminders: true, sendReceipts: true,
+    outsideAustraliaOrGstExempt: false, feesDeducted: false, deductsTaxPrior: false,
+    ...(blankClient || {}),
   };
 
-  const resolvedBlankClient = { ...fallbackBlankClient, ...(blankClient || {}) };
-  const [localClientForm, localSetClientForm] = useState({ ...resolvedBlankClient });
-  const clientForm = externalClientForm ?? localClientForm;
-  const setClientForm = externalSetClientForm ?? localSetClientForm;
+  const [localForm, localSetForm] = useState({ ...resolvedBlank });
+  const clientForm = extClientForm ?? localForm;
+  const setClientForm = extSetClientForm ?? localSetForm;
 
-  const [localClientEditorOpen, localSetClientEditorOpen] = useState(false);
-  const [localClientEditorForm, localSetClientEditorForm] = useState(null);
-  const clientEditorOpen = typeof externalClientEditorOpen === "boolean" ? externalClientEditorOpen : localClientEditorOpen;
-  const clientEditorForm = externalClientEditorForm ?? localClientEditorForm;
-  const setClientEditorForm = externalSetClientEditorForm ?? localSetClientEditorForm;
-  const closeClientEditor = externalCloseClientEditor ?? (() => {
-    localSetClientEditorOpen(false);
-    localSetClientEditorForm(null);
-  });
+  const [localEditorOpen, localSetEditorOpen] = useState(false);
+  const [localEditorForm, localSetEditorForm] = useState(null);
+  const clientEditorOpen = typeof extClientEditorOpen === "boolean" ? extClientEditorOpen : localEditorOpen;
+  const clientEditorForm = extClientEditorForm ?? localEditorForm;
+  const setClientEditorForm = extSetClientEditorForm ?? localSetEditorForm;
+  const closeClientEditor = extCloseClientEditor ?? (() => { localSetEditorOpen(false); localSetEditorForm(null); });
+  const openClientEditor = extOpenClientEditor ?? ((row) => { localSetEditorForm({ ...row }); localSetEditorOpen(true); });
+  const saveClientEdits = extSaveClientEdits ?? (() => closeClientEditor());
+  const saveClient = extSaveClient ?? (() => { if (saveClientFromModal) saveClientFromModal(); });
+  const todayLocal = extTodayLocal ?? (() => new Date().toISOString().slice(0, 10));
 
-  const todayLocal = externalTodayLocal ?? (() => new Date().toISOString().slice(0, 10));
+  // ---- Search & filter state ----
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
 
-  const saveClient = externalSaveClient ?? (() => {
-    if (typeof saveClientFromModal === "function") {
-      saveClientFromModal();
+  // ---- Filtered contacts ----
+  const filteredContacts = useMemo(() => {
+    let list = clients;
+
+    // Role filter
+    if (roleFilter !== "all") {
+      list = list.filter(c => (c.roles || []).includes(roleFilter));
     }
-  });
 
-  const openClientEditor = externalOpenClientEditor ?? ((row) => {
-    localSetClientEditorForm({ ...row });
-    localSetClientEditorOpen(true);
-  });
+    // Search across name, email, phone, ABN, trade type
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(c =>
+        (c.name || "").toLowerCase().includes(q) ||
+        (c.email || "").toLowerCase().includes(q) ||
+        (c.phone || "").toLowerCase().includes(q) ||
+        (c.abn || "").toLowerCase().includes(q) ||
+        (c.tradeType || "").toLowerCase().includes(q) ||
+        (c.businessName || "").toLowerCase().includes(q) ||
+        (c.contactPerson || "").toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [clients, roleFilter, search]);
 
-  const saveClientEdits = externalSaveClientEdits ?? (() => {
-    closeClientEditor();
-  });
+  // ---- Metrics ----
+  const roleCounts = useMemo(() => {
+    const counts = {};
+    ROLES.forEach(r => { counts[r.key] = 0; });
+    clients.forEach(c => (c.roles || []).forEach(r => { if (counts[r] !== undefined) counts[r]++; }));
+    return counts;
+  }, [clients]);
 
-  const activeClients = clients.filter((c) => {
-    const clientInvoices = invoices.filter((inv) => String(inv.clientId) === String(c.id));
-    return clientInvoices.length > 0;
-  });
-  const gstExemptClients = clients.filter((c) => c.outsideAustraliaOrGstExempt);
-  const totalClientRevenue = invoices
-    .filter((inv) => inv.status === "Paid")
-    .reduce((sum, inv) => sum + safeNumber(inv.total), 0);
+  const totalRevenue = invoices.filter(i => i.status === "Paid").reduce((s, i) => s + safeNumber(i.total), 0);
+
   return (
     <div style={{ display: "grid", gap: 20 }}>
       <DashboardHero
-        title="Clients"
-        subtitle="Manage your client roster, billing preferences, and GST settings. All clients feed directly into your invoices and quotes."
+        title="Contacts"
+        subtitle="Manage all your contacts — customers, staff, subcontractors, and suppliers — in one place."
         highlight={String(clients.length)}
       >
-        <InsightChip label="Active (invoiced)" value={String(activeClients.length)} />
-        <InsightChip label="GST exempt" value={String(gstExemptClients.length)} />
-        <InsightChip label="Total paid revenue" value={currency(totalClientRevenue)} />
+        <InsightChip label="Customers" value={String(roleCounts.customer)} />
+        <InsightChip label="Staff" value={String(roleCounts.staff)} />
+        <InsightChip label="Subcontractors" value={String(roleCounts.subcontractor)} />
+        <InsightChip label="Suppliers" value={String(roleCounts.supplier)} />
       </DashboardHero>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 16 }}>
-        <MetricCard title="Total clients" value={String(clients.length)} subtitle="All clients currently in the portal." accent={colours.purple} />
-        <MetricCard title="Active clients" value={String(activeClients.length)} subtitle="Clients with at least one invoice." accent={colours.teal} />
-        <MetricCard title="GST exempt" value={String(gstExemptClients.length)} subtitle="Clients outside Australia or GST exempt." accent={colours.purple} />
-        <MetricCard title="Paid revenue" value={currency(totalClientRevenue)} subtitle="Total paid invoices across all clients." accent={colours.purple} />
+      {/* Role metric cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+        {ROLES.map(r => (
+          <MetricCard key={r.key} title={r.label + "s"} value={String(roleCounts[r.key])} subtitle={`Contacts tagged as ${r.label}`} accent={r.color} />
+        ))}
+        <MetricCard title="Total revenue" value={currency(totalRevenue)} subtitle="From all paid invoices" accent={colours.teal} />
       </div>
 
-      <SectionCard title="Client details">
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: 16,
-          }}
-        >
-          <div>
-            <label style={labelStyle}>What is the name of the person or organisation? *</label>
-            <input
-              style={inputStyle}
-              value={clientForm.name}
-              onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    name: e.target.value
-                  }))}
+      {/* Add / Edit contact form */}
+      <SectionCard title={clientEditorOpen ? "Edit Contact" : "Add New Contact"}>
+        {clientEditorOpen && clientEditorForm ? (
+          <>
+            <ContactForm
+              form={clientEditorForm}
+              setForm={setClientEditorForm}
+              colours={colours} inputStyle={inputStyle} labelStyle={labelStyle} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              onSave={saveClientEdits} onCancel={closeClientEditor} isEditing
             />
-          </div>
-
-          <div>
-            <label style={labelStyle}>What type of work do you do for this Client? *</label>
-            <select
-              style={inputStyle}
-              value={clientForm.workType}
-              onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    workType: e.target.value
-                  }))}
-            >
-              <option>Financial / Management Accountant</option>
-              <option>Bookkeeping</option>
-              <option>Payroll</option>
-              <option>BAS / GST Services</option>
-              <option>Business Advisory</option>
-              <option>Other</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={labelStyle}>What is the name of the contact person there?</label>
-            <input
-              style={inputStyle}
-              value={clientForm.contactPerson}
-              onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    contactPerson: e.target.value
-                  }))}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>What is their email address?</label>
-            <input
-              style={inputStyle}
-              value={clientForm.email}
-              onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    email: e.target.value
-                  }))}
-            />
-          </div>
-        </div>
-
-        <div style={{ marginTop: 16 }}>
-          <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-            <input
-              type="checkbox"
-              checked={clientForm.recruiterUsed}
-              onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    recruiterUsed: e.target.checked
-                  }))}
-            />
-            I went through a recruiter or similar third party to get this work
-          </label>
-        </div>
-
-        <details style={{ ...cardStyle, marginTop: 20, padding: 18, background: "#FAFAFA" }}>
-          <summary style={{ fontWeight: 800, marginBottom: 14, cursor: "pointer" }}>Invoice & Quote Options</summary>
-
-          <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={clientForm.sendToClient}
-                onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    sendToClient: e.target.checked
-                  }))}
-              />
-              Send to my Client
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={clientForm.sendToMe}
-                onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    sendToMe: e.target.checked
-                  }))}
-              />
-              Send to me
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={clientForm.autoReminders}
-                onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    autoReminders: e.target.checked
-                  }))}
-              />
-              Automatically send reminders once an Invoice is more than 2 days overdue
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={clientForm.includeAddressDetails}
-                onChange={(e) =>
-                  setClientForm((prev) => ({ ...prev,
-                    includeAddressDetails: e.target.checked
-                  }))
-                }
-              />
-              Include Client address or other details
-            </label>
-
-            {clientForm.includeAddressDetails && (
-              <div>
-                <label style={labelStyle}>Client address/additional details</label>
-                <textarea
-                  style={{ ...inputStyle, minHeight: 90, resize: "vertical" }}
-                  value={clientForm.addressDetails}
-                  onChange={(e) =>
-                    setClientForm((prev) => ({ ...prev,
-                    addressDetails: e.target.value,
-                      address: e.target.value,
-                  }))
-                  }
-                />
-              </div>
-            )}
-
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={clientForm.sendReceipts}
-                onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    sendReceipts: e.target.checked
-                  }))}
-              />
-              Send receipts to this client for Invoice payments made via card
-            </label>
-          </div>
-        </details>
-
-        <details style={{ ...cardStyle, marginTop: 20, padding: 18, background: "#FAFAFA" }}>
-          <summary style={{ fontWeight: 800, marginBottom: 14, cursor: "pointer" }}>Advanced Options</summary>
-
-          <div style={{ display: "grid", gap: 12, marginTop: 14 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={clientForm.outsideAustraliaOrGstExempt}
-                onChange={(e) =>
-                  setClientForm((prev) => ({ ...prev,
-                    outsideAustraliaOrGstExempt: e.target.checked,
-                  }))
-                }
-              />
-              This Client is outside Australia or Services for this Client are exempt from GST
-            </label>
-
-            <div style={{ maxWidth: 220 }}>
-              <label style={labelStyle}>Default currency:</label>
-              <select
-                style={inputStyle}
-                value={clientForm.defaultCurrency}
-                onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    defaultCurrency: e.target.value
-                  }))}
-              >
-                <option>AUD $</option>
-                <option>USD $</option>
-                <option>NZD $</option>
-                <option>GBP</option>
-                <option>EUR</option>
-              </select>
-            </div>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={clientForm.feesDeducted}
-                onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    feesDeducted: e.target.checked
-                  }))}
-              />
-              Payments will have fees or expenses deducted
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={clientForm.deductsTaxPrior}
-                onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    deductsTaxPrior: e.target.checked
-                  }))}
-              />
-              This Client deducts tax prior to payment
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={clientForm.shortTermRentalIncome}
-                onChange={(e) =>
-                  setClientForm((prev) => ({ ...prev,
-                    shortTermRentalIncome: e.target.checked
-                  }))
-                }
-              />
-              This "Client" is for short-term rental income
-            </label>
-
-            <label style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14 }}>
-              <input
-                type="checkbox"
-                checked={clientForm.hasPurchaseOrder}
-                onChange={(e) => setClientForm((prev) => ({ ...prev,
-                    hasPurchaseOrder: e.target.checked
-                  }))}
-              />
-              I have a purchase order or reference number
-            </label>
-          </div>
-        </details>
-
-        <div
-          style={{
-            marginTop: 18,
-            display: "flex",
-            gap: 10,
-            justifyContent: "space-between",
-          }}
-        >
-          <button style={buttonSecondary} onClick={() => setClientForm(resolvedBlankClient)}>
-            Cancel
-          </button>
-          <button style={buttonPrimary} onClick={saveClient}>
-            Save
-          </button>
-        </div>
+            <RelatedJobsSection contact={clientEditorForm} colours={colours} cardStyle={cardStyle} />
+          </>
+        ) : (
+          <ContactForm
+            form={clientForm}
+            setForm={setClientForm}
+            colours={colours} inputStyle={inputStyle} labelStyle={labelStyle} cardStyle={cardStyle}
+            buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+            onSave={saveClient} onCancel={() => setClientForm({ ...resolvedBlank })} isEditing={false}
+          />
+        )}
       </SectionCard>
 
-      <SectionCard title="Client List" right={
+      {/* Contact list with search & filter */}
+      <SectionCard title="Contact List" right={
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           <button style={buttonSecondary} onClick={() => exportToCSV(clients, [
-            { key: "name", label: "Client" },
-            { key: "contactPerson", label: "Contact" },
+            { key: "name", label: "Contact" },
+            { key: "roles", label: "Roles", render: v => (v || []).join(", ") },
+            { key: "contactPerson", label: "Contact Person" },
             { key: "email", label: "Email" },
             { key: "phone", label: "Phone" },
-            { key: "workType", label: "Work Type" },
-            { key: "defaultCurrency", label: "Currency" },
             { key: "abn", label: "ABN" },
-          ], "clients.csv")}>Export CSV</button>
+            { key: "tradeType", label: "Trade Type" },
+          ], "contacts.csv")}>Export CSV</button>
           <button style={buttonSecondary} onClick={() => { setImportType("clients"); setImportRows([]); setImportError(""); setShowImportModal(true); }}>Import CSV</button>
         </div>
       }>
+        {/* Search bar + role filter */}
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginBottom: 16 }}>
+          <input
+            style={{ ...inputStyle, flex: 1, minWidth: 200 }}
+            placeholder="Search name, email, phone, ABN, trade type…"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <button
+              style={{
+                ...buttonSecondary,
+                fontWeight: roleFilter === "all" ? 800 : 600,
+                background: roleFilter === "all" ? colours.lightPurple || "#F3F4F6" : "transparent",
+              }}
+              onClick={() => setRoleFilter("all")}
+            >All ({clients.length})</button>
+            {ROLES.map(r => (
+              <button
+                key={r.key}
+                style={{
+                  ...buttonSecondary,
+                  fontWeight: roleFilter === r.key ? 800 : 600,
+                  background: roleFilter === r.key ? r.bg : "transparent",
+                  color: roleFilter === r.key ? r.color : undefined,
+                  border: roleFilter === r.key ? `1px solid ${r.color}` : undefined,
+                }}
+                onClick={() => setRoleFilter(r.key)}
+              >{r.label} ({roleCounts[r.key]})</button>
+            ))}
+          </div>
+        </div>
+
         <DataTable
-          emptyState={{ icon: "[clients]", title: "No clients yet", message: "Add your first client above to start creating invoices and quotes." }}
+          emptyState={{ icon: "👥", title: "No contacts yet", message: "Add your first contact above to get started." }}
           columns={[
-            { key: "name", label: "Client" },
-            { key: "contactPerson", label: "Contact" },
-            { key: "workType", label: "Work Type" },
-            { key: "isPaid", label: "Status", render: (v, row) => (row.isPaid ? "Paid" : (((row.dueDate || row.date || "") < todayLocal()) ? "Overdue" : "Unpaid")) },
+            { key: "name", label: "Contact", render: (v, row) => (
+              <div>
+                <div style={{ fontWeight: 700 }}>{row.name}</div>
+                {row.businessName && <div style={{ fontSize: 12, color: colours.muted }}>{row.businessName}</div>}
+              </div>
+            )},
+            { key: "roles", label: "Roles", render: (v, row) => (
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                {(row.roles || []).map(r => <RoleBadge key={r} roleKey={r} small />)}
+                {!(row.roles || []).length && <span style={{ fontSize: 12, color: colours.muted }}>—</span>}
+              </div>
+            )},
             { key: "email", label: "Email" },
-            { key: "defaultCurrency", label: "Currency" },
+            { key: "phone", label: "Phone" },
+            { key: "tradeType", label: "Trade / Industry", render: (v, row) => row.tradeType || row.workType || "—" },
             {
-              key: "actions",
-              label: "",
+              key: "actions", label: "",
               render: (_, row) => (
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <div style={{ display: "flex", gap: 8 }}>
                   <button style={buttonSecondary} onClick={() => openClientEditor(row)}>View / Edit</button>
-                  <button style={buttonSecondary} onClick={() => deleteClient(row.id)}>Delete</button>
+                  <button style={{ ...buttonSecondary, color: "#DC2626" }} onClick={() => deleteClient(row.id)}>Delete</button>
                 </div>
               ),
             },
           ]}
-          rows={clients}
+          rows={filteredContacts}
         />
-
-        {clientEditorOpen && clientEditorForm ? (
-          <div style={{ marginTop: 20, ...cardStyle, padding: 20, border: `2px solid ${colours.lightPurple || colours.purple || "#ddd"}` }}>
-            <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ margin: 0, fontSize: 18 }}>View / Edit Client</h3>
-              <button style={buttonSecondary} onClick={closeClientEditor}>Close</button>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
-              <div><label style={labelStyle}>Client name</label><input style={inputStyle} value={clientEditorForm.name} onChange={(e) => setClientEditorForm((prev) => ({ ...prev, name: e.target.value }))} /></div>
-              <div><label style={labelStyle}>Contact person</label><input style={inputStyle} value={clientEditorForm.contactPerson || ""} onChange={(e) => setClientEditorForm((prev) => ({ ...prev, contactPerson: e.target.value }))} /></div>
-              <div><label style={labelStyle}>Email</label><input style={inputStyle} value={clientEditorForm.email || ""} onChange={(e) => setClientEditorForm((prev) => ({ ...prev, email: e.target.value }))} /></div>
-              <div><label style={labelStyle}>Phone</label><input style={inputStyle} value={clientEditorForm.phone || ""} onChange={(e) => setClientEditorForm((prev) => ({ ...prev, phone: e.target.value }))} /></div>
-              <div><label style={labelStyle}>Work type</label><input style={inputStyle} value={clientEditorForm.workType || ""} onChange={(e) => setClientEditorForm((prev) => ({ ...prev, workType: e.target.value }))} /></div>
-              <div><label style={labelStyle}>Default currency</label><select style={inputStyle} value={clientEditorForm.defaultCurrency || "AUD $"} onChange={(e) => setClientEditorForm((prev) => ({ ...prev, defaultCurrency: e.target.value }))}><option>AUD $</option><option>USD $</option><option>NZD $</option><option>GBP</option><option>EUR</option></select></div>
-              <div style={{ gridColumn: "1 / -1" }}><label style={labelStyle}>Address details</label><textarea style={{ ...inputStyle, minHeight: 90 }} value={clientEditorForm.addressDetails || clientEditorForm.address || ""} onChange={(e) => setClientEditorForm((prev) => ({ ...prev, addressDetails: e.target.value, address: e.target.value }))} /></div>
-            </div>
-            <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
-              <label style={{ display: "flex", gap: 10, fontSize: 14, alignItems: "center" }}><input type="checkbox" checked={Boolean(clientEditorForm.outsideAustraliaOrGstExempt)} onChange={(e) => setClientEditorForm((prev) => ({ ...prev, outsideAustraliaOrGstExempt: e.target.checked }))} /> Client is GST exempt / outside Australia</label>
-              <label style={{ display: "flex", gap: 10, fontSize: 14, alignItems: "center" }}><input type="checkbox" checked={Boolean(clientEditorForm.feesDeducted)} onChange={(e) => setClientEditorForm((prev) => ({ ...prev, feesDeducted: e.target.checked }))} /> Fees deducted before payment</label>
-              <label style={{ display: "flex", gap: 10, fontSize: 14, alignItems: "center" }}><input type="checkbox" checked={Boolean(clientEditorForm.deductsTaxPrior)} onChange={(e) => setClientEditorForm((prev) => ({ ...prev, deductsTaxPrior: e.target.checked }))} /> Client deducts tax prior to payment</label>
-            </div>
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 16 }}>
-              <button style={buttonSecondary} onClick={closeClientEditor}>Cancel</button>
-              <button style={buttonPrimary} onClick={saveClientEdits}>Save Changes</button>
-            </div>
-          </div>
-        ) : <EmptyState icon="[clients]" title="No client selected" message="Use View / Edit on a client row to open the client editor." />}
       </SectionCard>
     </div>
   );

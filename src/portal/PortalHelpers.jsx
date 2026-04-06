@@ -50,7 +50,7 @@ export const navLabels = {
   "financial insights": "Financial Insights",
   invoices: "Invoices",
   quotes: "Quotes",
-  clients: "Clients",
+  clients: "Contacts",
   services: "Services",
   expenses: "Expenses",
   "bills / payables": "Bills & Payables",
@@ -614,6 +614,8 @@ export const blankClient = {
   phone: "",
   address: "",
   contactPerson: "",
+  businessName: "",
+  roles: [],
   workType: "Financial / Management Accountant",
   recruiterUsed: false,
   sendToClient: true,
@@ -629,6 +631,20 @@ export const blankClient = {
   deductsTaxPrior: false,
   shortTermRentalIncome: false,
   hasPurchaseOrder: false,
+  // Role-specific fields
+  abn: "",
+  tradeType: "",
+  insuranceExpiry: "",
+  licenceNumber: "",
+  productCategories: "",
+  accountNumber: "",
+  paymentTerms: "",
+  position: "",
+  startDate: "",
+  hourlyRate: "",
+  emergencyContact: "",
+  billingAddress: "",
+  preferredContactMethod: "",
 };
 
 export const initialProfile = {
