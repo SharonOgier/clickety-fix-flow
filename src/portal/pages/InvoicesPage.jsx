@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import EntityLink from "../EntityLink";
 import { exportToCSV } from "../PortalHelpers";
 import { computeJobFinancials } from "./JobCostingPanel";
 import {
