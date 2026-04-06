@@ -1137,7 +1137,11 @@ export default function AccountingPortalPrototype() {
       if (!opts.silent) {
         toast.success(payload.id && jobs.find(j => j.id === payload.id) ? "Job updated!" : "Job created!");
       }
-    } catch (err) { toast.error(err.message || "Failed to save job"); }
+      return saved;
+    } catch (err) {
+      toast.error(err.message || "Failed to save job");
+      return null;
+    }
   };
 
   const createInvoiceFromJob = async (job) => {
@@ -4822,7 +4826,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               currency={currency}
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
               SectionCard={SectionCard} EmptyState={EmptyState}
-              saveJob={saveJob} profile={profile}
+              saveJob={saveJob} saveProfileToSupabase={saveProfileToSupabase} profile={profile}
             />}
             {activePage === "jobs report" && <JobsReportPage
               jobs={jobs} invoices={invoices} quotes={quotes} clients={clients}

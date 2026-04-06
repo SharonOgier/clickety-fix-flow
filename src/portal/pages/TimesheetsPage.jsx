@@ -32,8 +32,7 @@ const calcHours = (start, end) => {
 };
 
 // ── Log Time Wizard ────────────────────────────────────────────────────────
-function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPrimary, buttonSecondary, profile, saveJob, onClose }) {
-  const ADMIN_ID = "__admin__";
+function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPrimary, buttonSecondary, profile, saveJob, saveProfileToSupabase, onClose }) {
   const ADMIN_CATEGORIES = [
     { id: "__admin__", label: "General / Admin" },
     { id: "__travel__", label: "Travel" },
@@ -53,53 +52,70 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
   const [saving, setSaving] = useState(false);
 
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [String(c.id), c])), [clients]);
+  const realJobs = useMemo(() => jobs.filter((j) => !j.isAdminJob), [jobs]);
 
   const isAdminEntry = ADMIN_CATEGORIES.some(c => c.id === selectedJobId);
   const adminLabel = ADMIN_CATEGORIES.find(c => c.id === selectedJobId)?.label || "Admin";
 
   const computedHours = useManual ? (Number(manualHours) || 0) : calcHours(startTime, endTime);
 
-  // Find or create an admin pseudo-job for overhead time entries
-  const getOrCreateAdminJob = () => {
-    const existing = jobs.find(j => j.isAdminJob === true);
-    if (existing) return existing;
-    // Return a new admin job shell — saveJob will persist it
-    return {
-      id: "admin-time-" + Date.now(),
-      title: "Admin & Overheads",
-      isAdminJob: true,
-      status: "active",
-      timeEntries: [],
-    };
-  };
-
   const handleSave = async () => {
-    if ((!selectedJobId) || computedHours <= 0) return;
+    if (!selectedJobId || computedHours <= 0) return;
     setSaving(true);
     try {
-      let job;
       if (isAdminEntry) {
-        job = getOrCreateAdminJob();
+        const entry = {
+          id: `${selectedStaffName || profile.businessName || "Owner"}-${selectedJobId}-${entryDate}`,
+          date: entryDate,
+          hours: computedHours,
+          staff: selectedStaffName || profile.businessName || "Owner",
+          startTime: useManual ? null : startTime,
+          endTime: useManual ? null : endTime,
+          notes: notes.trim() || "",
+          category: adminLabel,
+          updatedAt: new Date().toISOString(),
+        };
+        const existingEntries = Array.isArray(profile.overheadTimeEntries) ? profile.overheadTimeEntries : [];
+        const idx = existingEntries.findIndex((t) =>
+          t.date === entry.date &&
+          t.staff === entry.staff &&
+          (t.category || "") === (entry.category || "")
+        );
+        const nextEntries = idx >= 0
+          ? existingEntries.map((t, i) => (i === idx ? entry : t))
+          : [...existingEntries, entry];
+        const savedProfile = await saveProfileToSupabase?.({
+          ...profile,
+          overheadTimeEntries: nextEntries,
+        });
+        if (!savedProfile) {
+          setSaving(false);
+          return;
+        }
       } else {
-        job = jobs.find(j => String(j.id) === String(selectedJobId));
+        const job = realJobs.find((j) => String(j.id) === String(selectedJobId));
+        if (!job || !saveJob) {
+          setSaving(false);
+          return;
+        }
+        const entries = [...(job.timeEntries || [])];
+        const entry = {
+          date: entryDate,
+          hours: computedHours,
+          staff: selectedStaffName || profile.businessName || "Owner",
+          startTime: useManual ? undefined : startTime,
+          endTime: useManual ? undefined : endTime,
+          notes: notes.trim() || undefined,
+          updatedAt: new Date().toISOString(),
+        };
+        const idx = entries.findIndex(t => t.date === entryDate && t.staff === entry.staff);
+        if (idx >= 0) entries[idx] = entry; else entries.push(entry);
+        const savedJob = await saveJob({ ...job, timeEntries: entries }, { silent: true });
+        if (!savedJob) {
+          setSaving(false);
+          return;
+        }
       }
-      if (!job || !saveJob) { setSaving(false); return; }
-
-      const entries = [...(job.timeEntries || [])];
-      const entry = {
-        date: entryDate,
-        hours: computedHours,
-        staff: selectedStaffName || profile.businessName || "Owner",
-        startTime: useManual ? undefined : startTime,
-        endTime: useManual ? undefined : endTime,
-        notes: notes.trim() || undefined,
-        category: isAdminEntry ? adminLabel : undefined,
-        updatedAt: new Date().toISOString(),
-      };
-      // Replace existing entry for same date+staff+category or append
-      const idx = entries.findIndex(t => t.date === entryDate && t.staff === entry.staff && (t.category || "") === (entry.category || ""));
-      if (idx >= 0) entries[idx] = entry; else entries.push(entry);
-      await saveJob({ ...job, timeEntries: entries }, { silent: true });
       setStep(3);
     } catch (err) {
       console.error("Failed to save time entry:", err);
@@ -193,10 +209,10 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
                 ))}
 
                 <div style={{ fontSize: 11, fontWeight: 700, color: colours.muted, textTransform: "uppercase", marginTop: 16, marginBottom: 6, letterSpacing: 0.5 }}>Jobs</div>
-                {jobs.length === 0 ? (
+                {realJobs.length === 0 ? (
                   <div style={{ textAlign: "center", padding: 20, color: colours.muted, fontSize: 13 }}>No jobs found.</div>
                 ) : (
-                  jobs.map(j => {
+                  realJobs.map(j => {
                     const client = clientMap[String(j.clientId)];
                     return (
                       <button key={j.id} style={optionBtn(selectedJobId === j.id)} onClick={() => setSelectedJobId(j.id)}>
@@ -302,7 +318,7 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
                 {computedHours.toFixed(1)}h for <strong>{selectedStaffName}</strong>
               </div>
               <div style={{ fontSize: 13, color: colours.muted, marginBottom: 24 }}>
-                {fmtDateAU(entryDate)} · {isAdminEntry ? adminLabel : (jobs.find(j => String(j.id) === String(selectedJobId))?.title || "")}
+                {fmtDateAU(entryDate)} · {isAdminEntry ? adminLabel : (realJobs.find(j => String(j.id) === String(selectedJobId))?.title || "")}
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
                 <button style={{ ...buttonSecondary, padding: "10px 20px" }} onClick={onClose}>Done</button>
@@ -335,7 +351,7 @@ export default function TimesheetsPage({
   InsightChip = () => null, MetricCard = () => null,
   SectionCard = ({ title, children, right }) => <section><div style={{ display: "flex", justifyContent: "space-between" }}><h3>{title}</h3>{right}</div>{children}</section>,
   EmptyState = ({ icon, title, message }) => <div>{icon} {title} {message}</div>,
-  saveJob, profile = {},
+  saveJob, saveProfileToSupabase, profile = {},
 }) {
   const today = new Date();
   const [weekStart, setWeekStart] = useState(getWeekStart(today));
@@ -353,54 +369,59 @@ export default function TimesheetsPage({
   const goThisWeek = () => setWeekStart(getWeekStart(today));
 
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [String(c.id), c])), [clients]);
+  const realJobs = useMemo(() => jobs.filter((j) => !j.isAdminJob), [jobs]);
+  const overheadEntries = useMemo(() => Array.isArray(profile.overheadTimeEntries) ? profile.overheadTimeEntries : [], [profile.overheadTimeEntries]);
 
   const allStaff = useMemo(() => {
     const set = new Set();
-    jobs.forEach(j => {
+    realJobs.forEach(j => {
       if (j.assignedTo) set.add(j.assignedTo);
       (j.timeEntries || []).forEach(te => { if (te.staff) set.add(te.staff); });
     });
+    overheadEntries.forEach((te) => { if (te?.staff) set.add(te.staff); });
     const ownerName = profile.businessName || profile.name || "Owner";
     set.add(ownerName);
     return Array.from(set).sort();
-  }, [jobs, profile]);
+  }, [realJobs, overheadEntries, profile.businessName, profile.name]);
 
   const weekJobs = useMemo(() => {
     const ws = fmtDate(weekStart);
     const we = fmtDate(weekEnd);
-    return jobs.filter(j => {
+    return realJobs.filter(j => {
       const jStart = j.startDate || "";
       const jEnd = j.endDate || jStart;
       const dateOverlap = jStart && jStart <= we && jEnd >= ws;
-      // Also include jobs that have time entries within this week
       const hasTimeEntryThisWeek = (j.timeEntries || []).some(te => te.date >= ws && te.date <= we);
       return dateOverlap || hasTimeEntryThisWeek;
     });
-  }, [jobs, weekStart, weekEnd]);
+  }, [realJobs, weekStart, weekEnd]);
 
   const timesheetData = useMemo(() => {
     const ownerName = profile.businessName || profile.name || "Owner";
     const data = [];
+    const ws = fmtDate(weekStart);
+    const we = fmtDate(weekEnd);
 
     const filteredJobs = selectedStaff === "all" ? weekJobs : weekJobs.filter(j => {
       const assigned = j.assignedTo || ownerName;
-      return assigned === selectedStaff;
+      const hasMatchingEntry = (j.timeEntries || []).some((t) => t.staff === selectedStaff);
+      return assigned === selectedStaff || hasMatchingEntry;
     });
 
     filteredJobs.forEach(j => {
-      const assigned = j.assignedTo || ownerName;
+      const assigned = selectedStaff !== "all"
+        ? selectedStaff
+        : ((j.timeEntries || []).find((t) => t.staff)?.staff || j.assignedTo || ownerName);
       const clientName = clientMap[String(j.clientId)]?.name || "—";
       const days = {};
       let totalHours = 0;
 
       weekDates.forEach(d => {
         const dateStr = fmtDate(d);
-        let hrs = 0;
+        const matchingEntries = (j.timeEntries || []).filter(t => t.date === dateStr && (selectedStaff === "all" || t.staff === selectedStaff));
+        let hrs = matchingEntries.reduce((sum, t) => sum + Number(t.hours || 0), 0);
 
-        const te = (j.timeEntries || []).find(t => t.date === dateStr && (!selectedStaff || selectedStaff === "all" || t.staff === selectedStaff));
-        if (te) {
-          hrs = Number(te.hours || 0);
-        } else if (j.startDate === dateStr || (j.startDate <= dateStr && (j.endDate || j.startDate) >= dateStr)) {
+        if (!hrs && (j.startDate === dateStr || (j.startDate <= dateStr && (j.endDate || j.startDate) >= dateStr))) {
           hrs = calcHours(j.startTime, j.endTime);
         }
 
@@ -413,8 +434,41 @@ export default function TimesheetsPage({
       }
     });
 
+    const filteredOverhead = overheadEntries.filter((entry) =>
+      entry?.date >= ws && entry?.date <= we && (selectedStaff === "all" || entry?.staff === selectedStaff)
+    );
+    const overheadMap = new Map();
+
+    filteredOverhead.forEach((entry) => {
+      const staff = entry?.staff || ownerName;
+      const category = entry?.category || "General / Admin";
+      const key = `${staff}__${category}`;
+      if (!overheadMap.has(key)) {
+        const days = {};
+        weekDates.forEach((d) => { days[fmtDate(d)] = 0; });
+        overheadMap.set(key, {
+          jobId: `overhead::${encodeURIComponent(staff)}::${encodeURIComponent(category)}`,
+          jobTitle: category,
+          clientName: "Non-billable",
+          assignedTo: staff,
+          days,
+          totalHours: 0,
+          hourlyRate: 0,
+        });
+      }
+      const row = overheadMap.get(key);
+      const dateStr = entry.date;
+      const hrs = Number(entry.hours || 0);
+      row.days[dateStr] = (row.days[dateStr] || 0) + hrs;
+      row.totalHours += hrs;
+    });
+
+    overheadMap.forEach((row) => {
+      if (row.totalHours > 0) data.push(row);
+    });
+
     return data;
-  }, [weekJobs, weekDates, selectedStaff, clientMap, profile]);
+  }, [weekJobs, weekDates, selectedStaff, clientMap, profile.businessName, profile.name, overheadEntries, weekStart, weekEnd]);
 
   const dayTotals = useMemo(() => {
     const totals = {};
@@ -437,11 +491,34 @@ export default function TimesheetsPage({
   }, [timesheetData]);
 
   const saveTimeEntry = async (jobId, dateStr, hours) => {
-    const job = jobs.find(j => String(j.id) === String(jobId));
+    const numericHours = Number(hours) || 0;
+
+    if (String(jobId).startsWith("overhead::")) {
+      const [, encodedStaff = "", encodedCategory = "General%20%2F%20Admin"] = String(jobId).split("::");
+      const staff = decodeURIComponent(encodedStaff);
+      const category = decodeURIComponent(encodedCategory);
+      const existingEntries = Array.isArray(profile.overheadTimeEntries) ? profile.overheadTimeEntries : [];
+      const nextEntries = existingEntries.filter((entry) => !(entry.date === dateStr && (entry.staff || "") === staff && (entry.category || "") === category));
+      if (numericHours > 0) {
+        nextEntries.push({
+          id: `${staff}-${category}-${dateStr}`,
+          date: dateStr,
+          hours: numericHours,
+          staff,
+          category,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      await saveProfileToSupabase?.({ ...profile, overheadTimeEntries: nextEntries });
+      setEditingCell(null);
+      return;
+    }
+
+    const job = realJobs.find(j => String(j.id) === String(jobId));
     if (!job || !saveJob) return;
     const entries = [...(job.timeEntries || [])];
-    const idx = entries.findIndex(t => t.date === dateStr);
-    const entry = { date: dateStr, hours: Number(hours) || 0, staff: selectedStaff !== "all" ? selectedStaff : (job.assignedTo || profile.businessName || "Owner"), updatedAt: new Date().toISOString() };
+    const idx = entries.findIndex(t => t.date === dateStr && (selectedStaff === "all" || t.staff === selectedStaff));
+    const entry = { date: dateStr, hours: numericHours, staff: selectedStaff !== "all" ? selectedStaff : (job.assignedTo || profile.businessName || "Owner"), updatedAt: new Date().toISOString() };
     if (idx >= 0) entries[idx] = entry; else entries.push(entry);
     await saveJob({ ...job, timeEntries: entries }, { silent: true });
     setEditingCell(null);
@@ -622,6 +699,7 @@ export default function TimesheetsPage({
           buttonSecondary={buttonSecondary}
           profile={profile}
           saveJob={saveJob}
+          saveProfileToSupabase={saveProfileToSupabase}
           onClose={() => setShowWizard(false)}
         />
       )}
