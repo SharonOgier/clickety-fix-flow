@@ -10,6 +10,7 @@ const emptyTrip = () => ({
   purpose: "",
   km: "",
   ratePerKm: String(ATO_RATE_PER_KM),
+  jobId: "",
 });
 
 export default function MileageSection({
@@ -30,6 +31,8 @@ export default function MileageSection({
   safeNumber,
   SectionCard,
   DataTable,
+  jobs = [],
+  getClientName = () => "Unknown",
 }) {
   const [trip, setTrip] = useState(emptyTrip());
   const [editingId, setEditingId] = useState(null);
@@ -91,6 +94,7 @@ export default function MileageSection({
       description,
       gst: "0",
       expenseType: "Motor Vehicle",
+      jobId: trip.jobId || "",
     }));
 
     setTrip(emptyTrip());
@@ -220,6 +224,17 @@ export default function MileageSection({
             value={trip.ratePerKm}
             onChange={(e) => f("ratePerKm", e.target.value)}
           />
+        </div>
+        <div>
+          <label style={labelStyle}>Link to Job (optional)</label>
+          <select
+            style={inputStyle}
+            value={trip.jobId || ""}
+            onChange={(e) => f("jobId", e.target.value)}
+          >
+            <option value="">— none —</option>
+            {jobs.map(j => <option key={j.id} value={j.id}>{j.title}{j.clientId ? ` (${getClientName(j.clientId)})` : ""}</option>)}
+          </select>
         </div>
         <div>
           <label style={labelStyle}>Amount</label>

@@ -65,7 +65,7 @@ function calcDepreciation(asset) {
 
 export default function AssetsPage(props) {
   const {
-    assets = [],
+    assets = [], expenses = [],
     colours, cardStyle, buttonPrimary, buttonSecondary,
     inputStyle, labelStyle, currency, formatDateAU, safeNumber,
     todayLocal, DashboardHero, InsightChip, MetricCard,
@@ -80,6 +80,7 @@ export default function AssetsPage(props) {
     purchasePrice: "", salvageValue: "0", effectiveLife: "",
     depreciationMethod: "prime_cost", status: "Active", notes: "",
     previousOwners: "", serialNumber: "", location: "",
+    linkedExpenseId: "",
   });
   const [editingId, setEditingId] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -92,7 +93,7 @@ export default function AssetsPage(props) {
   const typeCounts = assets.reduce((acc, a) => { const t = a.assetType || "Other"; acc[t] = (acc[t] || 0) + 1; return acc; }, {});
 
   const resetForm = () => {
-    setForm({ name: "", assetType: "Farm Equipment", purchaseDate: todayLocal(), purchasePrice: "", salvageValue: "0", effectiveLife: "", depreciationMethod: "prime_cost", status: "Active", notes: "", previousOwners: "", serialNumber: "", location: "" });
+    setForm({ name: "", assetType: "Farm Equipment", purchaseDate: todayLocal(), purchasePrice: "", salvageValue: "0", effectiveLife: "", depreciationMethod: "prime_cost", status: "Active", notes: "", previousOwners: "", serialNumber: "", location: "", linkedExpenseId: "" });
     setEditingId(null);
   };
 
@@ -112,7 +113,7 @@ export default function AssetsPage(props) {
       effectiveLife: asset.effectiveLife || "", depreciationMethod: asset.depreciationMethod || "prime_cost",
       status: asset.status || "Active", notes: asset.notes || "",
       previousOwners: asset.previousOwners || "", serialNumber: asset.serialNumber || "",
-      location: asset.location || "",
+      location: asset.location || "", linkedExpenseId: asset.linkedExpenseId || "",
     });
     setEditingId(asset.id);
     setShowForm(true);
@@ -165,6 +166,25 @@ export default function AssetsPage(props) {
             <div>
               <label style={labelStyle}>Purchase Price ($)</label>
               <input type="number" style={inputStyle} value={form.purchasePrice} onChange={e => setForm(p => ({ ...p, purchasePrice: e.target.value }))} />
+            </div>
+            <div>
+              <label style={labelStyle}>Linked Purchase Expense</label>
+              <select style={inputStyle} value={form.linkedExpenseId || ""} onChange={e => {
+                const exp = expenses.find(ex => String(ex.id) === e.target.value);
+                setForm(p => ({
+                  ...p,
+                  linkedExpenseId: e.target.value,
+                  purchasePrice: exp ? String(safeNumber(exp.amount)) : p.purchasePrice,
+                  purchaseDate: exp?.date || p.purchaseDate,
+                }));
+              }}>
+                <option value="">— none —</option>
+                {expenses.filter(e => safeNumber(e.amount) > 0).map(e => (
+                  <option key={e.id} value={e.id}>
+                    {e.date} — {e.supplier || e.category} — {currency(safeNumber(e.amount))}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label style={labelStyle}>Depreciation Method</label>

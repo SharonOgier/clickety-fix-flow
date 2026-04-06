@@ -65,6 +65,9 @@ export default function ExpensesPage(props) {
     totals,
     uploadReceiptToSupabase,
     openReceiptFile = null,
+    jobs = [],
+    clients = [],
+    getClientName = () => "Unknown",
     setImportType = () => {},
     setImportRows = () => {},
     setImportError = () => {},
@@ -215,6 +218,39 @@ export default function ExpensesPage(props) {
           </div>
 
           <div>
+            <label style={labelStyle}>Link to Job (optional)</label>
+            <select
+              style={inputStyle}
+              value={expenseForm.jobId || ""}
+              onChange={(e) => setExpenseForm((prev) => ({ ...prev, jobId: e.target.value }))}
+            >
+              <option value="">— none —</option>
+              {jobs.map(j => <option key={j.id} value={j.id}>{j.title}{j.clientId ? ` (${getClientName(j.clientId)})` : ""}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Link to Supplier/Contact</label>
+            <select
+              style={inputStyle}
+              value={expenseForm.contactId || ""}
+              onChange={(e) => {
+                const sel = clients.find(c => String(c.id) === e.target.value);
+                setExpenseForm((prev) => ({
+                  ...prev,
+                  contactId: e.target.value,
+                  supplier: sel?.name || prev.supplier,
+                }));
+              }}
+            >
+              <option value="">— manual entry —</option>
+              {clients.filter(c => (c.roles || []).includes("supplier") || !c.roles?.length).map(c => (
+                <option key={c.id} value={c.id}>{c.name}{c.businessName ? ` (${c.businessName})` : ""}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
             <label style={labelStyle}>Amount</label>
             <input
               type="number"
@@ -318,6 +354,11 @@ export default function ExpensesPage(props) {
             { key: "gst", label: "GST", render: (v) => currency(v) },
             { key: "expenseType", label: "Type" },
             { key: "workType", label: "Work Type" },
+            { key: "jobId", label: "Job", render: (v) => {
+              if (!v) return <span style={{ color: colours.muted }}>—</span>;
+              const job = jobs.find(j => String(j.id) === String(v));
+              return job ? job.title : `#${v}`;
+            }},
             {
               key: "actions",
               label: "Actions",
@@ -432,6 +473,8 @@ export default function ExpensesPage(props) {
         safeNumber={safeNumber}
         SectionCard={SectionCard}
         DataTable={DataTable}
+        jobs={jobs}
+        getClientName={getClientName}
       />
     </div>
     );
