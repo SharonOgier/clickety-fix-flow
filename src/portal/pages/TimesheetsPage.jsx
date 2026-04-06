@@ -490,6 +490,26 @@ export default function TimesheetsPage({
     return Object.entries(map).map(([name, hours]) => ({ name, hours })).sort((a, b) => b.hours - a.hours);
   }, [timesheetData]);
 
+  const deleteRow = async (row) => {
+    if (!confirm(`Delete all time entries for "${row.jobTitle}" (${row.assignedTo}) this week?`)) return;
+    const ws = fmtDate(weekStart);
+    const we = fmtDate(weekEnd);
+
+    if (String(row.jobId).startsWith("overhead::")) {
+      const [, encodedStaff = "", encodedCategory = ""] = String(row.jobId).split("::");
+      const staff = decodeURIComponent(encodedStaff);
+      const category = decodeURIComponent(encodedCategory);
+      const existing = Array.isArray(profile.overheadTimeEntries) ? profile.overheadTimeEntries : [];
+      const next = existing.filter((e) => !(e.date >= ws && e.date <= we && (e.staff || "") === staff && (e.category || "") === category));
+      await saveProfileToSupabase?.({ ...profile, overheadTimeEntries: next });
+    } else {
+      const job = realJobs.find((j) => String(j.id) === String(row.jobId));
+      if (!job || !saveJob) return;
+      const kept = (job.timeEntries || []).filter((t) => !(t.date >= ws && t.date <= we && (selectedStaff === "all" || t.staff === selectedStaff)));
+      await saveJob({ ...job, timeEntries: kept }, { silent: true });
+    }
+  };
+
   const saveTimeEntry = async (jobId, dateStr, hours) => {
     const numericHours = Number(hours) || 0;
 
@@ -616,6 +636,7 @@ export default function TimesheetsPage({
                     );
                   })}
                   <th style={{ ...thStyle, textAlign: "center", minWidth: 70, background: "#F5ECFB" }}>Total</th>
+                  <th style={{ ...thStyle, textAlign: "center", minWidth: 40 }}></th>
                 </tr>
               </thead>
               <tbody>
@@ -661,7 +682,17 @@ export default function TimesheetsPage({
                     <td style={{ ...tdStyle, textAlign: "center", fontWeight: 800, color: colours.purple, background: "#F5ECFB" }}>
                       {row.totalHours.toFixed(row.totalHours % 1 === 0 ? 0 : 1)}
                     </td>
-                  </tr>
+                    <td style={{ ...tdStyle, textAlign: "center", padding: 4 }}>
+                      {row.totalHours > 0 && (
+                        <button
+                          onClick={() => deleteRow(row)}
+                          title="Delete this week's entries"
+                          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#EF4444", padding: "4px 6px", borderRadius: 4 }}
+                          onMouseOver={e => e.currentTarget.style.background = "#FEE2E2"}
+                          onMouseOut={e => e.currentTarget.style.background = "none"}
+                        >🗑️</button>
+                      )}
+                    </td>
                 ))}
                 {/* Totals row */}
                 <tr style={{ borderTop: `3px solid ${colours.purple || "#6A1B9A"}` }}>
@@ -680,6 +711,7 @@ export default function TimesheetsPage({
                   <td style={{ ...tdStyle, textAlign: "center", fontWeight: 900, fontSize: 16, color: "#FFFFFF", background: colours.purple || "#6A1B9A", borderRadius: "0 0 8px 0" }}>
                     {grandTotal.toFixed(grandTotal % 1 === 0 ? 0 : 1)}
                   </td>
+                  <td style={tdStyle}></td>
                 </tr>
               </tbody>
             </table>
