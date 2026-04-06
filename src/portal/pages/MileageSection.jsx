@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 const ATO_RATE_PER_KM = 0.88; // 2024-25 ATO rate
 
@@ -14,6 +14,7 @@ const emptyTrip = () => ({
 
 export default function MileageSection({
   expenses,
+  expenseForm,
   setExpenseForm,
   saveExpense,
   deleteExpense,
@@ -32,16 +33,31 @@ export default function MileageSection({
 }) {
   const [trip, setTrip] = useState(emptyTrip());
   const [editingId, setEditingId] = useState(null);
+  const pendingSaveRef = useRef(false);
+
+  // After expenseForm is updated with mileage data, trigger save
+  useEffect(() => {
+    if (
+      pendingSaveRef.current &&
+      expenseForm.category === "Mileage" &&
+      expenseForm.supplier === "Mileage" &&
+      safeNumber(expenseForm.amount) > 0
+    ) {
+      pendingSaveRef.current = false;
+      saveExpense();
+    }
+  }, [expenseForm, saveExpense, safeNumber]);
 
   // Filter mileage expenses from the main expenses list
   const mileageExpenses = expenses.filter(
     (e) => e.category === "Motor Vehicle – Logbook" || e.category === "Mileage"
   );
 
-  const totalKm = mileageExpenses.reduce(
-    (s, e) => s + safeNumber(e.km || e.description?.match(/[\d.]+\s*km/i)?.[0]),
-    0
-  );
+  const totalKm = mileageExpenses.reduce((s, e) => {
+    // Try to extract km from description like "45 km @ $0.88/km"
+    const kmMatch = (e.description || "").match(/([\d.]+)\s*km/i);
+    return s + (kmMatch ? parseFloat(kmMatch[1]) : 0);
+  }, 0);
   const totalMileageAmt = mileageExpenses.reduce(
     (s, e) => s + safeNumber(e.amount),
     0
@@ -63,25 +79,20 @@ export default function MileageSection({
       .filter(Boolean)
       .join(" ");
 
-    // Push into the expense form and save
+    pendingSaveRef.current = true;
+
     setExpenseForm((prev) => ({
       ...prev,
       date: trip.date,
+      dueDate: trip.date,
       supplier: "Mileage",
       category: "Mileage",
       amount: String(amount),
       description,
       gst: "0",
       expenseType: "Motor Vehicle",
-      km: String(km),
-      ratePerKm: String(rate),
-      fromLocation: trip.from,
-      toLocation: trip.to,
-      purpose: trip.purpose,
     }));
 
-    // Use setTimeout to allow state to settle before saving
-    setTimeout(() => saveExpense(), 50);
     setTrip(emptyTrip());
     setEditingId(null);
   };
