@@ -4313,6 +4313,9 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                 <div style={{ display: "grid", gap: 2 }}>
                   {section.items.map((item) => {
                     const isActive = activePage === item;
+                    const userTier = getUserTier(profile);
+                    const pageAccess = isPageAllowed(item, userTier);
+                    const isLocked = !pageAccess.allowed;
                     const iconMap = {
                       "dashboard": "⬡", "financial insights": "📊", "invoices": "📄", "quotes": "📋",
                       "clients": "👥", "services": "⚙", "expenses": "💳", "bills / payables": "🧾",
@@ -4324,9 +4327,20 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                         key={item}
                         className={`sas-nav-item${isActive ? " active" : ""}`}
                         onClick={() => { setActivePage(item); setSidebarOpen(false); }}
+                        style={isLocked ? { opacity: 0.5 } : {}}
                       >
                         <span className="sas-nav-icon" style={{ fontSize: 15 }}>{iconMap[item] || "•"}</span>
-                        {navLabels[item] || (item.charAt(0).toUpperCase() + item.slice(1))}
+                        <span style={{ flex: 1 }}>{navLabels[item] || (item.charAt(0).toUpperCase() + item.slice(1))}</span>
+                        {isLocked && (
+                          <span style={{
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                            fontSize: 9, fontWeight: 800, color: "#fff",
+                            background: colours.purple, borderRadius: 8,
+                            padding: "2px 7px", letterSpacing: 0.3,
+                          }}>
+                            🔒 Upgrade
+                          </span>
+                        )}
                       </button>
                     );
                   })}
