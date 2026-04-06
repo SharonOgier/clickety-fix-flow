@@ -210,6 +210,7 @@ export default function AccountingPortalPrototype() {
   const [isResettingPassword, setIsResettingPassword] = useState(false);
   // Multi-user state
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSubcontractor, setIsSubcontractor] = useState(false);
   const [viewingAsUserId, setViewingAsUserId] = useState(null);
   const [allPortalUsers, setAllPortalUsers] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
