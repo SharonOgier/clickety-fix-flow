@@ -2,34 +2,49 @@ import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 
 const features = [
-  { icon: "🧾", title: "Professional invoicing & quotes", desc: "Create polished PDF invoices and quotes in seconds. Send via email with a Stripe payment link so clients can pay instantly.", color: "bg-secondary" },
-  { icon: "📊", title: "Automatic GST calculations", desc: "GST is calculated automatically on every invoice, expense and income source. No more manual spreadsheets or calculator errors.", color: "bg-teal-light" },
-  { icon: "🇦🇺", title: "ATO-ready reports", desc: "Generate pre-filled income, expense and GST summaries formatted for your tax return. Export directly to share with your accountant.", color: "bg-secondary" },
-  { icon: "👥", title: "Client management", desc: "Store all your client details, ABNs, and contact info in one place. Link every invoice and quote to the right client automatically.", color: "bg-secondary" },
-  { icon: "💸", title: "Expense tracking", desc: "Categorise expenses, claim GST credits and track deductible business costs. Receipt uploads and bill management included.", color: "bg-teal-light" },
-  { icon: "🎯", title: "Safe to Spend dashboard", desc: "See exactly how much money you can safely spend after setting aside GST, tax and expenses — updated in real time.", color: "bg-secondary" },
+  { icon: "🔨", title: "Jobs & Scheduling", desc: "Plan your week, assign jobs to your team, and see exactly who is where — all from your phone." },
+  { icon: "📋", title: "Quotes & Invoices", desc: "Create professional quotes in minutes. Turn them into invoices with one tap. Get paid faster." },
+  { icon: "📍", title: "Properties & Sites", desc: "Track work across multiple sites, properties and paddocks. Every job linked to a location." },
+  { icon: "👷", title: "Subcontractor Management", desc: "Invite subbies to see their jobs, log their time and submit costs — without giving them full access." },
+  { icon: "💰", title: "Payments & Margin Tracking", desc: "Know exactly what you're making on every job. Connect Stripe and get paid online instantly." },
+  { icon: "📊", title: "BAS & Financial Reports", desc: "GST, BAS and ATO reports generated automatically from your real data. No manual spreadsheets." },
+];
+
+const painPoints = [
+  { icon: "📝", title: "Quoting takes too long", desc: "Writing up quotes by hand, forgetting to include stuff, underselling your work. Sound familiar?" },
+  { icon: "😤", title: "Chasing payments is embarrassing", desc: "You did the job. You deserve to get paid. Mustered sends automatic reminders so you don't have to." },
+  { icon: "📅", title: "Scheduling is a mess", desc: "Texts, phone calls, paper diaries. Your team doesn't know where to be and neither do you." },
 ];
 
 const steps = [
-  { num: "1", title: "Create your account", desc: "Sign up with your email and set up your business profile — ABN, bank details, logo and payment terms. Takes under 5 minutes." },
-  { num: "2", title: "Add clients & start invoicing", desc: "Add your clients, create your first invoice and send it as a professional PDF. Clients can pay by Stripe or bank transfer." },
-  { num: "3", title: "Stay ATO-ready year round", desc: "Track income and expenses as you go. At tax time, export your ATO-ready summary — no scrambling through receipts." },
+  { num: "1", title: "Create your account", desc: "Sign up, tell us about your business — tradie, farmer or small business — and Mustered sets itself up for you." },
+  { num: "2", title: "Add your jobs and team", desc: "Add your customers, properties and staff. Start scheduling jobs straight away." },
+  { num: "3", title: "Quote, invoice and get paid", desc: "Send professional quotes, convert to invoices and collect payment — all from your phone on site." },
+];
+
+const audiences = [
+  { icon: "🔧", title: "Tradies", desc: "Electricians, plumbers, builders, painters, HVAC techs, fencers — if you go to a job site, Mustered has got your back.", bg: "bg-blue-50" },
+  { icon: "🌾", title: "Farmers & Agricultural Businesses", desc: "Manage work across your property, paddocks and sheds. Track contractors, chemicals and seasonal jobs — all in one place.", bg: "bg-green-50" },
+  { icon: "🏪", title: "Small Businesses", desc: "Manage your team, bookings and customers without the corporate software price tag. Simple, honest, Australian.", bg: "bg-orange-50" },
 ];
 
 const priceFeatures = [
-  "Unlimited invoices & quotes",
-  "Automatic GST calculations",
-  "ATO-ready income & expense reports",
-  "Client management",
-  "Professional PDF generation",
-  "Stripe payment collection",
-  "Safe to Spend dashboard",
-  "Email support",
+  "Unlimited jobs and invoices",
+  "Unlimited customers and contacts",
+  "Scheduling and calendar",
+  "Properties and sub-locations",
+  "Subcontractor portal access",
+  "Stripe payment integration",
+  "GST, BAS and financial reports",
+  "Bank reconciliation",
+  "Mobile optimised — works on any device",
+  "Australian support",
 ];
 
 const testimonials = [
-  { quote: "I used to dread tax time. Now I just export my ATO summary and hand it straight to my accountant. Saves me hours every quarter.", name: "Michael T.", role: "Freelance consultant, Melbourne", initial: "M" },
-  { quote: "The GST calculations are spot on. I was making mistakes manually before — now everything is automatic and I know my BAS figures are right.", name: "Sarah K.", role: "Sole trader, Brisbane", initial: "S" },
+  { quote: "I used to spend Sunday nights doing invoices. Now I send them from the van before I've even packed up my tools.", name: "Jake T", role: "Electrician, Perth WA", initial: "J" },
+  { quote: "Finally something that understands how a farm actually works. I can track every paddock, every contractor, every job.", name: "Sarah M", role: "Mixed Farmer, Northam WA", initial: "S" },
+  { quote: "My accountant actually rang me to ask what I'd changed. Mustered just makes everything cleaner.", name: "Dave R", role: "Plumber, Bunbury WA", initial: "D" },
 ];
 
 export default function LandingPage() {
@@ -59,18 +74,18 @@ export default function LandingPage() {
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 lg:px-10 py-4 bg-card/92 backdrop-blur-xl border-b border-border/80">
         <Link to="/" className="font-serif text-xl font-black text-primary tracking-tight">
-          Sharon's Accounting Service
+          Mustered
         </Link>
         <div className="hidden md:flex items-center gap-8">
           <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Features</a>
-          <Link to="/farm-equipment" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Farm Equipment</Link>
+          <a href="#who-its-for" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Who it's for</a>
           <a href="#how-it-works" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">How it works</a>
           <a href="#pricing" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Pricing</a>
           <Link to="/auth?mode=signin" className="text-sm font-bold text-primary bg-secondary border border-primary/20 rounded-md px-4 py-2.5 hover:bg-secondary/80 transition-colors">
             Sign in
           </Link>
           <Link to="/auth?mode=signup" className="text-sm font-bold bg-primary text-primary-foreground rounded-md px-5 py-2.5 hover:opacity-90 transition-opacity">
-            Start free trial
+            Start free 14-day trial
           </Link>
         </div>
         <Link to="/auth?mode=signin" className="md:hidden text-sm font-bold text-primary bg-secondary border border-primary/20 rounded-md px-4 py-2.5">
@@ -90,19 +105,19 @@ export default function LandingPage() {
               Built for Australian businesses
             </div>
             <h1 className="text-4xl lg:text-[54px] leading-[1.1] font-black text-foreground mb-5 tracking-tight">
-              Accounting made <em className="not-italic text-primary">simple</em> for Australians
+              Run your trade business <em className="not-italic text-primary">from your phone</em>
             </h1>
             <p className="text-lg leading-relaxed text-muted-foreground font-light mb-9">
-              Invoicing, GST calculations and ATO-ready reports — all in one place. No spreadsheets, no confusion, no accountant required for the basics.
+              Quote, schedule, invoice and get paid — all in one place. Built for Australian tradies, farmers and small businesses who'd rather be on the tools than buried in paperwork.
             </p>
             <div className="flex gap-3.5 flex-wrap items-center">
               <Link to="/auth?mode=signup" className="inline-flex items-center justify-center rounded-md font-semibold bg-primary text-primary-foreground px-8 py-4 text-base hover:opacity-90 transition-opacity">
-                Start your 14-day free trial
+                Start free 14-day trial
               </Link>
-              <Link to="/auth?mode=signin" className="inline-flex items-center justify-center rounded-md font-semibold bg-card text-primary border-2 border-primary px-7 py-3.5 text-sm hover:bg-secondary transition-colors">
-                Login to Portal
-              </Link>
-              <span className="w-full text-sm text-muted-foreground">No credit card required</span>
+              <a href="#how-it-works" className="inline-flex items-center justify-center rounded-md font-semibold bg-card text-primary border-2 border-primary px-7 py-3.5 text-sm hover:bg-secondary transition-colors">
+                See how it works
+              </a>
+              <span className="w-full text-sm text-muted-foreground">No credit card required. No contracts. Cancel anytime.</span>
             </div>
           </div>
 
@@ -141,22 +156,60 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* TRUST BAR */}
+      <section className="py-4 px-6 lg:px-10 bg-background border-b border-border">
+        <div className="max-w-[1100px] mx-auto flex flex-wrap justify-center items-center gap-4 md:gap-8 text-sm text-muted-foreground font-medium">
+          <span>Built for Australian businesses</span>
+          <span className="hidden md:inline text-border">·</span>
+          <span>GST & BAS ready</span>
+          <span className="hidden md:inline text-border">·</span>
+          <span>Stripe payments</span>
+          <span className="hidden md:inline text-border">·</span>
+          <span>Bank reconciliation</span>
+          <span className="hidden md:inline text-border">·</span>
+          <span>ATO compliant</span>
+        </div>
+      </section>
+
+      {/* PROBLEM SECTION */}
+      <section className="py-24 px-6 lg:px-10 bg-background">
+        <div className="max-w-[1100px] mx-auto text-center">
+          <div className="fade-in">
+            <h2 className="text-3xl lg:text-[42px] font-black leading-tight text-foreground mb-4 tracking-tight">
+              Still quoting from a notepad?<br />Chasing invoices by text?
+            </h2>
+            <p className="text-base text-muted-foreground leading-relaxed font-light max-w-[560px] mx-auto mb-14">
+              You're losing money every week to bad paperwork. Mustered fixes that.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {painPoints.map((p, i) => (
+              <div key={p.title} className="bg-secondary rounded-[20px] p-8 text-left fade-in" style={{ transitionDelay: `${i * 0.1}s` }}>
+                <div className="text-3xl mb-4">{p.icon}</div>
+                <h3 className="text-lg font-bold mb-2.5 text-foreground">{p.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed font-light">{p.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* FEATURES */}
       <section className="py-24 px-6 lg:px-10" id="features">
         <div className="max-w-[1100px] mx-auto">
-          <div className="fade-in">
+          <div className="fade-in text-center">
             <p className="text-xs font-bold tracking-[2px] uppercase text-primary mb-4">Features</p>
             <h2 className="text-3xl lg:text-[42px] font-black leading-tight text-foreground mb-4 tracking-tight">
-              Everything you need,<br /><em className="not-italic text-primary">nothing you don't</em>
+              Everything you need. <em className="not-italic text-primary">Nothing you don't.</em>
             </h2>
-            <p className="text-base text-muted-foreground leading-relaxed font-light max-w-[560px]">
-              Built specifically for the Australian tax system — GST, ATO reporting, and BAS-ready figures built in from day one.
+            <p className="text-base text-muted-foreground leading-relaxed font-light max-w-[600px] mx-auto">
+              Mustered is the all-in-one business tool built specifically for tradies, farmers and small businesses across Australia.
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-14">
             {features.map((f, i) => (
               <div key={f.title} className="bg-card border border-border rounded-[20px] p-8 hover:border-primary hover:-translate-y-1 hover:shadow-brand transition-all cursor-default fade-in" style={{ transitionDelay: `${i * 0.1}s` }}>
-                <div className={`w-[52px] h-[52px] rounded-md flex items-center justify-center text-2xl mb-5 ${f.color}`}>
+                <div className="w-[52px] h-[52px] rounded-md flex items-center justify-center text-2xl mb-5 bg-secondary">
                   {f.icon}
                 </div>
                 <h3 className="text-lg font-bold mb-2.5 text-foreground font-sans">{f.title}</h3>
@@ -173,7 +226,7 @@ export default function LandingPage() {
           <div className="fade-in">
             <p className="text-xs font-bold tracking-[2px] uppercase text-primary mb-4">How it works</p>
             <h2 className="text-3xl lg:text-[42px] font-black leading-tight text-foreground tracking-tight">
-              Up and running in<br /><em className="not-italic text-primary">minutes</em>
+              Up and running in <em className="not-italic text-primary">minutes</em>
             </h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-14">
@@ -190,22 +243,40 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* WHO IT'S FOR */}
+      <section className="py-24 px-6 lg:px-10" id="who-its-for">
+        <div className="max-w-[1100px] mx-auto text-center">
+          <div className="fade-in">
+            <p className="text-xs font-bold tracking-[2px] uppercase text-primary mb-4">Who it's for</p>
+            <h2 className="text-3xl lg:text-[42px] font-black leading-tight text-foreground mb-14 tracking-tight">
+              Built for the people who <em className="not-italic text-primary">build Australia</em>
+            </h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {audiences.map((a, i) => (
+              <div key={a.title} className={`${a.bg} rounded-[20px] p-8 text-left fade-in`} style={{ transitionDelay: `${i * 0.1}s` }}>
+                <div className="text-4xl mb-4">{a.icon}</div>
+                <h3 className="text-lg font-bold mb-2.5 text-foreground">{a.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed font-light">{a.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* PRICING */}
-      <section className="py-24 px-6 lg:px-10" id="pricing">
+      <section className="py-24 px-6 lg:px-10 bg-background" id="pricing">
         <div className="max-w-[1100px] mx-auto text-center">
           <div className="fade-in">
             <p className="text-xs font-bold tracking-[2px] uppercase text-primary mb-4">Pricing</p>
             <h2 className="text-3xl lg:text-[42px] font-black text-foreground">Simple, honest pricing</h2>
-            <p className="text-base text-muted-foreground font-light mt-4 max-w-[560px] mx-auto">One plan. Everything included. No hidden fees, no feature limits, no surprises.</p>
+            <p className="text-base text-muted-foreground font-light mt-4 max-w-[560px] mx-auto">One plan. Everything included. No nasty surprises.</p>
           </div>
           <div className="max-w-[480px] mx-auto mt-14 bg-card border-2 border-primary rounded-xl p-12 shadow-brand relative overflow-hidden fade-in">
-            <div className="absolute top-6 -right-8 bg-primary text-primary-foreground text-[10px] font-extrabold tracking-[1.5px] px-10 py-1.5 rotate-45">
-              MOST POPULAR
-            </div>
-            <div className="font-serif text-7xl font-black text-primary leading-none mb-1">$27</div>
-            <div className="text-base text-muted-foreground font-light mb-8">per month · cancel anytime</div>
+            <div className="font-serif text-7xl font-black text-primary leading-none mb-1">$59</div>
+            <div className="text-base text-muted-foreground font-light mb-2">per month · or $49/month billed annually</div>
             <div className="bg-teal-light text-accent rounded-lg p-3.5 text-sm font-semibold mb-6">
-              🎉 Start with a 14-day free trial — no credit card needed
+              🎉 Start free 14-day trial — No credit card required
             </div>
             <ul className="grid gap-3 mb-9 text-left">
               {priceFeatures.map((f) => (
@@ -216,9 +287,11 @@ export default function LandingPage() {
               ))}
             </ul>
             <Link to="/auth?mode=signup" className="w-full flex justify-center items-center py-4 px-8 rounded-md font-bold bg-primary text-primary-foreground text-base">
-              Start free trial — 14 days free
+              Start free 14-day trial
             </Link>
-            <p className="text-sm text-muted-foreground mt-3.5">Then $27/month. Cancel anytime.</p>
+            <p className="text-sm text-muted-foreground mt-3.5 italic">
+              Adding STP payroll? Coming soon at $99/month — be first to know.
+            </p>
           </div>
         </div>
       </section>
@@ -226,11 +299,11 @@ export default function LandingPage() {
       {/* TESTIMONIALS */}
       <section className="py-24 px-6 lg:px-10 bg-navy" id="testimonials">
         <div className="max-w-[1100px] mx-auto">
-          <div className="fade-in">
+          <div className="fade-in text-center">
             <p className="text-xs font-bold tracking-[2px] uppercase text-indigo-300 mb-4">Testimonials</p>
-            <h2 className="text-3xl lg:text-[42px] font-black text-navy-foreground">Australians love it</h2>
+            <h2 className="text-3xl lg:text-[42px] font-black text-navy-foreground">Aussie businesses love Mustered</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
             {testimonials.map((t, i) => (
               <div key={t.name} className="bg-primary-foreground/[0.07] border border-primary-foreground/10 rounded-[20px] p-8 fade-in" style={{ transitionDelay: `${i * 0.15}s` }}>
                 <p className="text-[15px] leading-relaxed text-slate-300 mb-6 font-light italic">"{t.quote}"</p>
@@ -249,37 +322,36 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* FINAL CTA */}
       <section className="py-24 px-6 lg:px-10 text-center" style={{ background: "var(--gradient-cta)" }}>
         <div className="fade-in">
           <h2 className="font-serif text-3xl lg:text-5xl font-black text-primary-foreground mb-4 tracking-tight">
-            Ready to simplify your accounting?
+            Ready to get your business mustered?
           </h2>
           <p className="text-lg text-primary-foreground/70 font-light mb-10">
-            Join hundreds of Australian businesses already saving time with Sharon's Accounting Service.
+            Join Australian tradies, farmers and small businesses already saving hours every week.
           </p>
           <Link to="/auth?mode=signup" className="inline-block bg-card text-primary px-10 py-4 text-base font-bold rounded-md hover:-translate-y-0.5 hover:shadow-brand transition-all">
-            Start your free trial today
+            Start your free 14-day trial
           </Link>
-          <p className="text-sm text-primary-foreground/50 mt-4">No credit card required · Cancel anytime</p>
+          <p className="text-sm text-primary-foreground/50 mt-4">No credit card. No contracts. No dramas.</p>
         </div>
       </section>
 
       {/* FOOTER */}
       <footer className="bg-foreground text-slate-400 py-12 px-6 lg:px-10 text-center">
-        <div className="font-serif text-xl font-black text-card mb-4">Sharon's Accounting Service</div>
-        <p className="text-sm leading-relaxed">
-          Smart accounting tools for Australian small businesses.<br />
-          ABN registered · Built in Australia · Data stored securely.
+        <div className="font-serif text-xl font-black text-card mb-2">Mustered</div>
+        <p className="text-sm leading-relaxed mb-1">Built in Australia for Australian businesses</p>
+        <p className="text-xs text-slate-500 mb-5">
+          ABN reporting · GST ready · ATO compliant · Stripe payments
         </p>
-        <div className="flex justify-center gap-6 mt-5 flex-wrap">
+        <div className="flex justify-center gap-6 flex-wrap">
           <Link to="/" className="text-sm text-slate-500 hover:text-card transition-colors">Home</Link>
           <a href="#features" className="text-sm text-slate-500 hover:text-card transition-colors">Features</a>
-          <Link to="/farm-equipment" className="text-sm text-slate-500 hover:text-card transition-colors">Farm Equipment</Link>
           <a href="#pricing" className="text-sm text-slate-500 hover:text-card transition-colors">Pricing</a>
           <Link to="/auth?mode=signin" className="text-sm text-slate-500 hover:text-card transition-colors">Portal Login</Link>
         </div>
-        <p className="text-xs text-slate-600 mt-6">© {new Date().getFullYear()} Sharon's Accounting Service. All rights reserved.</p>
+        <p className="text-xs text-slate-600 mt-6">© {new Date().getFullYear()} Mustered. All rights reserved.</p>
       </footer>
     </div>
   );
