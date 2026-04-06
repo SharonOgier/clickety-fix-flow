@@ -33,6 +33,14 @@ const calcHours = (start, end) => {
 
 // ── Log Time Wizard ────────────────────────────────────────────────────────
 function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPrimary, buttonSecondary, profile, saveJob, onClose }) {
+  const ADMIN_ID = "__admin__";
+  const ADMIN_CATEGORIES = [
+    { id: "__admin__", label: "General / Admin" },
+    { id: "__travel__", label: "Travel" },
+    { id: "__training__", label: "Training" },
+    { id: "__meetings__", label: "Meetings" },
+  ];
+
   const [step, setStep] = useState(0); // 0=staff, 1=job, 2=details, 3=done
   const [selectedStaffName, setSelectedStaffName] = useState("");
   const [selectedJobId, setSelectedJobId] = useState("");
@@ -46,14 +54,37 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
 
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [String(c.id), c])), [clients]);
 
+  const isAdminEntry = ADMIN_CATEGORIES.some(c => c.id === selectedJobId);
+  const adminLabel = ADMIN_CATEGORIES.find(c => c.id === selectedJobId)?.label || "Admin";
+
   const computedHours = useManual ? (Number(manualHours) || 0) : calcHours(startTime, endTime);
 
+  // Find or create an admin pseudo-job for overhead time entries
+  const getOrCreateAdminJob = () => {
+    const existing = jobs.find(j => j.isAdminJob === true);
+    if (existing) return existing;
+    // Return a new admin job shell — saveJob will persist it
+    return {
+      id: "admin-time-" + Date.now(),
+      title: "Admin & Overheads",
+      isAdminJob: true,
+      status: "active",
+      timeEntries: [],
+    };
+  };
+
   const handleSave = async () => {
-    if (!selectedJobId || computedHours <= 0) return;
+    if ((!selectedJobId) || computedHours <= 0) return;
     setSaving(true);
     try {
-      const job = jobs.find(j => String(j.id) === String(selectedJobId));
-      if (!job || !saveJob) return;
+      let job;
+      if (isAdminEntry) {
+        job = getOrCreateAdminJob();
+      } else {
+        job = jobs.find(j => String(j.id) === String(selectedJobId));
+      }
+      if (!job || !saveJob) { setSaving(false); return; }
+
       const entries = [...(job.timeEntries || [])];
       const entry = {
         date: entryDate,
@@ -62,10 +93,11 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
         startTime: useManual ? undefined : startTime,
         endTime: useManual ? undefined : endTime,
         notes: notes.trim() || undefined,
+        category: isAdminEntry ? adminLabel : undefined,
         updatedAt: new Date().toISOString(),
       };
-      // Replace existing entry for same date+staff or append
-      const idx = entries.findIndex(t => t.date === entryDate && t.staff === entry.staff);
+      // Replace existing entry for same date+staff+category or append
+      const idx = entries.findIndex(t => t.date === entryDate && t.staff === entry.staff && (t.category || "") === (entry.category || ""));
       if (idx >= 0) entries[idx] = entry; else entries.push(entry);
       await saveJob({ ...job, timeEntries: entries });
       setStep(3);
@@ -147,13 +179,22 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
             </div>
           )}
 
-          {/* Step 1: Pick job */}
+          {/* Step 1: Pick job or admin category */}
           {step === 1 && (
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 12 }}>Which job?</div>
-              <div style={{ maxHeight: 300, overflowY: "auto" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 12 }}>What was the time for?</div>
+              <div style={{ maxHeight: 340, overflowY: "auto" }}>
+                {/* Admin / overhead categories */}
+                <div style={{ fontSize: 11, fontWeight: 700, color: colours.muted, textTransform: "uppercase", marginBottom: 6, letterSpacing: 0.5 }}>Business Overheads</div>
+                {ADMIN_CATEGORIES.map(c => (
+                  <button key={c.id} style={optionBtn(selectedJobId === c.id)} onClick={() => setSelectedJobId(c.id)}>
+                    <span style={{ marginRight: 6 }}>🏢</span> {c.label}
+                  </button>
+                ))}
+
+                <div style={{ fontSize: 11, fontWeight: 700, color: colours.muted, textTransform: "uppercase", marginTop: 16, marginBottom: 6, letterSpacing: 0.5 }}>Jobs</div>
                 {jobs.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: 30, color: colours.muted }}>No jobs found. Create a job first.</div>
+                  <div style={{ textAlign: "center", padding: 20, color: colours.muted, fontSize: 13 }}>No jobs found.</div>
                 ) : (
                   jobs.map(j => {
                     const client = clientMap[String(j.clientId)];
@@ -261,7 +302,7 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
                 {computedHours.toFixed(1)}h for <strong>{selectedStaffName}</strong>
               </div>
               <div style={{ fontSize: 13, color: colours.muted, marginBottom: 24 }}>
-                {fmtDateAU(entryDate)} · {jobs.find(j => String(j.id) === String(selectedJobId))?.title || ""}
+                {fmtDateAU(entryDate)} · {isAdminEntry ? adminLabel : (jobs.find(j => String(j.id) === String(selectedJobId))?.title || "")}
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
                 <button style={{ ...buttonSecondary, padding: "10px 20px" }} onClick={onClose}>Done</button>
