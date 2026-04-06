@@ -9,6 +9,7 @@ import AuthPage from "./pages/AuthPage";
 import PortalPage from "./pages/PortalPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import FarmEquipmentPage from "./pages/FarmEquipmentPage";
+import QuoteViewPage from "./pages/QuoteViewPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
