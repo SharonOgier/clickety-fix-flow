@@ -4539,7 +4539,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                 };
                 return (
                   <UpgradePrompt
-                    featureName={navLabels[activePage] || activePage}
+                    featureName={getNavLabels(profile.businessType)[activePage] || activePage}
                     featureIcon={featureIconMap[activePage] || "🔒"}
                     currentTier={userTier}
                     onUpgrade={() => { setActivePage("settings"); setActiveSettingsTab("Plan & Billing"); }}
