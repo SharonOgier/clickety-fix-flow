@@ -101,6 +101,7 @@ import TaxEstimatorPage     from "./pages/TaxEstimatorPage";
 import SettingsPage         from "./pages/SettingsPage";
 import ATOTaxFormPage       from "./ATOTaxFormPage";
 import BankReconciliationPage from "./pages/BankReconciliationPage";
+import SubcontractorPortal from "./pages/SubcontractorPortal";
 // -----------------------------------------------------------------------------
 
 
