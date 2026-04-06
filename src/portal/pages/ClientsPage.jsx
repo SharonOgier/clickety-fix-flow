@@ -488,6 +488,24 @@ export default function ClientsPage(props) {
               onSave={saveClientEdits} onCancel={closeClientEditor} isEditing
             />
             <RelatedJobsSection contact={clientEditorForm} jobs={jobs} invoices={invoices} quotes={props.quotes || []} expenses={props.expenses || []} colours={colours} cardStyle={cardStyle} currency={currency} safeNumber={safeNumber} setActivePage={setActivePage} formatDateAU={props.formatDateAU} />
+            {/* Customer Portal Link */}
+            {(clientEditorForm.roles || []).includes("customer") && (
+              <div style={{ ...cardStyle, padding: 18, marginTop: 16, background: "#F5ECFB", border: `1px solid ${colours.purple}22` }}>
+                <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", color: colours.purple, marginBottom: 8 }}>🔗 Customer Portal</div>
+                <p style={{ fontSize: 13, color: colours.muted, marginBottom: 12 }}>Share this link with your customer so they can view their jobs, pay invoices, and request new work.</p>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button style={{ ...buttonPrimary, fontSize: 13 }} onClick={() => handlePortalLink(clientEditorForm)}>
+                    {portalCopied ? "✅ Link Copied!" : "📋 Copy Portal Link"}
+                  </button>
+                  {clientEditorForm.portalToken && (
+                    <button style={{ ...buttonSecondary, fontSize: 13 }} onClick={() => {
+                      const url = `${window.location.origin}/client-portal?token=${encodeURIComponent(clientEditorForm.portalToken)}`;
+                      window.open(url, "_blank");
+                    }}>👁️ Preview Portal</button>
+                  )}
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <ContactForm
