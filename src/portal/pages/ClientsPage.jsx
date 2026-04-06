@@ -396,6 +396,26 @@ export default function ClientsPage(props) {
   const saveClient = extSaveClient ?? (() => { if (saveClientFromModal) saveClientFromModal(); });
   const todayLocal = extTodayLocal ?? (() => new Date().toISOString().slice(0, 10));
 
+  // ---- Portal link generation ----
+  const [portalCopied, setPortalCopied] = useState(false);
+  const handlePortalLink = (contact) => {
+    let token = contact.portalToken;
+    if (!token) {
+      token = crypto.randomUUID() + "-" + crypto.randomUUID().slice(0, 8);
+      // Save the token to the contact
+      const updated = { ...contact, portalToken: token };
+      openClientEditor(updated);
+      // Auto-save if saveClientEdits is available
+      if (extSetClientEditorForm) extSetClientEditorForm(updated);
+      setTimeout(() => { if (extSaveClientEdits) extSaveClientEdits(); }, 100);
+    }
+    const portalUrl = `${window.location.origin}/client-portal?token=${encodeURIComponent(token)}`;
+    navigator.clipboard.writeText(portalUrl).then(() => {
+      setPortalCopied(true);
+      setTimeout(() => setPortalCopied(false), 3000);
+    });
+  };
+
   // ---- Search & filter state ----
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
