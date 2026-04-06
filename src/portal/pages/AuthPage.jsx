@@ -206,7 +206,7 @@ export default function AuthPage(props) {
                   style={{ ...buttonSecondary, flex: 1, minWidth: 150 }}
                   onClick={() => setAuthMode((prev) => (prev === "signup" ? "signin" : "signup"))}
                 >
-                  {authMode === "signup" ? "Use Sign In" : "Create Account"}
+                  {authMode === "signup" ? "Use Login" : "Create Account"}
                 </button>
                 <button type="button" style={{ ...buttonSecondary, flex: 1, minWidth: 150 }} onClick={handlePasswordReset}>
                   Reset Password
