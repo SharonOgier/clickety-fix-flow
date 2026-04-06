@@ -218,6 +218,39 @@ export default function ExpensesPage(props) {
           </div>
 
           <div>
+            <label style={labelStyle}>Link to Job (optional)</label>
+            <select
+              style={inputStyle}
+              value={expenseForm.jobId || ""}
+              onChange={(e) => setExpenseForm((prev) => ({ ...prev, jobId: e.target.value }))}
+            >
+              <option value="">— none —</option>
+              {jobs.map(j => <option key={j.id} value={j.id}>{j.title}{j.clientId ? ` (${getClientName(j.clientId)})` : ""}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Link to Supplier/Contact</label>
+            <select
+              style={inputStyle}
+              value={expenseForm.contactId || ""}
+              onChange={(e) => {
+                const sel = clients.find(c => String(c.id) === e.target.value);
+                setExpenseForm((prev) => ({
+                  ...prev,
+                  contactId: e.target.value,
+                  supplier: sel?.name || prev.supplier,
+                }));
+              }}
+            >
+              <option value="">— manual entry —</option>
+              {clients.filter(c => (c.roles || []).includes("supplier") || !c.roles?.length).map(c => (
+                <option key={c.id} value={c.id}>{c.name}{c.businessName ? ` (${c.businessName})` : ""}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
             <label style={labelStyle}>Amount</label>
             <input
               type="number"
