@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { useTerminology } from "../TerminologyContext";
+import { getUserTier } from "../tierConfig";
 
 
 // -----------------------------------------------------------------------------
