@@ -3139,7 +3139,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       }
 
       const amount = safeNumber(expenseForm.amount);
-      const gst = amount / 11;
+      const isMileage = expenseForm.category === "Mileage" || expenseForm.expenseType === "Motor Vehicle";
+      const gst = isMileage ? 0 : amount / 11;
       let receiptUrl = "";
       let receiptFileName = "";
 
