@@ -711,6 +711,7 @@ export default function TimesheetsPage({
                   <td style={{ ...tdStyle, textAlign: "center", fontWeight: 900, fontSize: 16, color: "#FFFFFF", background: colours.purple || "#6A1B9A", borderRadius: "0 0 8px 0" }}>
                     {grandTotal.toFixed(grandTotal % 1 === 0 ? 0 : 1)}
                   </td>
+                  <td style={tdStyle}></td>
                 </tr>
               </tbody>
             </table>
