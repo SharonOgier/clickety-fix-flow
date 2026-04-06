@@ -682,7 +682,17 @@ export default function TimesheetsPage({
                     <td style={{ ...tdStyle, textAlign: "center", fontWeight: 800, color: colours.purple, background: "#F5ECFB" }}>
                       {row.totalHours.toFixed(row.totalHours % 1 === 0 ? 0 : 1)}
                     </td>
-                  </tr>
+                    <td style={{ ...tdStyle, textAlign: "center", padding: 4 }}>
+                      {row.totalHours > 0 && (
+                        <button
+                          onClick={() => deleteRow(row)}
+                          title="Delete this week's entries"
+                          style={{ background: "none", border: "none", cursor: "pointer", fontSize: 15, color: "#EF4444", padding: "4px 6px", borderRadius: 4 }}
+                          onMouseOver={e => e.currentTarget.style.background = "#FEE2E2"}
+                          onMouseOut={e => e.currentTarget.style.background = "none"}
+                        >🗑️</button>
+                      )}
+                    </td>
                 ))}
                 {/* Totals row */}
                 <tr style={{ borderTop: `3px solid ${colours.purple || "#6A1B9A"}` }}>
