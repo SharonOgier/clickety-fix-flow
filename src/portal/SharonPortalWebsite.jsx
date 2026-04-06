@@ -3935,6 +3935,17 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     );
     }
 
+    // Subcontractor limited portal
+    if (isSubcontractor && !isAdmin) {
+      return (
+        <>
+          <ToastContainer toasts={toasts} removeToast={removeToast} />
+          {confirmModal}
+          <SubcontractorPortal authUser={authUser} onSignOut={handleSignOut} />
+        </>
+      );
+    }
+
     if (profile?.accountStatus === "closed") {
     return (
       <div style={{ minHeight: "100vh", background: colours.bg, display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "sans-serif" }}>
