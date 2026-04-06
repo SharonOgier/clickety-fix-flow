@@ -1,5 +1,20 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
+import { TIERS, TIER_ORDER } from "../portal/tierConfig";
+
+const tiers = TIER_ORDER.map((key) => {
+  const t = TIERS[key as keyof typeof TIERS];
+  return {
+    key: t.key,
+    name: t.label,
+    price: t.price,
+    tag: t.tag,
+    recommended: !!(t as any).recommended,
+    features: t.features,
+    locked: t.lockedFeatures || [],
+    comingSoon: (t as any).comingSoon || [],
+  };
+});
 
 const features = [
   { icon: "🔨", title: "Jobs & Scheduling", desc: "Plan your week, assign jobs to your team, and see exactly who is where — all from your phone." },
@@ -28,34 +43,6 @@ const audiences = [
   { icon: "🏪", title: "Small Businesses", desc: "Manage your team, bookings and customers without the corporate software price tag. Simple, honest, Australian.", bg: "bg-orange-50" },
 ];
 
-const tiers = [
-  {
-    key: "starter",
-    name: "Starter",
-    price: 39,
-    tag: "Perfect for sole operators",
-    features: ["Jobs & job tracking", "Invoicing & quotes", "Payments via Stripe", "Basic customer records", "1 user only"],
-    locked: ["Scheduling & calendar", "Properties & sub-locations", "Staff & subcontractor management", "Financial reports & BAS"],
-  },
-  {
-    key: "pro",
-    name: "Pro",
-    price: 59,
-    tag: "For growing trade and farm businesses",
-    recommended: true,
-    features: ["Everything in Starter", "Scheduling & calendar", "Properties, sites & paddocks", "Contacts — customers, staff, subcontractors, suppliers", "Subcontractor portal access", "Staff management — up to 5 users", "Financial reports & BAS", "Bank reconciliation"],
-    locked: [],
-  },
-  {
-    key: "premium",
-    name: "Premium",
-    price: 99,
-    tag: "For established businesses with a team",
-    features: ["Everything in Pro", "Unlimited users", "STP payroll (coming soon)", "Priority support"],
-    locked: [],
-    comingSoon: ["STP payroll"],
-  },
-];
 
 const priceFeatures = [
   "Unlimited jobs and invoices",
