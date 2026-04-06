@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "./client";
+import { TerminologyProvider } from "./TerminologyContext";
 import MobileWizard from "./MobileWizard";
 import {
   ToastContainer,
