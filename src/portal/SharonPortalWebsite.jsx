@@ -177,6 +177,7 @@ export default function AccountingPortalPrototype() {
   const [assets, setAssets] = useState([]);
   const [properties, setProperties] = useState([]);
   const [jobs, setJobs] = useState([]);
+  const [subcontractorCosts, setSubcontractorCosts] = useState([]);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -1699,6 +1700,15 @@ export default function AccountingPortalPrototype() {
         safeF(SUPABASE_TABLES.jobs),
       ]);
       hasHydratedSupabaseState.current = true;
+
+      // Fetch approved subcontractor costs for business owner (for ATO Tax Form)
+      try {
+        const { data: subCosts } = await supabase
+          .from("sas_subcontractor_costs")
+          .select("*")
+          .eq("job_owner_user_id", authUser.id);
+        if (subCosts) setSubcontractorCosts(subCosts);
+      } catch (e) { console.warn("Could not load subcontractor costs:", e); }
 
       const remoteProfile =
         Array.isArray(remoteProfileRows) && remoteProfileRows.length
@@ -4591,7 +4601,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                 <ATOTaxFormPage
                   profile={profile} invoices={invoices} expenses={expenses}
                   incomeSources={incomeSources} getClientById={getClientById}
-                  assets={assets}
+                  assets={assets} subcontractorCosts={subcontractorCosts}
                 />
               </div>
             )}

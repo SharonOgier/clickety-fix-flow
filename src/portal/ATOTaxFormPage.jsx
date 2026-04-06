@@ -111,6 +111,7 @@ export default function ATOTaxFormPage({
   expenses = [],
   incomeSources = [],
   assets = [],
+  subcontractorCosts = [],
   getClientById = () => null,
 }) {
   const [tab, setTab] = useState("income");
@@ -145,7 +146,23 @@ export default function ATOTaxFormPage({
     });
     return Object.values(groups);
   })();
-  const portalExp = expenses.map(e=>({date:e.date||"",type:e.category||e.expenseType||"Other",supplier:e.supplier||e.description||"",amount:safeNumber(e.amount),gstIncl:e.gstIncluded!==false?"yes":"no"}));
+  const isMileageExp = e => e.category === "Mileage" || e.expenseType === "Motor Vehicle";
+  const portalExp = [
+    ...expenses.map(e=>({
+      date:e.date||"",
+      type: isMileageExp(e) ? "Car (cents/km)" : (e.category||e.expenseType||"Other"),
+      supplier:e.supplier||e.description||"",
+      amount:safeNumber(e.amount),
+      gstIncl: isMileageExp(e) ? "no" : (e.gstIncluded!==false?"yes":"no"),
+    })),
+    ...subcontractorCosts.filter(c => c.status === "approved").map(c => ({
+      date: c.submitted_at ? c.submitted_at.slice(0,10) : "",
+      type: "Subcontractor",
+      supplier: `Subcontractor — ${c.description || c.cost_type}`,
+      amount: safeNumber(c.amount),
+      gstIncl: "no",
+    })),
+  ];
 
   // Asset depreciation totals
   const totalDepreciation = assets.filter(a => (a.status || "Active") === "Active").reduce((s, a) => s + calcAssetAnnualDep(a), 0);
@@ -187,7 +204,12 @@ export default function ATOTaxFormPage({
   const totInc = sumKey(allInc,"gross");
   const totWH  = sumKey(allInc,"withheld");
   const totFC  = sumKey(allInc,"franking");
-  const deduct = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
+  const isCarExp = x => {const t=(x.type||"").toLowerCase(); return t.includes("car")||t.includes("mileage");};
+  const isSubExp = x => (x.type||"").toLowerCase().includes("subcontractor");
+  const deductCar = allExp.filter(isCarExp).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
+  const deductSub = allExp.filter(isSubExp).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
+  const deductWork = allExp.filter(x=>{const t=(x.type||"").toLowerCase();return t!=="capital item"&&!isCarExp(x)&&!isSubExp(x);}).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
+  const deduct = deductWork + deductCar + deductSub;
   const taxableSum = Math.max(0,totInc-deduct);
   const capitalG10 = g10 + capitalPurchases; // Capital purchases including assets
 
@@ -232,8 +254,13 @@ export default function ATOTaxFormPage({
     const fc      = sumKey(allInc,"franking");
     const mapped  = wages+biz+int_+for_+div;
     const other   = Math.max(0,sumKey(allInc,"gross")-mapped);
-    const ded     = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
-    setItr(p=>({...p,salary:wages||"",business:biz||"",interest:int_||"",foreign:for_||"",other:other||"",payg:payg||"",franked:franked||"",fc:fc||"",dWork:ded||"",dOther:totalDepreciation?"":""}));
+
+    // Separate mileage/car expenses from other work-related deductions
+    const carDed  = allExp.filter(x=>{const t=(x.type||"").toLowerCase();return t.includes("car")||t.includes("mileage");}).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
+    const subDed  = allExp.filter(x=>(x.type||"").toLowerCase().includes("subcontractor")).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
+    const workDed = allExp.filter(x=>{const t=(x.type||"").toLowerCase();return t!=="capital item"&&!t.includes("car")&&!t.includes("mileage")&&!t.includes("subcontractor");}).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
+
+    setItr(p=>({...p,salary:wages||"",business:biz||"",interest:int_||"",foreign:for_||"",other:other||"",payg:payg||"",franked:franked||"",fc:fc||"",dWork:workDed+subDed||"",dCar:carDed||"",dOther:totalDepreciation?"":""}));
   };
 
   const applyCGT = () => {
@@ -330,11 +357,11 @@ export default function ATOTaxFormPage({
             <div><label style={ss.lbl}>Date</label><input type="date" style={ss.inp} value={expF.date} onChange={e=>setExpF(p=>({...p,date:e.target.value}))} /></div>
             <div><label style={ss.lbl}>Type</label>
               <select style={ss.inp} value={expF.type} onChange={e=>setExpF(p=>({...p,type:e.target.value}))}>
-                {["Work-related","Capital item","Office supplies","Other"].map(o=><option key={o}>{o}</option>)}
+                {["Work-related","Car (cents/km)","Subcontractor","Capital item","Office supplies","Other"].map(o=><option key={o}>{o}</option>)}
               </select>
             </div>
             <div><label style={ss.lbl}>Supplier</label><input style={ss.inp} value={expF.supplier} onChange={e=>setExpF(p=>({...p,supplier:e.target.value}))} /></div>
-            <div><label style={ss.lbl}>Amount ($, incl GST)</label><input type="number" style={ss.inp} step="0.01" min="0" value={expF.amount} onChange={e=>setExpF(p=>({...p,amount:e.target.value}))} /></div>
+            <div><label style={ss.lbl}>Amount ($)</label><input type="number" style={ss.inp} step="0.01" min="0" value={expF.amount} onChange={e=>setExpF(p=>({...p,amount:e.target.value}))} /></div>
             <div><label style={ss.lbl}>GST included?</label>
               <select style={ss.inp} value={expF.gstIncl} onChange={e=>setExpF(p=>({...p,gstIncl:e.target.value}))}>
                 <option value="yes">Yes</option><option value="no">No</option>
@@ -441,7 +468,10 @@ export default function ATOTaxFormPage({
             <tbody>
               {[
                 {l:"Total Income",v:`$${fmt(totInc)}`},
-                {l:"Less: Deductible Expenses",v:`−$${fmt(deduct)}`},
+                {l:"Less: Work-related Deductions",v:`−$${fmt(deductWork)}`},
+                ...(deductCar > 0 ? [{l:"Less: Car / Mileage (D2 cents/km)",v:`−$${fmt(deductCar)}`}] : []),
+                ...(deductSub > 0 ? [{l:"Less: Subcontractor Costs",v:`−$${fmt(deductSub)}`}] : []),
+                {l:"Total Deductions",v:`−$${fmt(deduct)}`},
                 {l:"Taxable Income",v:`$${fmt(taxableSum)}`},
                 {l:"Less: Franking credits (tax offset)",v:`−$${fmt(totFC)}`},
                 {l:"Estimated Income Tax",v:`$${fmt(Math.max(0,taxResident(taxableSum)-totFC))}`},
