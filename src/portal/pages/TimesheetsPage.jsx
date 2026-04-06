@@ -490,6 +490,26 @@ export default function TimesheetsPage({
     return Object.entries(map).map(([name, hours]) => ({ name, hours })).sort((a, b) => b.hours - a.hours);
   }, [timesheetData]);
 
+  const deleteRow = async (row) => {
+    if (!confirm(`Delete all time entries for "${row.jobTitle}" (${row.assignedTo}) this week?`)) return;
+    const ws = fmtDate(weekStart);
+    const we = fmtDate(weekEnd);
+
+    if (String(row.jobId).startsWith("overhead::")) {
+      const [, encodedStaff = "", encodedCategory = ""] = String(row.jobId).split("::");
+      const staff = decodeURIComponent(encodedStaff);
+      const category = decodeURIComponent(encodedCategory);
+      const existing = Array.isArray(profile.overheadTimeEntries) ? profile.overheadTimeEntries : [];
+      const next = existing.filter((e) => !(e.date >= ws && e.date <= we && (e.staff || "") === staff && (e.category || "") === category));
+      await saveProfileToSupabase?.({ ...profile, overheadTimeEntries: next });
+    } else {
+      const job = realJobs.find((j) => String(j.id) === String(row.jobId));
+      if (!job || !saveJob) return;
+      const kept = (job.timeEntries || []).filter((t) => !(t.date >= ws && t.date <= we && (selectedStaff === "all" || t.staff === selectedStaff)));
+      await saveJob({ ...job, timeEntries: kept }, { silent: true });
+    }
+  };
+
   const saveTimeEntry = async (jobId, dateStr, hours) => {
     const numericHours = Number(hours) || 0;
 
