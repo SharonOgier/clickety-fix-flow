@@ -4365,7 +4365,31 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         <main className="sas-main">
           <div className="sas-page-wrap">
             <div className="sas-page-inner sas-page-panel" style={{ maxWidth: 1480, margin: "0 auto" }}>
-            {activePage === "dashboard" && <DashboardPage
+            {(() => {
+              const userTier = getUserTier(profile);
+              const pageAccess = isPageAllowed(activePage, userTier);
+              if (!pageAccess.allowed) {
+                const featureIconMap = {
+                  "financial insights": "📊", "services": "⚙", "bills / payables": "🧾",
+                  "income sources": "💰", "documents": "📁", "properties": "🏠",
+                  "scheduling": "📅", "bank reconciliation": "🏦", "bas report": "📑",
+                  "ato tax form": "🏛", "tax estimator": "🧮", "assets": "📦",
+                  "jobs report": "📋",
+                };
+                return (
+                  <UpgradePrompt
+                    featureName={navLabels[activePage] || activePage}
+                    featureIcon={featureIconMap[activePage] || "🔒"}
+                    currentTier={userTier}
+                    onUpgrade={() => { setActivePage("settings"); setActiveSettingsTab("Plan & Billing"); }}
+                    onViewPlans={() => { setActivePage("settings"); setActiveSettingsTab("Plan & Billing"); }}
+                    colours={colours}
+                  />
+                );
+              }
+              return null;
+            })()}
+            {isPageAllowed(activePage, getUserTier(profile)).allowed && activePage === "dashboard" && <DashboardPage
               profile={profile} clients={clients} invoices={invoices} quotes={quotes}
               expenses={expenses} documents={documents} services={services}
               totals={totals} invoiceAllocations={invoiceAllocations}
