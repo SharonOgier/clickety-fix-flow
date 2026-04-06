@@ -1100,6 +1100,11 @@ export default function SchedulingPage({
                 <button style={buttonPrimary} onClick={() => openEdit(detailJob)}>Edit Job</button>
                 <button style={{ ...buttonSecondary, color: "#C62828" }} onClick={() => handleDelete(detailJob)}>Delete</button>
                 <button style={buttonSecondary} onClick={() => setDetailTab("costs")}>View Costs</button>
+                {getJobAddress(detailJob) && (
+                  <button style={{ ...buttonSecondary, color: "#1565C0", borderColor: "#1565C0" }} onClick={() => openNavigation(getJobAddress(detailJob))}>
+                    📍 Navigate to Site
+                  </button>
+                )}
                 <button style={{ ...buttonSecondary, color: "#6A1B9A", borderColor: "#6A1B9A" }} onClick={() => {
                   const w = window.open("", "_blank");
                   if (w) writeJobSheetPreviewToWindow(w, detailJob, { profile, clients, properties });
