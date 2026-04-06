@@ -411,6 +411,33 @@ function InvoicesPageInner(props) {
                   </div>
                 )}
               </div>
+              {/* Link to Job */}
+              <div>
+                <label style={labelStyle}>Link to Job (optional)</label>
+                <select style={inputStyle} value={invoiceForm.jobId || ""} onChange={e => setInvoiceForm(prev => ({ ...prev, jobId: e.target.value }))}>
+                  <option value="">— none —</option>
+                  {jobs.map(j => <option key={j.id} value={j.id}>{j.title}{j.clientId ? ` (${getClientName(j.clientId)})` : ""}</option>)}
+                </select>
+              </div>
+              {/* Private margin summary if linked to a job */}
+              {invoiceForm.jobId && (() => {
+                const linkedJob = jobs.find(j => String(j.id) === String(invoiceForm.jobId));
+                if (!linkedJob) return null;
+                const fin = computeJobFinancials(linkedJob);
+                const invoiceAmt = safeNumber(previewTotal);
+                const margin = invoiceAmt - fin.totalCost;
+                const marginPct = invoiceAmt > 0 ? (margin / invoiceAmt) * 100 : 0;
+                return (
+                  <div style={{ ...cardStyle, padding: 14, background: "#FFFBEB", border: "1px solid #FDE68A" }}>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "#92400E", textTransform: "uppercase", marginBottom: 8 }}>🔒 Private Margin Summary (not visible to client)</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(100px, 1fr))", gap: 8 }}>
+                      <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, color: "#92400E" }}>Invoice</div><div style={{ fontSize: 16, fontWeight: 800 }}>{currency(invoiceAmt)}</div></div>
+                      <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, color: "#92400E" }}>Job Cost</div><div style={{ fontSize: 16, fontWeight: 800 }}>{currency(fin.totalCost)}</div></div>
+                      <div style={{ textAlign: "center" }}><div style={{ fontSize: 10, color: "#92400E" }}>Margin</div><div style={{ fontSize: 16, fontWeight: 800, color: margin >= 0 ? "#2E7D32" : "#C62828" }}>{currency(margin)} ({marginPct.toFixed(0)}%)</div></div>
+                    </div>
+                  </div>
+                );
+              })()}
               <div>
                 <label style={labelStyle}>Comments (optional)</label>
                 <textarea style={{ ...inputStyle, minHeight: 80, resize: "vertical" }} value={invoiceForm.comments || ""} onChange={(e) => setInvoiceForm((prev) => ({ ...prev, comments: e.target.value }))} placeholder="Any notes to appear on the invoice..." />
