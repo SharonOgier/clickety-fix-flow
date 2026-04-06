@@ -371,7 +371,7 @@ export default function HomePage() {
                     Try Mustered free for 14 days →
                   </Link>
                   <Link to="/landing" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-card text-primary border border-border">
-                    Portal Login
+                    Mustered Login
                   </Link>
                 </div>
                 <p className="text-muted-foreground text-xs mt-3">$59/month. 14-day free trial. No credit card required.</p>
