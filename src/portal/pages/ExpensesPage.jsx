@@ -416,6 +416,7 @@ export default function ExpensesPage(props) {
 
       <MileageSection
         expenses={expenses}
+        expenseForm={expenseForm}
         setExpenseForm={setExpenseForm}
         saveExpense={saveExpense}
         deleteExpense={deleteExpense}
