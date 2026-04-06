@@ -412,6 +412,7 @@ export default function PropertiesPage(props) {
             colours={colours} cardStyle={cardStyle}
             buttonSecondary={buttonSecondary}
             setActivePage={setActivePage}
+            jobs={jobs}
           />
         </SectionCard>
       </div>
