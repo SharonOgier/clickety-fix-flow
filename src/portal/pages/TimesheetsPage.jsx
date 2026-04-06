@@ -491,11 +491,34 @@ export default function TimesheetsPage({
   }, [timesheetData]);
 
   const saveTimeEntry = async (jobId, dateStr, hours) => {
-    const job = jobs.find(j => String(j.id) === String(jobId));
+    const numericHours = Number(hours) || 0;
+
+    if (String(jobId).startsWith("overhead::")) {
+      const [, encodedStaff = "", encodedCategory = "General%20%2F%20Admin"] = String(jobId).split("::");
+      const staff = decodeURIComponent(encodedStaff);
+      const category = decodeURIComponent(encodedCategory);
+      const existingEntries = Array.isArray(profile.overheadTimeEntries) ? profile.overheadTimeEntries : [];
+      const nextEntries = existingEntries.filter((entry) => !(entry.date === dateStr && (entry.staff || "") === staff && (entry.category || "") === category));
+      if (numericHours > 0) {
+        nextEntries.push({
+          id: `${staff}-${category}-${dateStr}`,
+          date: dateStr,
+          hours: numericHours,
+          staff,
+          category,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+      await saveProfileToSupabase?.({ ...profile, overheadTimeEntries: nextEntries });
+      setEditingCell(null);
+      return;
+    }
+
+    const job = realJobs.find(j => String(j.id) === String(jobId));
     if (!job || !saveJob) return;
     const entries = [...(job.timeEntries || [])];
-    const idx = entries.findIndex(t => t.date === dateStr);
-    const entry = { date: dateStr, hours: Number(hours) || 0, staff: selectedStaff !== "all" ? selectedStaff : (job.assignedTo || profile.businessName || "Owner"), updatedAt: new Date().toISOString() };
+    const idx = entries.findIndex(t => t.date === dateStr && (selectedStaff === "all" || t.staff === selectedStaff));
+    const entry = { date: dateStr, hours: numericHours, staff: selectedStaff !== "all" ? selectedStaff : (job.assignedTo || profile.businessName || "Owner"), updatedAt: new Date().toISOString() };
     if (idx >= 0) entries[idx] = entry; else entries.push(entry);
     await saveJob({ ...job, timeEntries: entries }, { silent: true });
     setEditingCell(null);
