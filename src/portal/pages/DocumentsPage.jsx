@@ -51,8 +51,8 @@ export default function DocumentsPage(props) {
     const typeData = Object.entries(docTypes).slice(0, 6).map(([label, value]) => ({ label, value }));
     return (
     <div style={{ display: "grid", gap: 20 }}>
-      <DashboardHero title="Documents" subtitle="Store, organise and access all your portal documents, receipts and generated PDFs in one place." highlight={String(documents.length)}>
-        <InsightChip label="Total files" value={String(documents.length)} />
+      <DashboardHero title="Documents" subtitle="Store, organise and access all your portal documents, receipts and generated PDFs in one place." highlight={String(safeDocuments.length)}>
+        <InsightChip label="Total files" value={String(safeDocuments.length)} />
         <InsightChip label="Last uploaded" value={lastUploaded} />
         <InsightChip label="File types" value={String(Object.keys(docTypes).length)} />
       </DashboardHero>
