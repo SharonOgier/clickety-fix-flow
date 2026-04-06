@@ -699,6 +699,7 @@ export default function TimesheetsPage({
           buttonSecondary={buttonSecondary}
           profile={profile}
           saveJob={saveJob}
+          saveProfileToSupabase={saveProfileToSupabase}
           onClose={() => setShowWizard(false)}
         />
       )}

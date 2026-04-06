@@ -4826,7 +4826,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               currency={currency}
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
               SectionCard={SectionCard} EmptyState={EmptyState}
-              saveJob={saveJob} profile={profile}
+              saveJob={saveJob} saveProfileToSupabase={saveProfileToSupabase} profile={profile}
             />}
             {activePage === "jobs report" && <JobsReportPage
               jobs={jobs} invoices={invoices} quotes={quotes} clients={clients}
