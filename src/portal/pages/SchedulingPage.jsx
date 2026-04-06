@@ -1390,22 +1390,34 @@ export default function SchedulingPage({
                 )}
               </div>
 
-              {/* Assigned + Colour */}
+              {/* Assigned + Colour + Recurrence */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <div>
                   <label style={labelStyle}>Assigned To</label>
                   <input style={inputStyle} value={form.assignedTo} onChange={e => setForm(f => ({ ...f, assignedTo: e.target.value }))} placeholder="Staff name" />
                 </div>
                 <div>
-                  <label style={labelStyle}>Colour</label>
-                  <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
-                    {COLOUR_OPTIONS.map(c => (
-                      <div key={c.value} onClick={() => setForm(f => ({ ...f, colour: c.value }))}
-                        style={{ width: 28, height: 28, borderRadius: 8, background: c.value, cursor: "pointer",
-                          border: form.colour === c.value ? "3px solid #333" : "2px solid transparent" }}
-                        title={c.label} />
-                    ))}
-                  </div>
+                  <label style={labelStyle}>Recurring</label>
+                  <select style={inputStyle} value={form.recurs || "Never"} onChange={e => setForm(f => ({ ...f, recurs: e.target.value }))}>
+                    {RECURRENCE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                  {form.recurs && form.recurs !== "Never" && (
+                    <div style={{ fontSize: 11, color: colours.purple, marginTop: 4, fontWeight: 600 }}>
+                      🔄 Next job auto-created on completion
+                      {form.clientId && <span> + invoice generated</span>}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Colour</label>
+                <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+                  {COLOUR_OPTIONS.map(c => (
+                    <div key={c.value} onClick={() => setForm(f => ({ ...f, colour: c.value }))}
+                      style={{ width: 28, height: 28, borderRadius: 8, background: c.value, cursor: "pointer",
+                        border: form.colour === c.value ? "3px solid #333" : "2px solid transparent" }}
+                      title={c.label} />
+                  ))}
                 </div>
               </div>
 
