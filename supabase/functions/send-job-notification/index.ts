@@ -261,13 +261,15 @@ serve(async (req: Request) => {
     if (!RESEND_API_KEY) throw new Error("RESEND_API_KEY is not configured");
 
     const body = await req.json();
-    const { type, job, profile, client, invoiceInfo, propertyAddress } = body as {
+    const { type, job, profile, client, invoiceInfo, propertyAddress, googleReviewUrl, portalUrl } = body as {
       type: NotificationType;
       job: any;
       profile: any;
       client: any;
       invoiceInfo?: any;
       propertyAddress?: string;
+      googleReviewUrl?: string;
+      portalUrl?: string;
     };
 
     if (!type || !job || !client?.email) {
