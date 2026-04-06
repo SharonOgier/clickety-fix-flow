@@ -451,6 +451,7 @@ export default function PropertiesPage(props) {
             properties={properties}
             colours={colours} cardStyle={cardStyle}
             onSelect={handleViewDetail}
+            jobs={jobs}
           />
         </SectionCard>
       </div>
