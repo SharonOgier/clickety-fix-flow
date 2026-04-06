@@ -371,7 +371,10 @@ export default function TimesheetsPage({
     return jobs.filter(j => {
       const jStart = j.startDate || "";
       const jEnd = j.endDate || jStart;
-      return jStart <= we && jEnd >= ws;
+      const dateOverlap = jStart && jStart <= we && jEnd >= ws;
+      // Also include jobs that have time entries within this week
+      const hasTimeEntryThisWeek = (j.timeEntries || []).some(te => te.date >= ws && te.date <= we);
+      return dateOverlap || hasTimeEntryThisWeek;
     });
   }, [jobs, weekStart, weekEnd]);
 
