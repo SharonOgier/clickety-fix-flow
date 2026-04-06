@@ -91,7 +91,7 @@ export default function HomePage() {
 
           <div className="grid gap-3">
             <Link to="/landing" className="flex justify-center items-center w-full py-3 px-4 rounded-md font-extrabold bg-primary text-primary-foreground">
-              Portal Login
+              Mustered Login
             </Link>
             <a
               href="https://calendly.com/sharonogier-info"
