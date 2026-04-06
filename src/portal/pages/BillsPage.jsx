@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { exportToCSV } from "../PortalHelpers";
+import EntityLink from "../EntityLink";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
