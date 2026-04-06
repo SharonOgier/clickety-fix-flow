@@ -4389,7 +4389,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               }
               return null;
             })()}
-            {isPageAllowed(activePage, getUserTier(profile)).allowed && activePage === "dashboard" && <DashboardPage
+            {isPageAllowed(activePage, getUserTier(profile)).allowed && <>
+            {activePage === "dashboard" && <DashboardPage
               profile={profile} clients={clients} invoices={invoices} quotes={quotes}
               expenses={expenses} documents={documents} services={services}
               totals={totals} invoiceAllocations={invoiceAllocations}
