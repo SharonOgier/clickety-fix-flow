@@ -354,6 +354,11 @@ export default function ExpensesPage(props) {
             { key: "gst", label: "GST", render: (v) => currency(v) },
             { key: "expenseType", label: "Type" },
             { key: "workType", label: "Work Type" },
+            { key: "jobId", label: "Job", render: (v) => {
+              if (!v) return <span style={{ color: colours.muted }}>—</span>;
+              const job = jobs.find(j => String(j.id) === String(v));
+              return job ? job.title : `#${v}`;
+            }},
             {
               key: "actions",
               label: "Actions",
