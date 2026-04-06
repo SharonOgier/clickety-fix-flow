@@ -7,6 +7,7 @@ const pages = [
   { id: "farm-equipment", label: "Farm Equipment" },
   { id: "about", label: "About" },
   { id: "portal", label: "Portal" },
+  { id: "mustered", label: "Mustered", badge: true },
   { id: "why", label: "Why Sharon" },
   { id: "contact", label: "Contact" },
 ];
@@ -15,7 +16,7 @@ const stats = [
   { title: "Based in Casino NSW", desc: "Serving Casino, Lismore, Ballina and surrounding Northern Rivers region." },
   { title: "Financial clarity", desc: "Reporting, structure and better business visibility." },
   { title: "Operational insight", desc: "Practical support grounded in real experience." },
-  { title: "Portal connected", desc: "One place for invoices, expenses and records." },
+  { title: "Now including Mustered", desc: "Our own business management platform — built for tradies, farmers and small business." },
   { title: "Built to be useful", desc: "Less chaos. Better systems. Clearer decisions." },
 ];
 
@@ -26,6 +27,16 @@ const services = [
   { num: "04", title: "Business Structure & Systems", desc: "Helping you set up or improve the financial systems that keep your business running smoothly." },
   { num: "05", title: "Portal Access for Clients", desc: "Every client gets access to the portal — invoices, expenses, documents and reports in one secure place." },
   { num: "06", title: "Farm & Small Business Specialist", desc: "Deep understanding of seasonal cash flow, equipment costs, livestock accounting and the financial realities of running a farm or small business." },
+];
+
+const musteredFeatures = [
+  "Quote and invoice from your phone on site",
+  "Schedule jobs and assign to staff or subcontractors",
+  "Track work across properties, paddocks and job sites",
+  "Subcontractor portal — they see their jobs, nothing else",
+  "Stripe payments built in — get paid faster",
+  "GST, BAS and financial reports ready to go",
+  "Works for tradies, farmers and small businesses",
 ];
 
 export default function HomePage() {
@@ -54,7 +65,7 @@ export default function HomePage() {
               className="w-full max-w-[130px] mx-auto mb-3 rounded-md bg-primary-foreground/15 p-1"
             />
             <h2 className="text-base font-bold mb-1 font-serif">Sharon's Accounting Service</h2>
-            <p className="text-sm opacity-90">Financial clarity and practical business insight for farms and small business.</p>
+            <p className="text-sm opacity-90">Financial clarity and practical business insight for farms and small business. Creator of Mustered.</p>
             <p className="text-xs opacity-85 mt-2">📍 Casino NSW &amp; surrounds</p>
           </div>
 
@@ -63,13 +74,18 @@ export default function HomePage() {
               <button
                 key={page.id}
                 onClick={() => setActivePage(page.id)}
-                className={`w-full border rounded-md p-3 text-left font-bold transition-colors ${
+                className={`w-full border rounded-md p-3 text-left font-bold transition-colors relative ${
                   activePage === page.id
                     ? "bg-secondary border-primary/30 text-primary"
                     : "bg-card border-border text-foreground hover:bg-secondary hover:text-primary"
                 }`}
               >
                 {page.label}
+                {page.badge && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground text-[10px] font-extrabold px-2 py-0.5 rounded-full">
+                    NEW
+                  </span>
+                )}
               </button>
             ))}
           </nav>
@@ -95,15 +111,16 @@ export default function HomePage() {
           {activePage === "home" && (
             <section>
               <div className="grid grid-cols-1 lg:grid-cols-[1.08fr_0.92fr] gap-5 mb-5">
+                {/* Hero card */}
                 <div className="bg-card border border-border rounded-xl shadow-brand p-6">
                   <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-4">
-                    Bookkeeping &amp; financial analysis — Casino NSW
+                    Bookkeeping, financial analysis &amp; business software — Casino NSW
                   </span>
                   <h1 className="text-3xl lg:text-5xl font-black leading-tight tracking-tight mb-4 text-foreground">
                     Sort your books. Understand your numbers. Run a better business.
                   </h1>
                   <p className="text-muted-foreground leading-relaxed mb-5">
-                    Sharon handles the books, the BAS, the invoices and the reporting — and goes further to analyse what the numbers actually mean for your business.
+                    Sharon handles the books, the BAS, the invoices and the reporting — and goes further to analyse what the numbers actually mean for your business. Plus we built Mustered — our own business management platform now available to tradies, farmers and small businesses across Australia.
                   </p>
                   <div className="flex gap-3 flex-wrap mb-5">
                     <Link to="/landing" className="inline-flex justify-center items-center px-6 py-3 rounded-md font-extrabold bg-primary text-primary-foreground">
@@ -117,6 +134,12 @@ export default function HomePage() {
                     >
                       Book a Review
                     </a>
+                    <Link
+                      to="/landing"
+                      className="inline-flex justify-center items-center px-6 py-3 rounded-md font-extrabold text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Try Mustered free →
+                    </Link>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {stats.map((stat) => (
@@ -127,12 +150,14 @@ export default function HomePage() {
                     ))}
                   </div>
                 </div>
+
+                {/* Portal preview card */}
                 <div className="bg-card border border-border rounded-xl shadow-brand p-6">
                   <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-4">
-                    Portal preview
+                    Mustered — Business Management Platform
                   </span>
-                  <h3 className="text-xl font-bold mb-2 text-foreground">Your business dashboard</h3>
-                  <p className="text-muted-foreground mb-4">Use the portal to bring records, visibility and day-to-day management into one connected place.</p>
+                  <h3 className="text-xl font-bold mb-2 text-foreground">Your business. Mustered.</h3>
+                  <p className="text-muted-foreground mb-4">Mustered brings your jobs, invoices, team, properties and payments into one connected place. Built for tradies, farmers and small businesses across Australia.</p>
                   <div className="p-3 bg-secondary/50 border border-border rounded-lg">
                     <div className="bg-card rounded-lg border border-border p-6 text-center">
                       <div className="text-4xl mb-3">📊</div>
@@ -142,7 +167,47 @@ export default function HomePage() {
                       </Link>
                     </div>
                   </div>
+                  <Link
+                    to="/landing"
+                    className="inline-flex mt-4 px-5 py-2 rounded-md font-bold bg-primary text-primary-foreground text-sm"
+                  >
+                    Try Mustered free for 14 days →
+                  </Link>
+                  <p className="text-muted-foreground text-xs mt-2">$59/month. 14-day free trial. No credit card required.</p>
                 </div>
+              </div>
+
+              {/* NEW: Mustered Feature Section */}
+              <div className="bg-secondary/60 border border-primary/15 rounded-xl shadow-brand p-6 mb-5">
+                <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-extrabold mb-4">
+                  Introducing Mustered
+                </span>
+                <h2 className="text-2xl font-black mb-2 text-foreground">
+                  We built the software we always wished existed.
+                </h2>
+                <p className="text-muted-foreground leading-relaxed mb-5">
+                  After years of working with tradies, farmers and small businesses, we knew exactly what was missing. So we built it. Mustered is now available to any Australian business — not just our clients.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                  {musteredFeatures.map((feat) => (
+                    <div key={feat} className="flex items-start gap-3">
+                      <span className="text-primary font-bold text-lg mt-0.5">✓</span>
+                      <span className="text-foreground text-sm">{feat}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-3 flex-wrap items-center">
+                  <Link to="/landing" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-primary text-primary-foreground text-sm">
+                    Try Mustered free for 14 days →
+                  </Link>
+                  <button
+                    onClick={() => setActivePage("mustered")}
+                    className="inline-flex px-6 py-3 rounded-md font-extrabold text-primary hover:text-primary/80 text-sm transition-colors"
+                  >
+                    Learn more about Mustered →
+                  </button>
+                </div>
+                <p className="text-muted-foreground text-xs mt-2">$59/month. 14-day free trial. No credit card required.</p>
               </div>
 
               {/* Mitchell section */}
@@ -153,7 +218,7 @@ export default function HomePage() {
                   </div>
                   <div>
                     <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-3">
-                      Farm Equipment Assessments
+                      Farm Equipment Assessments — Northern Rivers NSW
                     </span>
                     <h3 className="text-xl font-black text-foreground mb-2">Mitchell — Equipment Assessor</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed mb-3">
@@ -166,10 +231,16 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* Quote box */}
+              {/* Bottom purple banner */}
               <div className="rounded-xl p-6 text-primary-foreground shadow-brand mb-5" style={{ background: "var(--gradient-brand)" }}>
-                <h3 className="text-lg font-bold mb-2 text-primary-foreground font-serif">Built for real businesses, not templates.</h3>
-                <p className="opacity-90 text-sm">Sharon's portal is purpose-built for Australian small businesses and farms. Every feature — from GST calculations to BAS reporting — is designed around how Australian businesses actually work.</p>
+                <h3 className="text-lg font-bold mb-2 text-primary-foreground font-serif">Built for real Australian businesses — by someone who works with them every day.</h3>
+                <p className="opacity-90 text-sm mb-3">
+                  Sharon's Accounting Service has worked with tradies, farmers and small businesses across Northern NSW for years. Mustered was born from that experience — every feature designed around how Australian businesses actually work, not how corporate software thinks they should.
+                </p>
+                <p className="text-primary-foreground font-bold text-sm">
+                  Accounting by Sharon. Software by Mustered.<br />
+                  <span className="opacity-90 font-normal italic">Both built for you.</span>
+                </p>
               </div>
             </section>
           )}
@@ -239,7 +310,7 @@ export default function HomePage() {
                   What sets Sharon apart is that she doesn't just process the numbers — she explains what they mean. Her clients get clarity on cash flow, profitability, and where their business is actually heading.
                 </p>
                 <p className="text-muted-foreground leading-relaxed">
-                  Every client gets access to the portal — a secure, purpose-built system for invoices, expenses, documents and financial reports.
+                  Every client gets access to the portal — a secure, purpose-built system for invoices, expenses, documents and financial reports. And now, Sharon has built Mustered — a business management platform available to tradies, farmers and small businesses across Australia.
                 </p>
               </div>
             </section>
@@ -277,6 +348,51 @@ export default function HomePage() {
             </section>
           )}
 
+          {/* MUSTERED */}
+          {activePage === "mustered" && (
+            <section>
+              <div className="bg-card border border-border rounded-xl shadow-brand p-6 mb-5">
+                <span className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-extrabold mb-4">
+                  Mustered — Business Management Platform
+                </span>
+                <h2 className="text-3xl font-black mb-3 text-foreground">Your business. Mustered.</h2>
+                <p className="text-muted-foreground leading-relaxed mb-5">
+                  After years of working with tradies, farmers and small businesses, we knew exactly what was missing. So we built it. Mustered brings your jobs, invoices, team, properties and payments into one connected place.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-5">
+                  {musteredFeatures.map((feat) => (
+                    <div key={feat} className="flex items-start gap-3 bg-secondary/50 rounded-md p-3">
+                      <span className="text-primary font-bold text-lg">✓</span>
+                      <span className="text-foreground text-sm">{feat}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-3 flex-wrap">
+                  <Link to="/landing" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-primary text-primary-foreground">
+                    Try Mustered free for 14 days →
+                  </Link>
+                  <Link to="/landing" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-card text-primary border border-border">
+                    Portal Login
+                  </Link>
+                </div>
+                <p className="text-muted-foreground text-xs mt-3">$59/month. 14-day free trial. No credit card required.</p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {[
+                  { icon: "🪖", title: "Tradies", desc: "Scheduling, dispatch, job costing, subcontractor management and fast invoicing on-site." },
+                  { icon: "🚜", title: "Farmers", desc: "Location-based job tracking, seasonal tasks, contractor management and property mapping." },
+                  { icon: "🏪", title: "Small Business", desc: "Staff rostering, recurring bookings, customer management and simple invoicing." },
+                ].map((aud) => (
+                  <div key={aud.title} className="bg-card border border-border rounded-lg shadow-brand p-5">
+                    <div className="text-3xl mb-3">{aud.icon}</div>
+                    <h3 className="text-lg font-bold mb-2 text-foreground font-sans">{aud.title}</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{aud.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* WHY SHARON */}
           {activePage === "why" && (
             <section>
@@ -290,6 +406,7 @@ export default function HomePage() {
                     "Every client gets portal access — invoices, reports and documents in one place",
                     "Practical, no-nonsense approach grounded in real business experience",
                     "Combined financial and operational expertise with Mitchell's support",
+                    "Built Mustered — our own business management platform for tradies, farmers and small business",
                   ].map((point, i) => (
                     <div key={i} className="flex items-start gap-3 bg-secondary/50 rounded-md p-4">
                       <span className="text-primary font-bold text-lg">✓</span>
