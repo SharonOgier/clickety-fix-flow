@@ -616,6 +616,7 @@ export default function TimesheetsPage({
                     );
                   })}
                   <th style={{ ...thStyle, textAlign: "center", minWidth: 70, background: "#F5ECFB" }}>Total</th>
+                  <th style={{ ...thStyle, textAlign: "center", minWidth: 40 }}></th>
                 </tr>
               </thead>
               <tbody>
