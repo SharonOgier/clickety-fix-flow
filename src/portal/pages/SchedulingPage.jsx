@@ -59,6 +59,7 @@ export default function SchedulingPage({
   jobs = [], clients = [], properties = [], quotes = [], invoices = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
   inputStyle, labelStyle, DashboardHero, InsightChip, MetricCard, SectionCard, DataTable, EmptyState,
   saveJob, deleteJob, confirm, setActivePage, currency = (v) => `$${Number(v||0).toFixed(2)}`,
+  authUser,
 }) {
   const colours = c;
   const today = new Date();
