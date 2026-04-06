@@ -358,7 +358,7 @@ export default function ExpensesPage(props) {
             { key: "jobId", label: "Job", render: (v) => {
               if (!v) return <span style={{ color: colours.muted }}>—</span>;
               const job = jobs.find(j => String(j.id) === String(v));
-              return job ? job.title : `#${v}`;
+              return <EntityLink label={job ? job.title : `#${v}`} targetPage="scheduling" setActivePage={setActivePage} icon="📋" />;
             }},
             {
               key: "actions",
