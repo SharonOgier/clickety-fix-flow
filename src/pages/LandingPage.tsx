@@ -349,7 +349,7 @@ export default function LandingPage() {
           <Link to="/" className="text-sm text-slate-500 hover:text-card transition-colors">Home</Link>
           <a href="#features" className="text-sm text-slate-500 hover:text-card transition-colors">Features</a>
           <a href="#pricing" className="text-sm text-slate-500 hover:text-card transition-colors">Pricing</a>
-          <Link to="/auth?mode=signin" className="text-sm text-slate-500 hover:text-card transition-colors">Portal Login</Link>
+          <Link to="/auth?mode=signin" className="text-sm text-slate-500 hover:text-card transition-colors">Mustered Login</Link>
         </div>
         <p className="text-xs text-slate-600 mt-6">© {new Date().getFullYear()} Mustered. All rights reserved.</p>
       </footer>
