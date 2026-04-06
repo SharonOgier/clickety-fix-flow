@@ -90,6 +90,7 @@ import BillsPage            from "./pages/BillsPage";
 import ExpensesPage         from "./pages/ExpensesPage";
 import AssetsPage           from "./pages/AssetsPage";
 import PropertiesPage       from "./pages/PropertiesPage";
+import SchedulingPage       from "./pages/SchedulingPage";
 import IncomeSourcesPage    from "./pages/IncomeSourcesPage";
 import DocumentsPage        from "./pages/DocumentsPage";
 import SetupWizardPage      from "./pages/SetupWizardPage";
@@ -173,6 +174,7 @@ export default function AccountingPortalPrototype() {
   const [suppliers, setSuppliers] = useState([]);
   const [assets, setAssets] = useState([]);
   const [properties, setProperties] = useState([]);
+  const [jobs, setJobs] = useState([]);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -792,11 +794,11 @@ export default function AccountingPortalPrototype() {
     try {
       const uid = targetUserId;
       const safeF = (table) => fetchCollectionFromDatabase(table, uid).catch(() => []);
-      const [rProfile, rClients, rInvoices, rQuotes, rExpenses, rIncome, rServices, rDocs, rSuppliers, rAssets, rProperties] = await Promise.all([
+      const [rProfile, rClients, rInvoices, rQuotes, rExpenses, rIncome, rServices, rDocs, rSuppliers, rAssets, rProperties, rJobs] = await Promise.all([
         safeF(SUPABASE_TABLES.profile), safeF(SUPABASE_TABLES.clients), safeF(SUPABASE_TABLES.invoices),
         safeF(SUPABASE_TABLES.quotes), safeF(SUPABASE_TABLES.expenses), safeF(SUPABASE_TABLES.incomeSources),
         safeF(SUPABASE_TABLES.services), safeF(SUPABASE_TABLES.documents), safeF(SUPABASE_TABLES.suppliers),
-        safeF(SUPABASE_TABLES.assets), safeF(SUPABASE_TABLES.properties),
+        safeF(SUPABASE_TABLES.assets), safeF(SUPABASE_TABLES.properties), safeF(SUPABASE_TABLES.jobs),
       ]);
       const remoteProfile = Array.isArray(rProfile) && rProfile.length
         ? [...rProfile].reverse().find(r => Boolean(r?.setupComplete ?? r?.data?.setupComplete)) || rProfile[rProfile.length - 1]
@@ -813,6 +815,7 @@ export default function AccountingPortalPrototype() {
       setSuppliers(Array.isArray(rSuppliers) ? rSuppliers : []);
       setAssets(Array.isArray(rAssets) ? rAssets : []);
       setProperties(Array.isArray(rProperties) ? rProperties : []);
+      setJobs(Array.isArray(rJobs) ? rJobs : []);
       setActivePage("dashboard");
     } catch (err) { console.error("Switch user failed:", err); }
     setIsSupabaseRestoring(false);
@@ -1036,6 +1039,24 @@ export default function AccountingPortalPrototype() {
     if (error) throw error;
   };
 
+  const saveJob = async (payload) => {
+    try {
+      const saved = await upsertRecordInDatabase(SUPABASE_TABLES.jobs, payload);
+      setJobs((prev) => {
+        const exists = prev.find((j) => j.id === payload.id);
+        return exists ? prev.map((j) => j.id === payload.id ? saved : j) : [...prev, saved];
+      });
+      toast.success(payload.id && jobs.find(j => j.id === payload.id) ? "Job updated!" : "Job created!");
+    } catch (err) { toast.error(err.message || "Failed to save job"); }
+  };
+
+  const deleteJob = async (id) => {
+    try {
+      await deleteRecordFromDatabase(SUPABASE_TABLES.jobs, id);
+      setJobs((prev) => prev.filter((j) => j.id !== id));
+      toast.success("Job deleted");
+    } catch (err) { toast.error(err.message || "Failed to delete job"); }
+  };
 
   const validateClientPayload = (payload) =>
     collectValidationErrors(
@@ -1657,6 +1678,7 @@ export default function AccountingPortalPrototype() {
         remoteSuppliers,
         remoteAssets,
         remoteProperties,
+        remoteJobs,
       ] = await Promise.all([
         safeF(SUPABASE_TABLES.profile),
         safeF(SUPABASE_TABLES.clients),
@@ -1669,6 +1691,7 @@ export default function AccountingPortalPrototype() {
         safeF(SUPABASE_TABLES.suppliers),
         safeF(SUPABASE_TABLES.assets),
         safeF(SUPABASE_TABLES.properties),
+        safeF(SUPABASE_TABLES.jobs),
       ]);
       hasHydratedSupabaseState.current = true;
 
@@ -1702,6 +1725,7 @@ export default function AccountingPortalPrototype() {
       setSuppliers(Array.isArray(remoteSuppliers) ? remoteSuppliers : []);
       setAssets(Array.isArray(remoteAssets) ? remoteAssets : []);
       setProperties(Array.isArray(remoteProperties) ? remoteProperties : []);
+      setJobs(Array.isArray(remoteJobs) ? remoteJobs : []);
       setSetupComplete(nextSetupComplete);
       setWizardForm((prev) => ({ ...prev,
         firstName: nextProfile.firstName || "",
@@ -4205,7 +4229,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                     const iconMap = {
                       "dashboard": "⬡", "financial insights": "📊", "invoices": "📄", "quotes": "📋",
                       "clients": "👥", "services": "⚙", "expenses": "💳", "bills / payables": "🧾",
-                      "income sources": "💰", "documents": "📁", "properties": "🏠", "bank reconciliation": "🏦",
+                      "income sources": "💰", "documents": "📁", "properties": "🏠", "scheduling": "📅", "bank reconciliation": "🏦",
                       "bas report": "📑", "ato tax form": "🏛", "tax estimator": "🧮", "settings": "⚙",
                     };
                     return (
@@ -4436,6 +4460,16 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveProperty={saveProperty} deleteProperty={deleteProperty} confirm={confirm}
+              setActivePage={setActivePage}
+            />}
+            {activePage === "scheduling" && <SchedulingPage
+              jobs={jobs} clients={clients} properties={properties}
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              inputStyle={inputStyle} labelStyle={labelStyle}
+              DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
+              SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
+              saveJob={saveJob} deleteJob={deleteJob} confirm={confirm}
               setActivePage={setActivePage}
             />}
             {activePage === "bills / payables" && <BillsPage
