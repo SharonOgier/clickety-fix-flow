@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import JobCostingPanel, { computeJobFinancials } from "./JobCostingPanel";
+import { writeJobSheetPreviewToWindow } from "../PortalDocumentBuilders";
 
 /* ─── helpers ──────────────────────────────────────────────────────────── */
 const VIEWS = ["month", "week", "day", "list"];
