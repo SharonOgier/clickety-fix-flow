@@ -302,7 +302,7 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
                 {computedHours.toFixed(1)}h for <strong>{selectedStaffName}</strong>
               </div>
               <div style={{ fontSize: 13, color: colours.muted, marginBottom: 24 }}>
-                {fmtDateAU(entryDate)} · {jobs.find(j => String(j.id) === String(selectedJobId))?.title || ""}
+                {fmtDateAU(entryDate)} · {isAdminEntry ? adminLabel : (jobs.find(j => String(j.id) === String(selectedJobId))?.title || "")}
               </div>
               <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
                 <button style={{ ...buttonSecondary, padding: "10px 20px" }} onClick={onClose}>Done</button>
