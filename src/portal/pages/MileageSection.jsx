@@ -226,6 +226,17 @@ export default function MileageSection({
           />
         </div>
         <div>
+          <label style={labelStyle}>Link to Job (optional)</label>
+          <select
+            style={inputStyle}
+            value={trip.jobId || ""}
+            onChange={(e) => f("jobId", e.target.value)}
+          >
+            <option value="">— none —</option>
+            {jobs.map(j => <option key={j.id} value={j.id}>{j.title}{j.clientId ? ` (${getClientName(j.clientId)})` : ""}</option>)}
+          </select>
+        </div>
+        <div>
           <label style={labelStyle}>Amount</label>
           <div
             style={{
