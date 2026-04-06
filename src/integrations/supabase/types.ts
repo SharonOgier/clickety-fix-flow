@@ -191,6 +191,27 @@ export type Database = {
         }
         Relationships: []
       }
+      sas_properties: {
+        Row: {
+          data: Json
+          id: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          data?: Json
+          id?: never
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sas_quotes: {
         Row: {
           data: Json

@@ -89,6 +89,7 @@ import ServicesPage         from "./pages/ServicesPage";
 import BillsPage            from "./pages/BillsPage";
 import ExpensesPage         from "./pages/ExpensesPage";
 import AssetsPage           from "./pages/AssetsPage";
+import PropertiesPage       from "./pages/PropertiesPage";
 import IncomeSourcesPage    from "./pages/IncomeSourcesPage";
 import DocumentsPage        from "./pages/DocumentsPage";
 import SetupWizardPage      from "./pages/SetupWizardPage";
@@ -171,6 +172,7 @@ export default function AccountingPortalPrototype() {
   const [knownSuppliers, setKnownSuppliers] = useState([]);
   const [suppliers, setSuppliers] = useState([]);
   const [assets, setAssets] = useState([]);
+  const [properties, setProperties] = useState([]);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [showClientModal, setShowClientModal] = useState(false);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -790,11 +792,11 @@ export default function AccountingPortalPrototype() {
     try {
       const uid = targetUserId;
       const safeF = (table) => fetchCollectionFromDatabase(table, uid).catch(() => []);
-      const [rProfile, rClients, rInvoices, rQuotes, rExpenses, rIncome, rServices, rDocs, rSuppliers, rAssets] = await Promise.all([
+      const [rProfile, rClients, rInvoices, rQuotes, rExpenses, rIncome, rServices, rDocs, rSuppliers, rAssets, rProperties] = await Promise.all([
         safeF(SUPABASE_TABLES.profile), safeF(SUPABASE_TABLES.clients), safeF(SUPABASE_TABLES.invoices),
         safeF(SUPABASE_TABLES.quotes), safeF(SUPABASE_TABLES.expenses), safeF(SUPABASE_TABLES.incomeSources),
         safeF(SUPABASE_TABLES.services), safeF(SUPABASE_TABLES.documents), safeF(SUPABASE_TABLES.suppliers),
-        safeF(SUPABASE_TABLES.assets),
+        safeF(SUPABASE_TABLES.assets), safeF(SUPABASE_TABLES.properties),
       ]);
       const remoteProfile = Array.isArray(rProfile) && rProfile.length
         ? [...rProfile].reverse().find(r => Boolean(r?.setupComplete ?? r?.data?.setupComplete)) || rProfile[rProfile.length - 1]
@@ -810,6 +812,7 @@ export default function AccountingPortalPrototype() {
       setDocuments(Array.isArray(rDocs) ? rDocs : []);
       setSuppliers(Array.isArray(rSuppliers) ? rSuppliers : []);
       setAssets(Array.isArray(rAssets) ? rAssets : []);
+      setProperties(Array.isArray(rProperties) ? rProperties : []);
       setActivePage("dashboard");
     } catch (err) { console.error("Switch user failed:", err); }
     setIsSupabaseRestoring(false);
@@ -1310,8 +1313,32 @@ export default function AccountingPortalPrototype() {
       },
     });
   };
+  const saveProperty = async (payload) => {
+    try {
+      const saved = await upsertRecordInDatabase(SUPABASE_TABLES.properties, payload);
+      setProperties((prev) => {
+        const exists = prev.find((p) => p.id === payload.id);
+        return exists ? prev.map((p) => p.id === payload.id ? saved : p) : [...prev, saved];
+      });
+      toast.success(payload.id && properties.find(p => p.id === payload.id) ? "Property updated!" : "Property saved!");
+    } catch (err) { toast.error(err.message || "Failed to save property"); }
+  };
 
-  const saveClientFromModal = async () => {
+  const deleteProperty = (id) => {
+    confirm({
+      title: "Delete Property",
+      message: "Are you sure you want to delete this property and all its sub-locations?",
+      onConfirm: async () => {
+        try {
+          await deleteRecordFromDatabase(SUPABASE_TABLES.properties, id);
+          setProperties((prev) => prev.filter((p) => p.id !== id));
+          toast.success("Property deleted");
+        } catch (err) { toast.error(err.message || "Failed to delete property"); }
+      },
+    });
+  };
+
+
     if (!clientModalForm.name.trim()) { toast.warning("Client name is required"); return; }
     try {
       const payload = { ...clientModalForm, id: editingClientId || Date.now() };
@@ -1629,6 +1656,7 @@ export default function AccountingPortalPrototype() {
         remoteDocuments,
         remoteSuppliers,
         remoteAssets,
+        remoteProperties,
       ] = await Promise.all([
         safeF(SUPABASE_TABLES.profile),
         safeF(SUPABASE_TABLES.clients),
@@ -1640,6 +1668,7 @@ export default function AccountingPortalPrototype() {
         safeF(SUPABASE_TABLES.documents),
         safeF(SUPABASE_TABLES.suppliers),
         safeF(SUPABASE_TABLES.assets),
+        safeF(SUPABASE_TABLES.properties),
       ]);
       hasHydratedSupabaseState.current = true;
 
@@ -1672,6 +1701,7 @@ export default function AccountingPortalPrototype() {
       setDocuments(Array.isArray(remoteDocuments) ? remoteDocuments : []);
       setSuppliers(Array.isArray(remoteSuppliers) ? remoteSuppliers : []);
       setAssets(Array.isArray(remoteAssets) ? remoteAssets : []);
+      setProperties(Array.isArray(remoteProperties) ? remoteProperties : []);
       setSetupComplete(nextSetupComplete);
       setWizardForm((prev) => ({ ...prev,
         firstName: nextProfile.firstName || "",
@@ -4175,7 +4205,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                     const iconMap = {
                       "dashboard": "⬡", "financial insights": "📊", "invoices": "📄", "quotes": "📋",
                       "clients": "👥", "services": "⚙", "expenses": "💳", "bills / payables": "🧾",
-                      "income sources": "💰", "documents": "📁", "bank reconciliation": "🏦",
+                      "income sources": "💰", "documents": "📁", "properties": "🏠", "bank reconciliation": "🏦",
                       "bas report": "📑", "ato tax form": "🏛", "tax estimator": "🧮", "settings": "⚙",
                     };
                     return (
@@ -4396,6 +4426,17 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveAsset={saveAsset} deleteAsset={deleteAsset} confirm={confirm}
               setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
+            />}
+            {activePage === "properties" && <PropertiesPage
+              properties={properties} clients={clients}
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              inputStyle={inputStyle} labelStyle={labelStyle}
+              currency={currency} safeNumber={safeNumber}
+              DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
+              SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
+              saveProperty={saveProperty} deleteProperty={deleteProperty} confirm={confirm}
+              setActivePage={setActivePage}
             />}
             {activePage === "bills / payables" && <BillsPage
               profile={profile} expenses={expenses} suppliers={suppliers} clients={clients}
