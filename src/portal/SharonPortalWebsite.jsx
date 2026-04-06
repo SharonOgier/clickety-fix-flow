@@ -91,6 +91,7 @@ import ExpensesPage         from "./pages/ExpensesPage";
 import AssetsPage           from "./pages/AssetsPage";
 import PropertiesPage       from "./pages/PropertiesPage";
 import SchedulingPage       from "./pages/SchedulingPage";
+import JobsReportPage       from "./pages/JobsReportPage";
 import IncomeSourcesPage    from "./pages/IncomeSourcesPage";
 import DocumentsPage        from "./pages/DocumentsPage";
 import SetupWizardPage      from "./pages/SetupWizardPage";
