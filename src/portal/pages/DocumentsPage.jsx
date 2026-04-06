@@ -8,28 +8,28 @@ import EntityLink from "../EntityLink";
 
 export default function DocumentsPage(props) {
   const {
-    documents,
+    documents = [],
     documentFile,
     setDocumentFile,
     documentEditorOpen,
     documentEditorForm,
     setDocumentEditorForm,
     savingDocumentEdits,
-    colours,
-    cardStyle,
-    buttonPrimary,
-    buttonSecondary,
-    inputStyle,
-    labelStyle,
-    formatDateAU,
-    safeNumber,
-    DashboardHero,
-    InsightChip,
-    MetricCard,
-    SectionCard,
-    DataTable,
-    EmptyState,
-    MiniBarChart,
+    colours = {},
+    cardStyle = {},
+    buttonPrimary = {},
+    buttonSecondary = {},
+    inputStyle = {},
+    labelStyle = {},
+    formatDateAU = (v) => String(v || ""),
+    safeNumber = (v) => Number(v) || 0,
+    DashboardHero = ({ title, children }) => <div><h2>{title}</h2>{children}</div>,
+    InsightChip = () => null,
+    MetricCard = () => null,
+    SectionCard = ({ title, children, right }) => <section><div style={{ display: "flex", justifyContent: "space-between" }}><h3>{title}</h3>{right}</div>{children}</section>,
+    DataTable = ({ columns, rows }) => <div>Table ({(rows || []).length} rows)</div>,
+    EmptyState = ({ icon, title, message }) => <div>{icon} {title} — {message}</div>,
+    MiniBarChart = () => null,
     uploadDocument,
     deleteDocument,
     openDocumentEditor,
@@ -41,22 +41,23 @@ export default function DocumentsPage(props) {
     getClientName = () => "Unknown",
   } = props;
 
-    const recentDocs = [...documents].sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0)).slice(0, 1);
+    const safeDocuments = Array.isArray(documents) ? documents : [];
+    const recentDocs = [...safeDocuments].sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0)).slice(0, 1);
     const lastUploaded = recentDocs[0] ? formatDateAU(recentDocs[0].uploadedAt) : "None yet";
-    const docTypes = documents.reduce((acc, d) => {
+    const docTypes = safeDocuments.reduce((acc, d) => {
       const ext = String(d.name || "").split(".").pop().toLowerCase() || "other";
       acc[ext] = (acc[ext] || 0) + 1; return acc;
     }, {});
     const typeData = Object.entries(docTypes).slice(0, 6).map(([label, value]) => ({ label, value }));
     return (
     <div style={{ display: "grid", gap: 20 }}>
-      <DashboardHero title="Documents" subtitle="Store, organise and access all your portal documents, receipts and generated PDFs in one place." highlight={String(documents.length)}>
-        <InsightChip label="Total files" value={String(documents.length)} />
+      <DashboardHero title="Documents" subtitle="Store, organise and access all your portal documents, receipts and generated PDFs in one place." highlight={String(safeDocuments.length)}>
+        <InsightChip label="Total files" value={String(safeDocuments.length)} />
         <InsightChip label="Last uploaded" value={lastUploaded} />
         <InsightChip label="File types" value={String(Object.keys(docTypes).length)} />
       </DashboardHero>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-        <MetricCard title="Total documents" value={String(documents.length)} subtitle="All files stored in the portal." accent={colours.purple} />
+        <MetricCard title="Total documents" value={String(safeDocuments.length)} subtitle="All files stored in the portal." accent={colours.purple} />
         <MetricCard title="Last uploaded" value={lastUploaded} subtitle="Most recently added document." accent={colours.teal} />
         <MetricCard title="File types" value={String(Object.keys(docTypes).length)} subtitle="Distinct file extensions stored." accent={colours.purple} />
         <div style={{ ...cardStyle, padding: 18 }}>
@@ -74,7 +75,7 @@ export default function DocumentsPage(props) {
         }
       >
         <div style={{ color: colours.muted, fontSize: 14, marginBottom: 16 }}>Store generated PDFs, supporting documents, and uploaded files here.</div>
-        {documents.length ? (
+        {safeDocuments.length ? (
           <DataTable
             columns={[
               { key: "name", label: "Document" },
@@ -97,7 +98,7 @@ export default function DocumentsPage(props) {
                 </div>
               )},
             ]}
-            rows={documents}
+            rows={safeDocuments}
           />
         ) : (
           <div style={{ color: colours.muted, fontSize: 14 }}>No documents uploaded yet.</div>
@@ -125,7 +126,7 @@ export default function DocumentsPage(props) {
             </div>
           </div>
         )}
-        {!documents.length && !documentEditorOpen && (
+        {!safeDocuments.length && !documentEditorOpen && (
           <EmptyState icon="📁" title="No documents yet" message="Upload receipts, contracts and generated PDFs here. All documents are stored securely against your account." />
         )}
       </SectionCard>
