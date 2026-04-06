@@ -766,9 +766,50 @@ export default function SchedulingPage({
     const wasCompleted = editingJob?.status === "Completed";
     const isNowCompleted = payload.status === "Completed";
     await saveJob(payload);
-    // Auto-send review request when job first marked as Completed
-    if (isNowCompleted && !wasCompleted && !payload.reviewRequestSent && profile.autoSendReviewRequest !== false) {
-      sendReviewRequest(payload);
+
+    // When a recurring job is marked Completed:
+    // 1) Auto-generate matching invoice
+    // 2) Schedule the next occurrence
+    if (isNowCompleted && !wasCompleted) {
+      const hasRecurrence = payload.recurs && payload.recurs !== "Never";
+
+      // Auto-generate invoice from completed job
+      if (createInvoiceFromJob && payload.clientId) {
+        try {
+          await createInvoiceFromJob(payload);
+        } catch (err) {
+          console.error("Auto-invoice from job failed:", err);
+        }
+      }
+
+      // Schedule next recurring job instance
+      if (hasRecurrence) {
+        const nextStart = calcNextDate(payload.startDate, payload.recurs);
+        const nextEnd = payload.endDate ? calcNextDate(payload.endDate, payload.recurs) : nextStart;
+        if (nextStart) {
+          const nextJob = {
+            ...payload,
+            id: Date.now(),
+            status: "Scheduled",
+            startDate: nextStart,
+            endDate: nextEnd || nextStart,
+            completionNotificationSent: null,
+            bookingConfirmationSent: null,
+            reviewRequestSent: null,
+            dayBeforeReminderSent: null,
+            certificate: null,
+            photos: { before: [], after: [] },
+            checklist: (payload.checklist || []).map(t => ({ ...t, done: false })),
+            parentRecurringJobId: payload.parentRecurringJobId || payload.id,
+          };
+          await saveJob(nextJob);
+        }
+      }
+
+      // Auto-send review request
+      if (!payload.reviewRequestSent && profile.autoSendReviewRequest !== false) {
+        sendReviewRequest(payload);
+      }
     }
     closeForm();
   };
