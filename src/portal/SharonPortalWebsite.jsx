@@ -1071,6 +1071,37 @@ export default function AccountingPortalPrototype() {
     } catch (err) { toast.error(err.message || "Failed to save job"); }
   };
 
+  const createInvoiceFromJob = async (job) => {
+    const client = clients.find(c => String(c.id) === String(job.clientId));
+    if (!client) return;
+    const linkedQuote = quotes.find(q => String(q.jobId) === String(job.id));
+    const lineItems = linkedQuote?.lineItems?.length
+      ? linkedQuote.lineItems
+      : [{ id: Date.now(), description: job.title || "Job completed", quantity: 1, unitPrice: "", gstType: profile.gstType || "GST on Income (10%)" }];
+    const subtotal = lineItems.reduce((s, li) => s + (parseFloat(li.unitPrice) || 0) * (parseFloat(li.quantity) || 1), 0);
+    const gstRate = (profile.gstType || "").includes("10") ? 0.1 : 0;
+    const gst = subtotal * gstRate;
+    const inv = {
+      id: Date.now() + Math.random(),
+      clientId: String(client.id),
+      invoiceDate: new Date().toISOString().slice(0, 10),
+      dueDate: addDays(new Date().toISOString().slice(0, 10), safeNumber(profile.paymentTermsDays) || 14),
+      lineItems,
+      subtotal: subtotal.toFixed(2),
+      gst: gst.toFixed(2),
+      total: (subtotal + gst).toFixed(2),
+      status: "Draft",
+      jobId: String(job.id),
+      recurs: job.recurs && job.recurs !== "Never" ? job.recurs : "Never",
+      currencyCode: profile.currencyCode || "AUD",
+      gstType: profile.gstType || "GST on Income (10%)",
+    };
+    const saved = await upsertRecordInDatabase(SUPABASE_TABLES.invoices, inv);
+    setInvoices(prev => [...prev, saved]);
+    toast.success(`📄 Draft invoice created for ${client.name}`);
+    return saved;
+  };
+
   const deleteJob = async (id) => {
     try {
       await deleteRecordFromDatabase(SUPABASE_TABLES.jobs, id);
