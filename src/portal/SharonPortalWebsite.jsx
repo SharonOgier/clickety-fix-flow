@@ -1671,6 +1671,71 @@ export default function AccountingPortalPrototype() {
     setRecurringSelected([]);
   };
 
+  const confirmRecurringJobs = async () => {
+    const calcNext = (fromDate, freq) => {
+      const d = parseLocalDate(fromDate);
+      if (freq === "Weekly") d.setDate(d.getDate() + 7);
+      else if (freq === "Fortnightly") d.setDate(d.getDate() + 14);
+      else if (freq === "Monthly") d.setMonth(d.getMonth() + 1);
+      else return null;
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    };
+    const toCreate = recurringJobsDue.filter(j => recurringJobsSelected.includes(j.id));
+    try {
+      for (const job of toCreate) {
+        const nextStart = job.nextDate;
+        const daysDiff = job.endDate && job.startDate
+          ? Math.round((new Date(job.endDate) - new Date(job.startDate)) / 86400000)
+          : 0;
+        const nextEnd = daysDiff > 0 ? (() => {
+          const d = parseLocalDate(nextStart);
+          d.setDate(d.getDate() + daysDiff);
+          return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+        })() : nextStart;
+
+        // Create next job
+        const nextJob = {
+          ...job,
+          id: Date.now() + Math.random(),
+          status: "Scheduled",
+          startDate: nextStart,
+          endDate: nextEnd,
+          completionNotificationSent: null,
+          bookingConfirmationSent: null,
+          reviewRequestSent: null,
+          dayBeforeReminderSent: null,
+          certificate: null,
+          photos: { before: [], after: [] },
+          checklist: (job.checklist || []).map(t => ({ ...t, done: false })),
+          parentRecurringJobId: job.parentRecurringJobId || job.id,
+          nextRecurringCreated: null,
+        };
+        delete nextJob.clientName;
+        delete nextJob.nextDate;
+        const savedJob = await upsertRecordInDatabase(SUPABASE_TABLES.jobs, nextJob);
+        setJobs(prev => [...prev, savedJob]);
+
+        // Mark original as having spawned next
+        const updatedOriginal = { ...job, nextRecurringCreated: true };
+        delete updatedOriginal.clientName;
+        delete updatedOriginal.nextDate;
+        await upsertRecordInDatabase(SUPABASE_TABLES.jobs, updatedOriginal);
+        setJobs(prev => prev.map(j => j.id === job.id ? { ...j, nextRecurringCreated: true } : j));
+
+        // Auto-create invoice if job has a client
+        if (job.clientId) {
+          try {
+            await createInvoiceFromJob(job);
+          } catch (err) { console.error("Auto-invoice from recurring job:", err); }
+        }
+      }
+      toast.success(`${toCreate.length} recurring job${toCreate.length !== 1 ? "s" : ""} created!`);
+    } catch (err) { toast.error(err.message || "Failed to create recurring jobs"); }
+    setShowRecurringJobsModal(false);
+    setRecurringJobsDue([]);
+    setRecurringJobsSelected([]);
+  };
+
   const saveProfileToSupabase = async (profilePayload) => {
     if (!supabase || !authUser?.id) return null;
     try {
