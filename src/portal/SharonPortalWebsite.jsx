@@ -203,6 +203,10 @@ export default function AccountingPortalPrototype() {
   const [showRecurringModal, setShowRecurringModal] = useState(false);
   const [recurringSelected, setRecurringSelected] = useState([]);
   const recurringShownRef = useRef(false);
+  const [recurringJobsDue, setRecurringJobsDue] = useState([]);
+  const [showRecurringJobsModal, setShowRecurringJobsModal] = useState(false);
+  const [recurringJobsSelected, setRecurringJobsSelected] = useState([]);
+  const recurringJobsShownRef = useRef(false);
   const [quoteWizardStep, setQuoteWizardStep] = useState(1);
   const [activePage, setActivePageRaw] = useState("dashboard");
   const isPopstateRef = useRef(false);
@@ -903,6 +907,37 @@ export default function AccountingPortalPrototype() {
     }
   }, [authUser, profile?.setupComplete]);
 
+  // ── Recurring Jobs detection on login ──
+  useEffect(() => {
+    if (!hasLoadedUserProfile || recurringJobsShownRef.current || jobs.length === 0) return;
+    const todayStr = todayLocal();
+    const calcNextJobDate = (fromDate, freq) => {
+      const d = parseLocalDate(fromDate);
+      if (freq === "Weekly") d.setDate(d.getDate() + 7);
+      else if (freq === "Fortnightly") d.setDate(d.getDate() + 14);
+      else if (freq === "Monthly") d.setMonth(d.getMonth() + 1);
+      else return null;
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    };
+    const due = jobs
+      .filter(j => j.recurs && j.recurs !== "Never" && j.status === "Completed" && !j.nextRecurringCreated)
+      .filter(j => {
+        const next = calcNextJobDate(j.startDate, j.recurs);
+        return next && next <= todayStr;
+      })
+      .map(j => ({
+        ...j,
+        clientName: (clients.find(c => String(c.id) === String(j.clientId)) || {}).name || "—",
+        nextDate: calcNextJobDate(j.startDate, j.recurs),
+      }));
+    if (due.length > 0) {
+      setRecurringJobsDue(due);
+      setRecurringJobsSelected(due.map(j => j.id));
+      setShowRecurringJobsModal(true);
+      recurringJobsShownRef.current = true;
+    }
+  }, [hasLoadedUserProfile, jobs, clients]);
+
 
   const uploadReceiptToSupabase = async (file) => {
     if (!supabase) {
@@ -1069,6 +1104,37 @@ export default function AccountingPortalPrototype() {
       });
       toast.success(payload.id && jobs.find(j => j.id === payload.id) ? "Job updated!" : "Job created!");
     } catch (err) { toast.error(err.message || "Failed to save job"); }
+  };
+
+  const createInvoiceFromJob = async (job) => {
+    const client = clients.find(c => String(c.id) === String(job.clientId));
+    if (!client) return;
+    const linkedQuote = quotes.find(q => String(q.jobId) === String(job.id));
+    const lineItems = linkedQuote?.lineItems?.length
+      ? linkedQuote.lineItems
+      : [{ id: Date.now(), description: job.title || "Job completed", quantity: 1, unitPrice: "", gstType: profile.gstType || "GST on Income (10%)" }];
+    const subtotal = lineItems.reduce((s, li) => s + (parseFloat(li.unitPrice) || 0) * (parseFloat(li.quantity) || 1), 0);
+    const gstRate = (profile.gstType || "").includes("10") ? 0.1 : 0;
+    const gst = subtotal * gstRate;
+    const inv = {
+      id: Date.now() + Math.random(),
+      clientId: String(client.id),
+      invoiceDate: new Date().toISOString().slice(0, 10),
+      dueDate: addDays(new Date().toISOString().slice(0, 10), safeNumber(profile.paymentTermsDays) || 14),
+      lineItems,
+      subtotal: subtotal.toFixed(2),
+      gst: gst.toFixed(2),
+      total: (subtotal + gst).toFixed(2),
+      status: "Draft",
+      jobId: String(job.id),
+      recurs: job.recurs && job.recurs !== "Never" ? job.recurs : "Never",
+      currencyCode: profile.currencyCode || "AUD",
+      gstType: profile.gstType || "GST on Income (10%)",
+    };
+    const saved = await upsertRecordInDatabase(SUPABASE_TABLES.invoices, inv);
+    setInvoices(prev => [...prev, saved]);
+    toast.success(`📄 Draft invoice created for ${client.name}`);
+    return saved;
   };
 
   const deleteJob = async (id) => {
@@ -1603,6 +1669,71 @@ export default function AccountingPortalPrototype() {
     setShowRecurringModal(false);
     setRecurringDue([]);
     setRecurringSelected([]);
+  };
+
+  const confirmRecurringJobs = async () => {
+    const calcNext = (fromDate, freq) => {
+      const d = parseLocalDate(fromDate);
+      if (freq === "Weekly") d.setDate(d.getDate() + 7);
+      else if (freq === "Fortnightly") d.setDate(d.getDate() + 14);
+      else if (freq === "Monthly") d.setMonth(d.getMonth() + 1);
+      else return null;
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    };
+    const toCreate = recurringJobsDue.filter(j => recurringJobsSelected.includes(j.id));
+    try {
+      for (const job of toCreate) {
+        const nextStart = job.nextDate;
+        const daysDiff = job.endDate && job.startDate
+          ? Math.round((new Date(job.endDate) - new Date(job.startDate)) / 86400000)
+          : 0;
+        const nextEnd = daysDiff > 0 ? (() => {
+          const d = parseLocalDate(nextStart);
+          d.setDate(d.getDate() + daysDiff);
+          return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+        })() : nextStart;
+
+        // Create next job
+        const nextJob = {
+          ...job,
+          id: Date.now() + Math.random(),
+          status: "Scheduled",
+          startDate: nextStart,
+          endDate: nextEnd,
+          completionNotificationSent: null,
+          bookingConfirmationSent: null,
+          reviewRequestSent: null,
+          dayBeforeReminderSent: null,
+          certificate: null,
+          photos: { before: [], after: [] },
+          checklist: (job.checklist || []).map(t => ({ ...t, done: false })),
+          parentRecurringJobId: job.parentRecurringJobId || job.id,
+          nextRecurringCreated: null,
+        };
+        delete nextJob.clientName;
+        delete nextJob.nextDate;
+        const savedJob = await upsertRecordInDatabase(SUPABASE_TABLES.jobs, nextJob);
+        setJobs(prev => [...prev, savedJob]);
+
+        // Mark original as having spawned next
+        const updatedOriginal = { ...job, nextRecurringCreated: true };
+        delete updatedOriginal.clientName;
+        delete updatedOriginal.nextDate;
+        await upsertRecordInDatabase(SUPABASE_TABLES.jobs, updatedOriginal);
+        setJobs(prev => prev.map(j => j.id === job.id ? { ...j, nextRecurringCreated: true } : j));
+
+        // Auto-create invoice if job has a client
+        if (job.clientId) {
+          try {
+            await createInvoiceFromJob(job);
+          } catch (err) { console.error("Auto-invoice from recurring job:", err); }
+        }
+      }
+      toast.success(`${toCreate.length} recurring job${toCreate.length !== 1 ? "s" : ""} created!`);
+    } catch (err) { toast.error(err.message || "Failed to create recurring jobs"); }
+    setShowRecurringJobsModal(false);
+    setRecurringJobsDue([]);
+    setRecurringJobsSelected([]);
   };
 
   const saveProfileToSupabase = async (profilePayload) => {
@@ -3916,7 +4047,6 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     }, [clientRevenueRows, totals, invoices, monthlyFinance, expenses, expenseCategoryRows]);
 
 
-    ;
     if (!authReady) {
     return (
       <div
@@ -4628,9 +4758,10 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               inputStyle={inputStyle} labelStyle={labelStyle}
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
-              saveJob={saveJob} deleteJob={deleteJob} confirm={confirm}
-              setActivePage={setActivePage} currency={currency}
-              authUser={authUser} profile={profile}
+               saveJob={saveJob} deleteJob={deleteJob} confirm={confirm}
+               setActivePage={setActivePage} currency={currency}
+               authUser={authUser} profile={profile}
+               createInvoiceFromJob={createInvoiceFromJob}
             />}
             {activePage === "timesheets" && <TimesheetsPage
               jobs={jobs} clients={clients}
@@ -5311,7 +5442,55 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         </div>
       )}
 
-      {showInvoiceAlerts && invoiceAlerts.length > 0 && (
+      {/* -- Recurring Jobs Modal -- */}
+      {showRecurringJobsModal && recurringJobsDue.length > 0 && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 99995, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: "#fff", borderRadius: 18, padding: 28, width: "100%", maxWidth: 500, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", fontFamily: "sans-serif" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+              <div style={{ fontSize: 28 }}>🔄</div>
+              <div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: "#14202B" }}>Recurring Jobs Due</div>
+                <div style={{ fontSize: 13, color: "#64748B", marginTop: 2 }}>{recurringJobsDue.length} job{recurringJobsDue.length !== 1 ? "s" : ""} ready to be rescheduled</div>
+              </div>
+            </div>
+            <div style={{ display: "grid", gap: 10, marginBottom: 24 }}>
+              {recurringJobsDue.map((job) => (
+                <div key={job.id} onClick={() => setRecurringJobsSelected(prev => prev.includes(job.id) ? prev.filter(x => x !== job.id) : [...prev, job.id])}
+                  style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", borderRadius: 12, cursor: "pointer",
+                    background: recurringJobsSelected.includes(job.id) ? colours.lightPurple : "#F8FAFC",
+                    border: "1px solid " + (recurringJobsSelected.includes(job.id) ? colours.purple : colours.border) }}>
+                  <input type="checkbox" checked={recurringJobsSelected.includes(job.id)}
+                    onChange={() => setRecurringJobsSelected(prev => prev.includes(job.id) ? prev.filter(x => x !== job.id) : [...prev, job.id])}
+                    onClick={e => e.stopPropagation()} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 700, color: colours.text }}>{job.title}</div>
+                    <div style={{ fontSize: 12, color: colours.muted, marginTop: 2 }}>
+                      {job.clientName} · {job.recurs} · Next: {formatDateAU(job.nextDate)}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: colours.purple, background: colours.lightPurple, padding: "2px 8px", borderRadius: 6 }}>
+                    {job.recurs}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 12, color: "#64748B", marginBottom: 16 }}>
+              ✅ A draft invoice will also be created for each job with a linked contact.
+            </div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => { setShowRecurringJobsModal(false); setRecurringJobsDue([]); setRecurringJobsSelected([]); }}
+                style={{ background: "#F1F5F9", color: "#475569", border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>
+                Skip
+              </button>
+              <button onClick={confirmRecurringJobs} disabled={recurringJobsSelected.length === 0}
+                style={{ background: recurringJobsSelected.length === 0 ? "#9CA3AF" : colours.purple, color: "#fff", border: "none", borderRadius: 10, padding: "10px 18px", fontWeight: 700, cursor: recurringJobsSelected.length === 0 ? "not-allowed" : "pointer", fontSize: 14 }}>
+                Create {recurringJobsSelected.length} Job{recurringJobsSelected.length !== 1 ? "s" : ""} + Invoice{recurringJobsSelected.length !== 1 ? "s" : ""}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
         <div style={{ position: "fixed", inset: 0, zIndex: 99997, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
           <div style={{ background: "#fff", borderRadius: 18, padding: 28, width: "100%", maxWidth: 460, boxShadow: "0 20px 60px rgba(0,0,0,0.2)", fontFamily: "sans-serif" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>

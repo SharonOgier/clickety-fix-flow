@@ -608,11 +608,22 @@ function JobNotesTasksPanel({ job, onUpdate, colours, buttonPrimary, buttonSecon
 }
 
 
+const RECURRENCE_OPTIONS = ["Never", "Weekly", "Fortnightly", "Monthly"];
+
+const calcNextDate = (fromDate, freq) => {
+  const d = new Date(fromDate + "T00:00:00");
+  if (freq === "Weekly") d.setDate(d.getDate() + 7);
+  else if (freq === "Fortnightly") d.setDate(d.getDate() + 14);
+  else if (freq === "Monthly") d.setMonth(d.getMonth() + 1);
+  else return null;
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+};
+
 export default function SchedulingPage({
   jobs = [], clients = [], properties = [], quotes = [], invoices = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
   inputStyle, labelStyle, DashboardHero, InsightChip, MetricCard, SectionCard, DataTable, EmptyState,
   saveJob, deleteJob, confirm, setActivePage, currency = (v) => `$${Number(v||0).toFixed(2)}`,
-  authUser, profile = {},
+  authUser, profile = {}, createInvoiceFromJob,
 }) {
   const colours = c;
   const today = new Date();
@@ -629,6 +640,7 @@ export default function SchedulingPage({
     title: "", description: "", status: "Scheduled", priority: "Medium",
     startDate: fmtDate(today), startTime: "09:00", endDate: fmtDate(today), endTime: "17:00",
     clientId: "", propertyId: "", subLocationId: "", assignedTo: "", colour: "#6A1B9A", notes: "",
+    recurs: "Never",
   };
   const [form, setForm] = useState(blankJob);
 
@@ -754,9 +766,50 @@ export default function SchedulingPage({
     const wasCompleted = editingJob?.status === "Completed";
     const isNowCompleted = payload.status === "Completed";
     await saveJob(payload);
-    // Auto-send review request when job first marked as Completed
-    if (isNowCompleted && !wasCompleted && !payload.reviewRequestSent && profile.autoSendReviewRequest !== false) {
-      sendReviewRequest(payload);
+
+    // When a recurring job is marked Completed:
+    // 1) Auto-generate matching invoice
+    // 2) Schedule the next occurrence
+    if (isNowCompleted && !wasCompleted) {
+      const hasRecurrence = payload.recurs && payload.recurs !== "Never";
+
+      // Auto-generate invoice from completed job
+      if (createInvoiceFromJob && payload.clientId) {
+        try {
+          await createInvoiceFromJob(payload);
+        } catch (err) {
+          console.error("Auto-invoice from job failed:", err);
+        }
+      }
+
+      // Schedule next recurring job instance
+      if (hasRecurrence) {
+        const nextStart = calcNextDate(payload.startDate, payload.recurs);
+        const nextEnd = payload.endDate ? calcNextDate(payload.endDate, payload.recurs) : nextStart;
+        if (nextStart) {
+          const nextJob = {
+            ...payload,
+            id: Date.now(),
+            status: "Scheduled",
+            startDate: nextStart,
+            endDate: nextEnd || nextStart,
+            completionNotificationSent: null,
+            bookingConfirmationSent: null,
+            reviewRequestSent: null,
+            dayBeforeReminderSent: null,
+            certificate: null,
+            photos: { before: [], after: [] },
+            checklist: (payload.checklist || []).map(t => ({ ...t, done: false })),
+            parentRecurringJobId: payload.parentRecurringJobId || payload.id,
+          };
+          await saveJob(nextJob);
+        }
+      }
+
+      // Auto-send review request
+      if (!payload.reviewRequestSent && profile.autoSendReviewRequest !== false) {
+        sendReviewRequest(payload);
+      }
     }
     closeForm();
   };
@@ -1093,9 +1146,14 @@ export default function SchedulingPage({
             </div>
 
             {detailTab === "info" && (<>
-              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+              <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
                 <StatusBadge status={detailJob.status} colours={colours} />
                 <PriorityBadge priority={detailJob.priority} />
+                {detailJob.recurs && detailJob.recurs !== "Never" && (
+                  <span style={{ padding: "2px 10px", borderRadius: 99, fontSize: 11, fontWeight: 700, background: colours.lightPurple || "#F3E5F5", color: colours.purple }}>
+                    🔄 {detailJob.recurs}
+                  </span>
+                )}
               </div>
 
               {/* Quick financial summary */}
@@ -1337,22 +1395,34 @@ export default function SchedulingPage({
                 )}
               </div>
 
-              {/* Assigned + Colour */}
+              {/* Assigned + Colour + Recurrence */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <div>
                   <label style={labelStyle}>Assigned To</label>
                   <input style={inputStyle} value={form.assignedTo} onChange={e => setForm(f => ({ ...f, assignedTo: e.target.value }))} placeholder="Staff name" />
                 </div>
                 <div>
-                  <label style={labelStyle}>Colour</label>
-                  <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
-                    {COLOUR_OPTIONS.map(c => (
-                      <div key={c.value} onClick={() => setForm(f => ({ ...f, colour: c.value }))}
-                        style={{ width: 28, height: 28, borderRadius: 8, background: c.value, cursor: "pointer",
-                          border: form.colour === c.value ? "3px solid #333" : "2px solid transparent" }}
-                        title={c.label} />
-                    ))}
-                  </div>
+                  <label style={labelStyle}>Recurring</label>
+                  <select style={inputStyle} value={form.recurs || "Never"} onChange={e => setForm(f => ({ ...f, recurs: e.target.value }))}>
+                    {RECURRENCE_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                  {form.recurs && form.recurs !== "Never" && (
+                    <div style={{ fontSize: 11, color: colours.purple, marginTop: 4, fontWeight: 600 }}>
+                      🔄 Next job auto-created on completion
+                      {form.clientId && <span> + invoice generated</span>}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div>
+                <label style={labelStyle}>Colour</label>
+                <div style={{ display: "flex", gap: 6, marginTop: 4 }}>
+                  {COLOUR_OPTIONS.map(c => (
+                    <div key={c.value} onClick={() => setForm(f => ({ ...f, colour: c.value }))}
+                      style={{ width: 28, height: 28, borderRadius: 8, background: c.value, cursor: "pointer",
+                        border: form.colour === c.value ? "3px solid #333" : "2px solid transparent" }}
+                      title={c.label} />
+                  ))}
                 </div>
               </div>
 
