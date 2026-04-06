@@ -848,8 +848,7 @@ export default function SettingsPage(props) {
             <div style={{ borderTop: `1px solid ${colours.border}`, paddingTop: 20, marginTop: 8 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 6 }}>Close Account</div>
               <div style={{ fontSize: 13, color: colours.muted, marginBottom: 16, lineHeight: 1.6 }}>
-                Closing your account will sign you out and disable access to the portal. Your data will be kept safe and your account can be reactivated at any time by contacting{" "}
-                <a href="mailto:info@sharonogier.com" style={{ color: colours.purple }}>info@sharonogier.com</a>.
+                Closing your account will sign you out and disable access to the portal. Your data will be kept safe and your account can be reactivated at any time by contacting support.
               </div>
               <button
                 onClick={() => confirm({
