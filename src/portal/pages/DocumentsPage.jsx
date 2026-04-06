@@ -75,7 +75,7 @@ export default function DocumentsPage(props) {
         }
       >
         <div style={{ color: colours.muted, fontSize: 14, marginBottom: 16 }}>Store generated PDFs, supporting documents, and uploaded files here.</div>
-        {documents.length ? (
+        {safeDocuments.length ? (
           <DataTable
             columns={[
               { key: "name", label: "Document" },
