@@ -4509,7 +4509,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
             />}
             {activePage === "assets" && <AssetsPage
-              assets={assets}
+              assets={assets} expenses={expenses}
               colours={colours} cardStyle={cardStyle}
               buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
               inputStyle={inputStyle} labelStyle={labelStyle}
