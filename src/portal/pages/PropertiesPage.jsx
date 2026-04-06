@@ -317,7 +317,8 @@ export default function PropertiesPage(props) {
     saveProperty = () => {},
     deleteProperty = () => {},
     confirm = null,
-    setActivePage = () => {},
+     setActivePage = () => {},
+     jobs = [],
   } = props;
 
   // ---- View states ----
