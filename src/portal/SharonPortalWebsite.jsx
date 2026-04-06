@@ -1701,6 +1701,15 @@ export default function AccountingPortalPrototype() {
       ]);
       hasHydratedSupabaseState.current = true;
 
+      // Fetch approved subcontractor costs for business owner (for ATO Tax Form)
+      try {
+        const { data: subCosts } = await supabase
+          .from("sas_subcontractor_costs")
+          .select("*")
+          .eq("job_owner_user_id", authUser.id);
+        if (subCosts) setSubcontractorCosts(subCosts);
+      } catch (e) { console.warn("Could not load subcontractor costs:", e); }
+
       const remoteProfile =
         Array.isArray(remoteProfileRows) && remoteProfileRows.length
           ? [...remoteProfileRows].reverse().find((row) => Boolean(row?.setupComplete ?? row?.data?.setupComplete)) ||
