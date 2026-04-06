@@ -66,6 +66,11 @@ export const TIERS = {
 
 export const TIER_ORDER = ["starter", "pro", "premium"];
 
+const OWNER_OVERRIDE_EMAILS = new Set([
+  "info@sharonogier.com",
+  "sharonlogier@gmail.com",
+]);
+
 // Map Stripe product IDs → tier keys
 export const PRODUCT_TO_TIER = Object.fromEntries(
   Object.values(TIERS).map((t) => [t.productId, t.key])
@@ -116,6 +121,10 @@ export function isPageAllowed(page, tier) {
  * Checks subscriptionTier first, falls back to subscriptionProductId mapping.
  */
 export function getUserTier(profile) {
+  const email = String(profile?.email || "").trim().toLowerCase();
+  if (OWNER_OVERRIDE_EMAILS.has(email)) {
+    return "pro";
+  }
   if (profile?.subscriptionTier) return profile.subscriptionTier;
   if (profile?.subscriptionProductId) {
     return PRODUCT_TO_TIER[profile.subscriptionProductId] || null;
