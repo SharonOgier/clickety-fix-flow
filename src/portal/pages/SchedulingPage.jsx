@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef, useCallback } from "react";
 import JobCostingPanel, { computeJobFinancials } from "./JobCostingPanel";
 import { writeJobSheetPreviewToWindow } from "../PortalDocumentBuilders";
+import { supabase } from "@/integrations/supabase/client";
 
 /* ─── helpers ──────────────────────────────────────────────────────────── */
 const VIEWS = ["month", "week", "day", "list"];
