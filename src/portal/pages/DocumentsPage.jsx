@@ -111,6 +111,13 @@ export default function DocumentsPage(props) {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
               <div><label style={labelStyle}>Document name</label><input style={inputStyle} value={documentEditorForm.name || ""} onChange={(e) => setDocumentEditorForm((prev) => ({ ...prev, name: e.target.value }))} /></div>
               <div><label style={labelStyle}>{documentEditorForm.filePath ? "Stored file path" : "URL"}</label><input style={inputStyle} value={documentEditorForm.filePath || documentEditorForm.url || ""} onChange={(e) => !documentEditorForm.filePath && setDocumentEditorForm((prev) => ({ ...prev, url: e.target.value }))} readOnly={Boolean(documentEditorForm.filePath)} /></div>
+              <div>
+                <label style={labelStyle}>Link to Job (optional)</label>
+                <select style={inputStyle} value={documentEditorForm.jobId || ""} onChange={(e) => setDocumentEditorForm((prev) => ({ ...prev, jobId: e.target.value }))}>
+                  <option value="">— none —</option>
+                  {jobs.map(j => <option key={j.id} value={j.id}>{j.title || `Job #${j.id}`}</option>)}
+                </select>
+              </div>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 16 }}>
               <button style={buttonSecondary} onClick={closeDocumentEditor}>Cancel</button>
