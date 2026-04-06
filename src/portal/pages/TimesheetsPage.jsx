@@ -351,7 +351,7 @@ export default function TimesheetsPage({
   InsightChip = () => null, MetricCard = () => null,
   SectionCard = ({ title, children, right }) => <section><div style={{ display: "flex", justifyContent: "space-between" }}><h3>{title}</h3>{right}</div>{children}</section>,
   EmptyState = ({ icon, title, message }) => <div>{icon} {title} {message}</div>,
-  saveJob, profile = {},
+  saveJob, saveProfileToSupabase, profile = {},
 }) {
   const today = new Date();
   const [weekStart, setWeekStart] = useState(getWeekStart(today));
@@ -369,30 +369,32 @@ export default function TimesheetsPage({
   const goThisWeek = () => setWeekStart(getWeekStart(today));
 
   const clientMap = useMemo(() => Object.fromEntries(clients.map(c => [String(c.id), c])), [clients]);
+  const realJobs = useMemo(() => jobs.filter((j) => !j.isAdminJob), [jobs]);
+  const overheadEntries = useMemo(() => Array.isArray(profile.overheadTimeEntries) ? profile.overheadTimeEntries : [], [profile.overheadTimeEntries]);
 
   const allStaff = useMemo(() => {
     const set = new Set();
-    jobs.forEach(j => {
+    realJobs.forEach(j => {
       if (j.assignedTo) set.add(j.assignedTo);
       (j.timeEntries || []).forEach(te => { if (te.staff) set.add(te.staff); });
     });
+    overheadEntries.forEach((te) => { if (te?.staff) set.add(te.staff); });
     const ownerName = profile.businessName || profile.name || "Owner";
     set.add(ownerName);
     return Array.from(set).sort();
-  }, [jobs, profile]);
+  }, [realJobs, overheadEntries, profile.businessName, profile.name]);
 
   const weekJobs = useMemo(() => {
     const ws = fmtDate(weekStart);
     const we = fmtDate(weekEnd);
-    return jobs.filter(j => {
+    return realJobs.filter(j => {
       const jStart = j.startDate || "";
       const jEnd = j.endDate || jStart;
       const dateOverlap = jStart && jStart <= we && jEnd >= ws;
-      // Also include jobs that have time entries within this week
       const hasTimeEntryThisWeek = (j.timeEntries || []).some(te => te.date >= ws && te.date <= we);
       return dateOverlap || hasTimeEntryThisWeek;
     });
-  }, [jobs, weekStart, weekEnd]);
+  }, [realJobs, weekStart, weekEnd]);
 
   const timesheetData = useMemo(() => {
     const ownerName = profile.businessName || profile.name || "Owner";

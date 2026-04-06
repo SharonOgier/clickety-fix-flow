@@ -1137,7 +1137,11 @@ export default function AccountingPortalPrototype() {
       if (!opts.silent) {
         toast.success(payload.id && jobs.find(j => j.id === payload.id) ? "Job updated!" : "Job created!");
       }
-    } catch (err) { toast.error(err.message || "Failed to save job"); }
+      return saved;
+    } catch (err) {
+      toast.error(err.message || "Failed to save job");
+      return null;
+    }
   };
 
   const createInvoiceFromJob = async (job) => {
