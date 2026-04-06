@@ -51,8 +51,8 @@ export default function SettingsPage(props) {
   const [invitePermission, setInvitePermission] = useState("viewer");
   const [sendingInvite, setSendingInvite] = useState(false);
 
-  const MASTER_EMAILS = ["info@sharonogier.com", "sharon@sharonogier.com"];
-  const isOwner = MASTER_EMAILS.includes((authUserEmail || "").toLowerCase().trim());
+  const OWNER_OVERRIDE_EMAILS = ["info@sharonogier.com", "sharonlogier@gmail.com"];
+  const isOwner = OWNER_OVERRIDE_EMAILS.includes((authUserEmail || "").toLowerCase().trim());
 
   const LOGO_PREVIEW_MAX_HEIGHT = 140;
   const LOGO_PREVIEW_MAX_WIDTH = 320;
@@ -734,7 +734,7 @@ export default function SettingsPage(props) {
                   const { error } = await supabase.from("sas_team_invitations").insert({ inviter_user_id: authUser.id, email: inviteEmail.trim().toLowerCase(), permission: invitePermission });
                   if (error) throw error;
                   // Send invite email
-                  await supabase.functions.invoke("send-document-email", { body: { to: [inviteEmail.trim()], subject: `You've been invited to ${profile.businessName || "a portal"}`, html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px;"><h2 style="color:#6A1B9A;">Team Invitation</h2><p>${profile.businessName || "A business"} has invited you to join their accounting portal as a <strong>${invitePermission}</strong>.</p><p>Sign up or log in at <a href="https://sharonogier.com/portal">sharonogier.com/portal</a> to get started.</p></div>` } });
+                  await supabase.functions.invoke("send-document-email", { body: { to: [inviteEmail.trim()], subject: `You've been invited to ${profile.businessName || "a portal"}`, html: `<div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:24px;"><h2 style="color:#6A1B9A;">Team Invitation</h2><p>${profile.businessName || "A business"} has invited you to join their accounting portal as a <strong>${invitePermission}</strong>.</p><p>Sign up or log in at <a href="${window.location.origin}/portal">${window.location.host}/portal</a> to get started.</p></div>` } });
                   const { data: updated } = await supabase.from("sas_team_invitations").select("*").eq("inviter_user_id", authUser.id);
                   setTeamInvitations(updated || []);
                   setInviteEmail("");
@@ -848,8 +848,7 @@ export default function SettingsPage(props) {
             <div style={{ borderTop: `1px solid ${colours.border}`, paddingTop: 20, marginTop: 8 }}>
               <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 6 }}>Close Account</div>
               <div style={{ fontSize: 13, color: colours.muted, marginBottom: 16, lineHeight: 1.6 }}>
-                Closing your account will sign you out and disable access to the portal. Your data will be kept safe and your account can be reactivated at any time by contacting{" "}
-                <a href="mailto:info@sharonogier.com" style={{ color: colours.purple }}>info@sharonogier.com</a>.
+                Closing your account will sign you out and disable access to the portal. Your data will be kept safe and your account can be reactivated at any time by contacting support.
               </div>
               <button
                 onClick={() => confirm({
