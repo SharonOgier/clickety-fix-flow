@@ -2190,10 +2190,23 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     }
   }
 
-  const emailBodyHtml =
+  let emailBodyHtml =
     documentType === "invoice"
       ? invoiceHtml
       : buildQuoteEmailHtml(emailDocumentRecord, { profile, clients });
+
+  // ── Inject "View & Accept Quote" button into quote emails ──
+  if (documentType === "quote" && emailDocumentRecord.publicToken) {
+    const quoteViewUrl = `${window.location.origin}/quote/view?token=${encodeURIComponent(emailDocumentRecord.publicToken)}`;
+    const acceptanceBanner = `
+      <div style="margin:24px auto 0; max-width:760px; text-align:center; padding:24px; background:#FAFBFF; border:2px solid #E2E8F0; border-radius:16px;">
+        <div style="font-size:16px; font-weight:700; color:#14202B; margin-bottom:12px;">Ready to proceed?</div>
+        <p style="font-size:14px; color:#475569; margin-bottom:18px;">Click the button below to view the full quote and accept or decline it online.</p>
+        <a href="${quoteViewUrl}" style="display:inline-block; background:#006D6D; color:#ffffff; text-decoration:none; padding:14px 36px; border-radius:12px; font-weight:800; font-size:16px;">View &amp; Accept Quote</a>
+      </div>`;
+    // Insert before </body>
+    emailBodyHtml = emailBodyHtml.replace("</body>", acceptanceBanner + "\n</body>");
+  }
 
   const payload = {
     to: recipientList,
