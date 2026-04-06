@@ -113,7 +113,7 @@ export default function AssetsPage(props) {
       effectiveLife: asset.effectiveLife || "", depreciationMethod: asset.depreciationMethod || "prime_cost",
       status: asset.status || "Active", notes: asset.notes || "",
       previousOwners: asset.previousOwners || "", serialNumber: asset.serialNumber || "",
-      location: asset.location || "",
+      location: asset.location || "", linkedExpenseId: asset.linkedExpenseId || "",
     });
     setEditingId(asset.id);
     setShowForm(true);
