@@ -761,7 +761,9 @@ export default function AccountingPortalPrototype() {
       try {
         const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", authUser.id);
         const adminRole = (roles || []).some(r => r.role === "admin");
+        const subRole = (roles || []).some(r => r.role === "subcontractor");
         setIsAdmin(adminRole);
+        setIsSubcontractor(subRole);
         if (adminRole) {
           const { data: profiles } = await supabase.from("sas_profile").select("id, data, user_id");
           setAllPortalUsers((profiles || []).map(p => ({
