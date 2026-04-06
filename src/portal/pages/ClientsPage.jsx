@@ -396,6 +396,26 @@ export default function ClientsPage(props) {
   const saveClient = extSaveClient ?? (() => { if (saveClientFromModal) saveClientFromModal(); });
   const todayLocal = extTodayLocal ?? (() => new Date().toISOString().slice(0, 10));
 
+  // ---- Portal link generation ----
+  const [portalCopied, setPortalCopied] = useState(false);
+  const handlePortalLink = (contact) => {
+    let token = contact.portalToken;
+    if (!token) {
+      token = crypto.randomUUID() + "-" + crypto.randomUUID().slice(0, 8);
+      // Save the token to the contact
+      const updated = { ...contact, portalToken: token };
+      openClientEditor(updated);
+      // Auto-save if saveClientEdits is available
+      if (extSetClientEditorForm) extSetClientEditorForm(updated);
+      setTimeout(() => { if (extSaveClientEdits) extSaveClientEdits(); }, 100);
+    }
+    const portalUrl = `${window.location.origin}/client-portal?token=${encodeURIComponent(token)}`;
+    navigator.clipboard.writeText(portalUrl).then(() => {
+      setPortalCopied(true);
+      setTimeout(() => setPortalCopied(false), 3000);
+    });
+  };
+
   // ---- Search & filter state ----
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
@@ -468,6 +488,24 @@ export default function ClientsPage(props) {
               onSave={saveClientEdits} onCancel={closeClientEditor} isEditing
             />
             <RelatedJobsSection contact={clientEditorForm} jobs={jobs} invoices={invoices} quotes={props.quotes || []} expenses={props.expenses || []} colours={colours} cardStyle={cardStyle} currency={currency} safeNumber={safeNumber} setActivePage={setActivePage} formatDateAU={props.formatDateAU} />
+            {/* Customer Portal Link */}
+            {(clientEditorForm.roles || []).includes("customer") && (
+              <div style={{ ...cardStyle, padding: 18, marginTop: 16, background: "#F5ECFB", border: `1px solid ${colours.purple}22` }}>
+                <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", color: colours.purple, marginBottom: 8 }}>🔗 Customer Portal</div>
+                <p style={{ fontSize: 13, color: colours.muted, marginBottom: 12 }}>Share this link with your customer so they can view their jobs, pay invoices, and request new work.</p>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button style={{ ...buttonPrimary, fontSize: 13 }} onClick={() => handlePortalLink(clientEditorForm)}>
+                    {portalCopied ? "✅ Link Copied!" : "📋 Copy Portal Link"}
+                  </button>
+                  {clientEditorForm.portalToken && (
+                    <button style={{ ...buttonSecondary, fontSize: 13 }} onClick={() => {
+                      const url = `${window.location.origin}/client-portal?token=${encodeURIComponent(clientEditorForm.portalToken)}`;
+                      window.open(url, "_blank");
+                    }}>👁️ Preview Portal</button>
+                  )}
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <ContactForm
@@ -549,8 +587,14 @@ export default function ClientsPage(props) {
             {
               key: "actions", label: "",
               render: (_, row) => (
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <button style={buttonSecondary} onClick={() => openClientEditor(row)}>View / Edit</button>
+                  {(row.roles || []).includes("customer") && (
+                    <button style={{ ...buttonSecondary, color: "#6A1B9A" }} onClick={(e) => {
+                      e.stopPropagation();
+                      handlePortalLink(row);
+                    }}>🔗 Portal Link</button>
+                  )}
                   <button style={{ ...buttonSecondary, color: "#DC2626" }} onClick={() => deleteClient(row.id)}>Delete</button>
                 </div>
               ),

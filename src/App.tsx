@@ -10,6 +10,7 @@ import PortalPage from "./pages/PortalPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import FarmEquipmentPage from "./pages/FarmEquipmentPage";
 import QuoteViewPage from "./pages/QuoteViewPage";
+import ClientPortalPage from "./pages/ClientPortalPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/farm-equipment" element={<FarmEquipmentPage />} />
           <Route path="/quote/view" element={<QuoteViewPage />} />
+          <Route path="/client-portal" element={<ClientPortalPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
