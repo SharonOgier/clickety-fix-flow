@@ -626,6 +626,8 @@ export default function SchedulingPage({
   authUser, profile = {}, createInvoiceFromJob,
 }) {
   const colours = c;
+  // Filter out admin/overhead pseudo-jobs from scheduling
+  jobs = useMemo(() => jobs.filter(j => !j.isAdminJob), [jobs]);
   const today = new Date();
   const [viewDate, setViewDate] = useState(today);
   const [view, setView] = useState("month");

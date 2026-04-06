@@ -1127,14 +1127,16 @@ export default function AccountingPortalPrototype() {
     if (error) throw error;
   };
 
-  const saveJob = async (payload) => {
+  const saveJob = async (payload, opts = {}) => {
     try {
       const saved = await upsertRecordInDatabase(SUPABASE_TABLES.jobs, payload);
       setJobs((prev) => {
         const exists = prev.find((j) => j.id === payload.id);
         return exists ? prev.map((j) => j.id === payload.id ? saved : j) : [...prev, saved];
       });
-      toast.success(payload.id && jobs.find(j => j.id === payload.id) ? "Job updated!" : "Job created!");
+      if (!opts.silent) {
+        toast.success(payload.id && jobs.find(j => j.id === payload.id) ? "Job updated!" : "Job created!");
+      }
     } catch (err) { toast.error(err.message || "Failed to save job"); }
   };
 

@@ -99,7 +99,7 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
       // Replace existing entry for same date+staff+category or append
       const idx = entries.findIndex(t => t.date === entryDate && t.staff === entry.staff && (t.category || "") === (entry.category || ""));
       if (idx >= 0) entries[idx] = entry; else entries.push(entry);
-      await saveJob({ ...job, timeEntries: entries });
+      await saveJob({ ...job, timeEntries: entries }, { silent: true });
       setStep(3);
     } catch (err) {
       console.error("Failed to save time entry:", err);
@@ -371,7 +371,10 @@ export default function TimesheetsPage({
     return jobs.filter(j => {
       const jStart = j.startDate || "";
       const jEnd = j.endDate || jStart;
-      return jStart <= we && jEnd >= ws;
+      const dateOverlap = jStart && jStart <= we && jEnd >= ws;
+      // Also include jobs that have time entries within this week
+      const hasTimeEntryThisWeek = (j.timeEntries || []).some(te => te.date >= ws && te.date <= we);
+      return dateOverlap || hasTimeEntryThisWeek;
     });
   }, [jobs, weekStart, weekEnd]);
 
@@ -440,7 +443,7 @@ export default function TimesheetsPage({
     const idx = entries.findIndex(t => t.date === dateStr);
     const entry = { date: dateStr, hours: Number(hours) || 0, staff: selectedStaff !== "all" ? selectedStaff : (job.assignedTo || profile.businessName || "Owner"), updatedAt: new Date().toISOString() };
     if (idx >= 0) entries[idx] = entry; else entries.push(entry);
-    await saveJob({ ...job, timeEntries: entries });
+    await saveJob({ ...job, timeEntries: entries }, { silent: true });
     setEditingCell(null);
   };
 
