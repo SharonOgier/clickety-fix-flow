@@ -269,6 +269,8 @@ function MapView({ properties, colours, cardStyle, onSelect, jobs = [] }) {
             <div style={{ fontSize: 11, color: colours.muted, marginTop: 6 }}>
               {(p.subLocations || []).length} sub-location{(p.subLocations || []).length !== 1 ? "s" : ""}
               <span style={{ margin: "0 6px" }}>•</span>
+              {(() => { const cnt = (jobs || []).filter(j => String(j.propertyId) === String(p.id) || String(j.siteId) === String(p.id)).length; return cnt > 0 ? <span style={{ color: colours.teal, fontWeight: 700 }}>{cnt} active job{cnt !== 1 ? "s" : ""}</span> : <span>No active jobs</span>; })()}
+              <span style={{ margin: "0 6px" }}>•</span>
               <a
                 href={`https://www.google.com/maps/dir/?api=1&destination=${p.gpsLat},${p.gpsLng}`}
                 target="_blank" rel="noopener noreferrer"
