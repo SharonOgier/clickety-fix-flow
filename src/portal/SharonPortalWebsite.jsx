@@ -4427,6 +4427,17 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               saveAsset={saveAsset} deleteAsset={deleteAsset} confirm={confirm}
               setImportType={setImportType} setImportRows={setImportRows} setImportError={setImportError} setShowImportModal={setShowImportModal}
             />}
+            {activePage === "properties" && <PropertiesPage
+              properties={properties} clients={clients}
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              inputStyle={inputStyle} labelStyle={labelStyle}
+              currency={currency} safeNumber={safeNumber}
+              DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
+              SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
+              saveProperty={saveProperty} deleteProperty={deleteProperty} confirm={confirm}
+              setActivePage={setActivePage}
+            />}
             {activePage === "bills / payables" && <BillsPage
               profile={profile} expenses={expenses} suppliers={suppliers} clients={clients}
               expenseForm={expenseForm} setExpenseForm={setExpenseForm}
