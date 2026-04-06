@@ -468,7 +468,10 @@ export default function ATOTaxFormPage({
             <tbody>
               {[
                 {l:"Total Income",v:`$${fmt(totInc)}`},
-                {l:"Less: Deductible Expenses",v:`−$${fmt(deduct)}`},
+                {l:"Less: Work-related Deductions",v:`−$${fmt(deductWork)}`},
+                ...(deductCar > 0 ? [{l:"Less: Car / Mileage (D2 cents/km)",v:`−$${fmt(deductCar)}`}] : []),
+                ...(deductSub > 0 ? [{l:"Less: Subcontractor Costs",v:`−$${fmt(deductSub)}`}] : []),
+                {l:"Total Deductions",v:`−$${fmt(deduct)}`},
                 {l:"Taxable Income",v:`$${fmt(taxableSum)}`},
                 {l:"Less: Franking credits (tax offset)",v:`−$${fmt(totFC)}`},
                 {l:"Estimated Income Tax",v:`$${fmt(Math.max(0,taxResident(taxableSum)-totFC))}`},
