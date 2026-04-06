@@ -225,9 +225,14 @@ export default function SchedulingPage({
             const dateStr = `${y}-${pad(m+1)}-${pad(day)}`;
             const dayJobs = jobsOnDate(dateStr);
             const isToday = dateStr === todayStr;
+            const isDragOver = dragOverDate === dateStr;
             return (
-              <div key={i} onClick={() => { setViewDate(new Date(y, m, day)); setView("day"); }}
-                style={{ minHeight: 90, padding: 4, background: isToday ? colours.lightPurple : "#fff", cursor: "pointer", border: "1px solid #F1F5F9", position: "relative" }}>
+              <div key={i}
+                onClick={() => { setViewDate(new Date(y, m, day)); setView("day"); }}
+                onDragOver={(e) => handleDragOver(e, dateStr)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, dateStr)}
+                style={{ minHeight: 90, padding: 4, background: isDragOver ? "#E8D5F5" : isToday ? colours.lightPurple : "#fff", cursor: "pointer", border: isDragOver ? `2px dashed ${colours.purple}` : "1px solid #F1F5F9", position: "relative", transition: "background 0.15s" }}>
                 <div style={{ fontSize: 12, fontWeight: isToday ? 800 : 500, color: isToday ? colours.purple : colours.text, marginBottom: 2,
                   ...(isToday ? { background: colours.purple, color: "#fff", borderRadius: 99, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center" } : {}) }}>
                   {day}
@@ -253,8 +258,13 @@ export default function SchedulingPage({
             const dateStr = fmtDate(d);
             const dayJobs = jobsOnDate(dateStr);
             const isToday = dateStr === todayStr;
+            const isDragOver = dragOverDate === dateStr;
             return (
-              <div key={i} style={{ minHeight: 200, background: isToday ? colours.lightPurple : "#fff", border: "1px solid #F1F5F9", padding: 6 }}>
+              <div key={i}
+                onDragOver={(e) => handleDragOver(e, dateStr)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, dateStr)}
+                style={{ minHeight: 200, background: isDragOver ? "#E8D5F5" : isToday ? colours.lightPurple : "#fff", border: isDragOver ? `2px dashed ${colours.purple}` : "1px solid #F1F5F9", padding: 6, transition: "background 0.15s" }}>
                 <div style={{ textAlign: "center", marginBottom: 6 }}>
                   <div style={{ fontSize: 11, color: colours.muted, fontWeight: 600 }}>{DAYS_SHORT[i]}</div>
                   <div style={{ fontSize: 18, fontWeight: isToday ? 800 : 600, color: isToday ? colours.purple : colours.text }}>{d.getDate()}</div>
