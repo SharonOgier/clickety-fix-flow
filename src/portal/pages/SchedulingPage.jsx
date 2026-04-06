@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import JobCostingPanel, { computeJobFinancials } from "./JobCostingPanel";
 
 /* ─── helpers ──────────────────────────────────────────────────────────── */
 const VIEWS = ["month", "week", "day", "list"];
@@ -55,9 +56,9 @@ const PriorityBadge = ({ priority }) => {
 
 /* ═══════════════════════════════════════════════════════════════════════ */
 export default function SchedulingPage({
-  jobs = [], clients = [], properties = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
+  jobs = [], clients = [], properties = [], quotes = [], invoices = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
   inputStyle, labelStyle, DashboardHero, InsightChip, MetricCard, SectionCard, DataTable, EmptyState,
-  saveJob, deleteJob, confirm, setActivePage,
+  saveJob, deleteJob, confirm, setActivePage, currency = (v) => `$${Number(v||0).toFixed(2)}`,
 }) {
   const colours = c;
   const today = new Date();
@@ -66,6 +67,7 @@ export default function SchedulingPage({
   const [showForm, setShowForm] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [detailJob, setDetailJob] = useState(null);
+  const [detailTab, setDetailTab] = useState("info");
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -410,37 +412,73 @@ export default function SchedulingPage({
 
       {/* ═══ JOB DETAIL PANEL ═══ */}
       {detailJob && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", justifyContent: "flex-end" }} onClick={() => setDetailJob(null)}>
+        <div style={{ position: "fixed", inset: 0, zIndex: 1000, display: "flex", justifyContent: "flex-end" }} onClick={() => { setDetailJob(null); setDetailTab("info"); }}>
           <div style={{ background: "rgba(0,0,0,0.25)", position: "absolute", inset: 0 }} />
           <div onClick={e => e.stopPropagation()}
-            style={{ position: "relative", width: 420, maxWidth: "90vw", background: "#fff", height: "100vh", overflowY: "auto", padding: 28, boxShadow: "-4px 0 24px rgba(0,0,0,0.12)" }}>
+            style={{ position: "relative", width: 560, maxWidth: "95vw", background: "#fff", height: "100vh", overflowY: "auto", padding: 28, boxShadow: "-4px 0 24px rgba(0,0,0,0.12)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
               <div>
                 <div style={{ width: 40, height: 6, borderRadius: 3, background: detailJob.colour || colours.purple, marginBottom: 10 }} />
                 <h2 style={{ fontSize: 22, fontWeight: 800, color: colours.text, margin: 0 }}>{detailJob.title}</h2>
               </div>
-              <button onClick={() => setDetailJob(null)} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: colours.muted }}>✕</button>
+              <button onClick={() => { setDetailJob(null); setDetailTab("info"); }} style={{ background: "none", border: "none", fontSize: 22, cursor: "pointer", color: colours.muted }}>✕</button>
             </div>
 
-            <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-              <StatusBadge status={detailJob.status} colours={colours} />
-              <PriorityBadge priority={detailJob.priority} />
+            {/* Tab bar */}
+            <div style={{ display: "flex", gap: 2, background: "#F1F5F9", borderRadius: 10, padding: 3, marginBottom: 16 }}>
+              {["info", "costs"].map(t => (
+                <button key={t} onClick={() => setDetailTab(t)}
+                  style={{ padding: "6px 16px", borderRadius: 8, border: "none", fontWeight: 700, fontSize: 13, cursor: "pointer",
+                    background: detailTab === t ? colours.purple : "transparent", color: detailTab === t ? "#fff" : colours.muted }}>
+                  {t === "info" ? "Details" : "Costs & Financials"}
+                </button>
+              ))}
             </div>
 
-            <div style={{ display: "grid", gap: 12, fontSize: 14 }}>
-              <div><span style={{ color: colours.muted, fontWeight: 600 }}>📅 Date</span><br/>{fmtDateAU(detailJob.startDate)}{detailJob.endDate && detailJob.endDate !== detailJob.startDate ? ` – ${fmtDateAU(detailJob.endDate)}` : ""}</div>
-              <div><span style={{ color: colours.muted, fontWeight: 600 }}>🕐 Time</span><br/>{fmtTime(detailJob.startTime)} – {fmtTime(detailJob.endTime)}</div>
-              {detailJob.clientId && <div><span style={{ color: colours.muted, fontWeight: 600 }}>👤 Contact</span><br/>{getClientName(detailJob.clientId)}</div>}
-              {detailJob.propertyId && <div><span style={{ color: colours.muted, fontWeight: 600 }}>🏠 Property</span><br/>{getPropertyName(detailJob.propertyId)}{detailJob.subLocationId ? ` › ${getSubLocations(detailJob.propertyId).find(s => s.id === detailJob.subLocationId)?.name || ""}` : ""}</div>}
-              {detailJob.assignedTo && <div><span style={{ color: colours.muted, fontWeight: 600 }}>👷 Assigned to</span><br/>{detailJob.assignedTo}</div>}
-              {detailJob.description && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📝 Description</span><br/>{detailJob.description}</div>}
-              {detailJob.notes && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📌 Notes</span><br/>{detailJob.notes}</div>}
-            </div>
+            {detailTab === "info" && (<>
+              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+                <StatusBadge status={detailJob.status} colours={colours} />
+                <PriorityBadge priority={detailJob.priority} />
+              </div>
 
-            <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
-              <button style={buttonPrimary} onClick={() => openEdit(detailJob)}>Edit Job</button>
-              <button style={{ ...buttonSecondary, color: "#C62828" }} onClick={() => handleDelete(detailJob)}>Delete</button>
-            </div>
+              {/* Quick financial summary */}
+              {(() => {
+                const fin = computeJobFinancials(detailJob);
+                return (fin.quotedTotal > 0 || fin.totalCost > 0) ? (
+                  <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+                    {fin.quotedTotal > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: colours.purple, background: colours.lightPurple || "#F3E5F5", padding: "4px 12px", borderRadius: 99 }}>Quoted: {currency(fin.quotedTotal)}</span>}
+                    {fin.totalCost > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: "#1565C0", background: "#E3F2FD", padding: "4px 12px", borderRadius: 99 }}>Cost: {currency(fin.totalCost)}</span>}
+                    {fin.quotedTotal > 0 && <span style={{ fontSize: 12, fontWeight: 700, color: fin.grossMarginPct >= 20 ? "#2E7D32" : "#E65100", background: fin.grossMarginPct >= 20 ? "#E8F5E9" : "#FFF3E0", padding: "4px 12px", borderRadius: 99 }}>Margin: {fin.grossMarginPct.toFixed(0)}%</span>}
+                  </div>
+                ) : null;
+              })()}
+
+              <div style={{ display: "grid", gap: 12, fontSize: 14 }}>
+                <div><span style={{ color: colours.muted, fontWeight: 600 }}>📅 Date</span><br/>{fmtDateAU(detailJob.startDate)}{detailJob.endDate && detailJob.endDate !== detailJob.startDate ? ` – ${fmtDateAU(detailJob.endDate)}` : ""}</div>
+                <div><span style={{ color: colours.muted, fontWeight: 600 }}>🕐 Time</span><br/>{fmtTime(detailJob.startTime)} – {fmtTime(detailJob.endTime)}</div>
+                {detailJob.clientId && <div><span style={{ color: colours.muted, fontWeight: 600 }}>👤 Contact</span><br/>{getClientName(detailJob.clientId)}</div>}
+                {detailJob.propertyId && <div><span style={{ color: colours.muted, fontWeight: 600 }}>🏠 Property</span><br/>{getPropertyName(detailJob.propertyId)}{detailJob.subLocationId ? ` › ${getSubLocations(detailJob.propertyId).find(s => s.id === detailJob.subLocationId)?.name || ""}` : ""}</div>}
+                {detailJob.assignedTo && <div><span style={{ color: colours.muted, fontWeight: 600 }}>👷 Assigned to</span><br/>{detailJob.assignedTo}</div>}
+                {detailJob.description && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📝 Description</span><br/>{detailJob.description}</div>}
+                {detailJob.notes && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📌 Notes</span><br/>{detailJob.notes}</div>}
+              </div>
+
+              <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
+                <button style={buttonPrimary} onClick={() => openEdit(detailJob)}>Edit Job</button>
+                <button style={{ ...buttonSecondary, color: "#C62828" }} onClick={() => handleDelete(detailJob)}>Delete</button>
+                <button style={buttonSecondary} onClick={() => setDetailTab("costs")}>View Costs</button>
+              </div>
+            </>)}
+
+            {detailTab === "costs" && (
+              <JobCostingPanel
+                job={detailJob}
+                onUpdate={async (updated) => { await saveJob(updated); setDetailJob(updated); }}
+                colours={colours} cardStyle={cardStyle} inputStyle={inputStyle} labelStyle={labelStyle}
+                buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+                currency={currency} quotes={quotes} invoices={invoices}
+              />
+            )}
           </div>
         </div>
       )}

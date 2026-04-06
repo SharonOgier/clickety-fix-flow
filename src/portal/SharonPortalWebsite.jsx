@@ -91,6 +91,7 @@ import ExpensesPage         from "./pages/ExpensesPage";
 import AssetsPage           from "./pages/AssetsPage";
 import PropertiesPage       from "./pages/PropertiesPage";
 import SchedulingPage       from "./pages/SchedulingPage";
+import JobsReportPage       from "./pages/JobsReportPage";
 import IncomeSourcesPage    from "./pages/IncomeSourcesPage";
 import DocumentsPage        from "./pages/DocumentsPage";
 import SetupWizardPage      from "./pages/SetupWizardPage";
@@ -2706,6 +2707,9 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       status: "Draft",
       paymentReference: makePaymentReference(invoiceNumber),
       stripeCheckoutUrl: "",
+      trackingId: crypto.randomUUID(),
+      jobId: invoiceForm.jobId || "",
+      viewStatus: "Draft",
     };
 
     setSavingInvoice(true);
@@ -3008,7 +3012,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
 
       if (result?.ok) {
         const updatedInvoice = {
-          ...invoice,
+...invoice,
           ...(result.updatedDocumentRecord || {}),
           stripeCheckoutUrl:
             result.stripeCheckoutUrl ||
@@ -3017,6 +3021,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             "",
           emailedAt: new Date().toISOString(),
           emailRecipients: result.recipients || [],
+          viewStatus: "Sent",
+          status: invoice.status === "Draft" ? "Sent" : invoice.status,
         };
         const savedInvoice = await upsertRecordInDatabase(SUPABASE_TABLES.invoices, updatedInvoice);
         setInvoices((prev) =>
@@ -4299,7 +4305,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               SectionCard={SectionCard} ActionHubCard={ActionHubCard} DataTable={DataTable}
             />}
             {activePage === "invoices" && <InvoicesPage
-              profile={profile} clients={clients} invoices={invoices} services={services}
+              profile={profile} clients={clients} invoices={invoices} services={services} jobs={jobs}
               invoiceForm={invoiceForm} setInvoiceForm={setInvoiceForm}
               invoiceWizardStep={invoiceWizardStep} setInvoiceWizardStep={setInvoiceWizardStep}
               invoiceEditorOpen={invoiceEditorOpen} invoiceEditorForm={invoiceEditorForm}
@@ -4464,12 +4470,23 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
             />}
             {activePage === "scheduling" && <SchedulingPage
               jobs={jobs} clients={clients} properties={properties}
+              quotes={quotes} invoices={invoices}
               colours={colours} cardStyle={cardStyle}
               buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
               inputStyle={inputStyle} labelStyle={labelStyle}
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveJob={saveJob} deleteJob={deleteJob} confirm={confirm}
+              setActivePage={setActivePage} currency={currency}
+            />}
+            {activePage === "jobs report" && <JobsReportPage
+              jobs={jobs} invoices={invoices} quotes={quotes} clients={clients}
+              colours={colours} cardStyle={cardStyle}
+              buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+              inputStyle={inputStyle} labelStyle={labelStyle}
+              currency={currency} formatDateAU={formatDateAU} safeNumber={safeNumber}
+              DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
+              SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               setActivePage={setActivePage}
             />}
             {activePage === "bills / payables" && <BillsPage
