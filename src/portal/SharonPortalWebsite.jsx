@@ -3155,8 +3155,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         dueDate: expenseForm.dueDate || expenseForm.date,
         amount,
         gst,
-        isPaid: false,
-        paidAt: "",
+        isPaid: isMileage ? true : false,
+        paidAt: isMileage ? expenseForm.date : "",
         receiptFileName,
         receiptUrl,
       };
