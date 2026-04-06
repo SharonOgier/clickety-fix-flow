@@ -4300,7 +4300,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               SectionCard={SectionCard} ActionHubCard={ActionHubCard} DataTable={DataTable}
             />}
             {activePage === "invoices" && <InvoicesPage
-              profile={profile} clients={clients} invoices={invoices} services={services}
+              profile={profile} clients={clients} invoices={invoices} services={services} jobs={jobs}
               invoiceForm={invoiceForm} setInvoiceForm={setInvoiceForm}
               invoiceWizardStep={invoiceWizardStep} setInvoiceWizardStep={setInvoiceWizardStep}
               invoiceEditorOpen={invoiceEditorOpen} invoiceEditorForm={invoiceEditorForm}
