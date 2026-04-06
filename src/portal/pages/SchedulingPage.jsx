@@ -150,16 +150,50 @@ export default function SchedulingPage({
     setDetailJob(null);
   };
 
+  /* ── drag-and-drop helpers ──────────────────────────────── */
+  const [dragOverDate, setDragOverDate] = useState(null);
+
+  const handleDragStart = (e, job) => {
+    e.dataTransfer.setData("application/json", JSON.stringify(job));
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDrop = async (e, targetDateStr) => {
+    e.preventDefault();
+    setDragOverDate(null);
+    try {
+      const job = JSON.parse(e.dataTransfer.getData("application/json"));
+      if (job.startDate === targetDateStr) return; // same date, no-op
+      // compute day offset and shift both start and end dates
+      const oldStart = new Date(job.startDate + "T00:00:00");
+      const newStart = new Date(targetDateStr + "T00:00:00");
+      const diffMs = newStart - oldStart;
+      const newEnd = job.endDate ? new Date(new Date(job.endDate + "T00:00:00").getTime() + diffMs) : newStart;
+      const updated = { ...job, startDate: targetDateStr, endDate: fmtDate(newEnd) };
+      await saveJob(updated);
+    } catch (_) { /* ignore bad data */ }
+  };
+
+  const handleDragOver = (e, dateStr) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    if (dragOverDate !== dateStr) setDragOverDate(dateStr);
+  };
+
+  const handleDragLeave = () => setDragOverDate(null);
+
   /* ── job card (mini) ─────────────────────────────────────── */
   const JobPill = ({ job }) => (
     <div
+      draggable
+      onDragStart={(e) => handleDragStart(e, job)}
       onClick={(e) => { e.stopPropagation(); setDetailJob(job); }}
       style={{
         background: job.colour || colours.purple, color: "#fff", borderRadius: 6,
-        padding: "2px 6px", fontSize: 11, fontWeight: 600, cursor: "pointer",
+        padding: "2px 6px", fontSize: 11, fontWeight: 600, cursor: "grab",
         marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
       }}
-      title={job.title}
+      title={`Drag to reschedule: ${job.title}`}
     >
       {fmtTime(job.startTime)} {job.title}
     </div>
