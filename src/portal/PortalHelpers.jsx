@@ -60,6 +60,7 @@ export const navLabels = {
   properties: "Properties",
   scheduling: "Scheduling",
   "bank reconciliation": "Bank Reconciliation",
+  "jobs report": "Jobs Report",
   "bas report": "BAS Report",
   "ato tax form": "ATO Tax Form",
   "tax estimator": "Tax Estimator",
