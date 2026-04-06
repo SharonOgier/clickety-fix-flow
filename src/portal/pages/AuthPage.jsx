@@ -198,7 +198,7 @@ export default function AuthPage(props) {
 
             <div style={{ display: "grid", gap: 10 }}>
               <button type="button" style={{ ...buttonPrimary, width: "100%", justifyContent: "center" }} onClick={handleAuthSubmit} disabled={authLoading}>
-                {authLoading ? "Working..." : authMode === "signup" ? "Create Account" : "Login to Portal"}
+                {authLoading ? "Working..." : authMode === "signup" ? "Create Account" : "Mustered Login"}
               </button>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 <button
