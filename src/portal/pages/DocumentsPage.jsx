@@ -8,28 +8,28 @@ import EntityLink from "../EntityLink";
 
 export default function DocumentsPage(props) {
   const {
-    documents,
+    documents = [],
     documentFile,
     setDocumentFile,
     documentEditorOpen,
     documentEditorForm,
     setDocumentEditorForm,
     savingDocumentEdits,
-    colours,
-    cardStyle,
-    buttonPrimary,
-    buttonSecondary,
-    inputStyle,
-    labelStyle,
-    formatDateAU,
-    safeNumber,
-    DashboardHero,
-    InsightChip,
-    MetricCard,
-    SectionCard,
-    DataTable,
-    EmptyState,
-    MiniBarChart,
+    colours = {},
+    cardStyle = {},
+    buttonPrimary = {},
+    buttonSecondary = {},
+    inputStyle = {},
+    labelStyle = {},
+    formatDateAU = (v) => String(v || ""),
+    safeNumber = (v) => Number(v) || 0,
+    DashboardHero = ({ title, children }) => <div><h2>{title}</h2>{children}</div>,
+    InsightChip = () => null,
+    MetricCard = () => null,
+    SectionCard = ({ title, children, right }) => <section><div style={{ display: "flex", justifyContent: "space-between" }}><h3>{title}</h3>{right}</div>{children}</section>,
+    DataTable = ({ columns, rows }) => <div>Table ({(rows || []).length} rows)</div>,
+    EmptyState = ({ icon, title, message }) => <div>{icon} {title} — {message}</div>,
+    MiniBarChart = () => null,
     uploadDocument,
     deleteDocument,
     openDocumentEditor,
@@ -41,9 +41,10 @@ export default function DocumentsPage(props) {
     getClientName = () => "Unknown",
   } = props;
 
-    const recentDocs = [...documents].sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0)).slice(0, 1);
+    const safeDocuments = Array.isArray(documents) ? documents : [];
+    const recentDocs = [...safeDocuments].sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0)).slice(0, 1);
     const lastUploaded = recentDocs[0] ? formatDateAU(recentDocs[0].uploadedAt) : "None yet";
-    const docTypes = documents.reduce((acc, d) => {
+    const docTypes = safeDocuments.reduce((acc, d) => {
       const ext = String(d.name || "").split(".").pop().toLowerCase() || "other";
       acc[ext] = (acc[ext] || 0) + 1; return acc;
     }, {});
