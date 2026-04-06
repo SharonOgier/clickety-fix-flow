@@ -8,6 +8,7 @@ const pages = [
   { id: "about", label: "About" },
   { id: "mustered", label: "Mustered", badge: true },
   { id: "why", label: "Why Sharon" },
+  { id: "why-mitchell", label: "Why Mitchell" },
   { id: "contact", label: "Contact" },
 ];
 
@@ -381,6 +382,84 @@ export default function HomePage() {
                       <p className="text-foreground text-sm">{point}</p>
                     </div>
                   ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* WHY MITCHELL */}
+          {activePage === "why-mitchell" && (
+            <section>
+              <div className="bg-card border border-border rounded-xl shadow-brand p-6 mb-5">
+                <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-4">Why choose Mitchell</span>
+                <h2 className="text-3xl font-black mb-3 text-foreground">Why Mitchell</h2>
+                <p className="text-muted-foreground leading-relaxed mb-4">
+                  Mitchell brings extensive, hands-on knowledge of the farming and agriculture industry. With years of practical experience working with machinery across the Northern Rivers and beyond, he understands what equipment is worth — and why.
+                </p>
+                <div className="grid gap-4 mt-4">
+                  {[
+                    "Grew up around farming — understands the day-to-day reality of agricultural operations",
+                    "Hands-on mechanical knowledge across tractors, harvesters, implements and fixed plant",
+                    "Years of experience assessing equipment condition, wear and remaining service life",
+                    "Understands seasonal pressures and how they affect equipment decisions",
+                    "Thorough, independent reports trusted by lenders, insurers and industry professionals",
+                    "On-site inspections — Mitchell comes to you, anywhere across the region",
+                  ].map((point, i) => (
+                    <div key={i} className="flex items-start gap-3 bg-secondary/50 rounded-md p-4">
+                      <span className="text-primary font-bold text-lg">✓</span>
+                      <p className="text-foreground text-sm">{point}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Farm Equipment Assessment Services */}
+              <div className="bg-card border border-border rounded-xl shadow-brand p-6 mb-5">
+                <span className="inline-block px-3 py-1 rounded-full bg-secondary text-primary text-sm font-extrabold mb-4">Farm Equipment Assessments</span>
+                <h3 className="text-2xl font-black mb-3 text-foreground">What Mitchell can assess</h3>
+                <p className="text-muted-foreground leading-relaxed mb-5">
+                  Mitchell provides independent, on-site assessments for all types of farm equipment. Whether you're buying, selling, or managing your fleet — he delivers practical, well-documented reports.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[
+                    { icon: "🚜", title: "Tractors & Harvesters", desc: "Condition grading, hours-of-use analysis, and comparable market data for primary machinery." },
+                    { icon: "🔧", title: "Implements & Attachments", desc: "Ploughs, seeders, sprayers, balers — wear assessment and remaining service life." },
+                    { icon: "🚛", title: "Trucks & Transport", desc: "Farm trucks, trailers, grain bins, and livestock transport equipment." },
+                    { icon: "🏗️", title: "Fixed Plant & Infrastructure", desc: "Silos, augers, irrigation systems, sheds and other fixed assets." },
+                    { icon: "📋", title: "Pre-Purchase Inspections", desc: "Independent inspections before buying or selling — mechanical, structural, and cosmetic." },
+                    { icon: "📊", title: "Sale & Purchase Reports", desc: "Detailed reports with market positioning, condition summary and estimated value range." },
+                  ].map((svc) => (
+                    <div key={svc.title} className="bg-card border border-border rounded-lg shadow-brand p-5">
+                      <div className="w-11 h-11 grid place-items-center rounded-md bg-secondary text-2xl mb-3">{svc.icon}</div>
+                      <h4 className="text-base font-bold mb-2 text-foreground font-sans">{svc.title}</h4>
+                      <p className="text-muted-foreground text-sm leading-relaxed">{svc.desc}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* CTA */}
+              <div className="rounded-xl p-6 text-primary-foreground shadow-brand" style={{ background: "var(--gradient-brand)" }}>
+                <h3 className="text-lg font-bold mb-2 text-primary-foreground font-serif">Need a farm equipment assessment?</h3>
+                <p className="opacity-90 text-sm mb-4">
+                  Get in touch to arrange an on-site inspection with Mitchell. He provides detailed written reports for buying, selling, insurance, finance, or succession planning.
+                </p>
+                <div className="flex gap-3 flex-wrap">
+                  <a
+                    href="mailto:info@sharonogier.com?subject=Farm Equipment Assessment Request"
+                    className="inline-flex px-6 py-3 rounded-md font-extrabold bg-primary-foreground text-primary text-sm"
+                  >
+                    📧 Email us
+                  </a>
+                  <a
+                    href="tel:1300017167"
+                    className="inline-flex px-6 py-3 rounded-md font-extrabold bg-primary-foreground/10 text-primary-foreground border border-primary-foreground/20 text-sm"
+                  >
+                    📞 1300 017 167
+                  </a>
+                  <Link to="/farm-equipment" className="inline-flex px-6 py-3 rounded-md font-extrabold bg-primary-foreground/10 text-primary-foreground border border-primary-foreground/20 text-sm">
+                    View Full Page →
+                  </Link>
                 </div>
               </div>
             </section>
