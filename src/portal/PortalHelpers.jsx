@@ -50,7 +50,7 @@ export const navLabels = {
   "financial insights": "Financial Insights",
   invoices: "Invoices",
   quotes: "Quotes",
-  clients: "Clients",
+  clients: "Contacts",
   services: "Services",
   expenses: "Expenses",
   "bills / payables": "Bills & Payables",
