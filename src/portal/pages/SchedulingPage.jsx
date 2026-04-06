@@ -880,12 +880,12 @@ function CertificatePanel({ job, onUpdate, colours, buttonPrimary, buttonSeconda
             </div>
 
             {/* Tab bar */}
-            <div style={{ display: "flex", gap: 2, background: "#F1F5F9", borderRadius: 10, padding: 3, marginBottom: 16 }}>
-              {["info", "photos", "costs"].map(t => (
+            <div style={{ display: "flex", gap: 2, background: "#F1F5F9", borderRadius: 10, padding: 3, marginBottom: 16, flexWrap: "wrap" }}>
+              {["info", "photos", "costs", "certificate"].map(t => (
                 <button key={t} onClick={() => setDetailTab(t)}
                   style={{ padding: "6px 16px", borderRadius: 8, border: "none", fontWeight: 700, fontSize: 13, cursor: "pointer",
                     background: detailTab === t ? colours.purple : "transparent", color: detailTab === t ? "#fff" : colours.muted }}>
-                  {t === "info" ? "Details" : t === "photos" ? "📷 Photos" : "Costs & Financials"}
+                  {t === "info" ? "Details" : t === "photos" ? "📷 Photos" : t === "certificate" ? "📜 Certificate" : "Costs & Financials"}
                 </button>
               ))}
             </div>
