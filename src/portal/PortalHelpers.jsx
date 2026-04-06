@@ -37,7 +37,7 @@ export const navSections = [
   },
   {
     title: "Workspace",
-    items: ["clients", "services", "assets", "properties", "bills / payables", "income sources", "documents"],
+    items: ["clients", "services", "assets", "properties", "scheduling", "bills / payables", "income sources", "documents"],
   },
   {
     title: "Admin",
