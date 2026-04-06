@@ -194,13 +194,34 @@ function PropertyDetail({ property, clients, colours, cardStyle, buttonSecondary
         )}
       </div>
 
-      {/* Related Jobs placeholder */}
-      <div style={{ ...cardStyle, padding: 16, background: "#FAFAFA", border: `1px solid ${colours.border}` }}>
-        <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", color: colours.muted, marginBottom: 8 }}>Job History</div>
-        <div style={{ fontSize: 13, color: colours.muted }}>
-          No jobs system connected yet. When jobs are added, all work history for <strong>{property.name}</strong> will appear here.
-        </div>
-      </div>
+      {/* Related Jobs */}
+      {(() => {
+        const propertyJobs = (jobs || []).filter(j => String(j.propertyId) === String(property.id) || String(j.siteId) === String(property.id));
+        return (
+          <div style={{ ...cardStyle, padding: 16, background: "#FAFAFA", border: `1px solid ${colours.border}` }}>
+            <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", color: colours.muted, marginBottom: 8 }}>Job History ({propertyJobs.length})</div>
+            {propertyJobs.length === 0 ? (
+              <div style={{ fontSize: 13, color: colours.muted }}>No jobs linked to <strong>{property.name}</strong> yet.</div>
+            ) : (
+              <div style={{ display: "grid", gap: 8 }}>
+                {propertyJobs.map((job, i) => (
+                  <div key={job.id || i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 12px", borderRadius: 10, background: "#fff", border: `1px solid ${colours.border}` }}>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: colours.text }}>{job.title || job.name || `Job #${job.id}`}</div>
+                      <div style={{ fontSize: 12, color: colours.muted }}>{job.status || "—"}</div>
+                    </div>
+                    <span style={{
+                      fontSize: 11, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
+                      background: job.status === "Completed" ? "#DCFCE7" : job.status === "In Progress" ? "#FEF3C7" : "#DBEAFE",
+                      color: job.status === "Completed" ? "#166534" : job.status === "In Progress" ? "#92400E" : "#1E40AF",
+                    }}>{job.status || "Unscheduled"}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }
