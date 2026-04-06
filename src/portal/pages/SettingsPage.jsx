@@ -490,6 +490,200 @@ export default function SettingsPage(props) {
           </div>
         )}
 
+        {activeSettingsTab === "Plan & Billing" && (() => {
+          const userTier = getUserTier(profile);
+          const currentTierData = userTier ? TIERS[userTier] : null;
+          const [upgradeLoading, setUpgradeLoading] = React.useState(false);
+          const [showConfirm, setShowConfirm] = React.useState(null);
+          const [showDowngrade, setShowDowngrade] = React.useState(null);
+          const [downgradeConfirmText, setDowngradeConfirmText] = React.useState("");
+
+          const handleTierSelect = async (tierKey) => {
+            if (tierKey === userTier) return;
+            const isUpgrade = !userTier || TIER_ORDER.indexOf(tierKey) > TIER_ORDER.indexOf(userTier);
+            if (isUpgrade) {
+              setShowConfirm(tierKey);
+            } else {
+              setShowDowngrade(tierKey);
+            }
+          };
+
+          const confirmUpgrade = async () => {
+            const tierKey = showConfirm;
+            setShowConfirm(null);
+            setUpgradeLoading(true);
+            try {
+              const tier = TIERS[tierKey];
+              const { data, error } = await supabase.functions.invoke("create-checkout", {
+                body: { priceId: tier.priceId },
+              });
+              if (error) throw error;
+              if (data?.url) window.location.href = data.url;
+              else throw new Error(data?.error || "Could not start checkout");
+            } catch (err) {
+              toast.error(err.message || "Failed to start upgrade");
+            } finally {
+              setUpgradeLoading(false);
+            }
+          };
+
+          const confirmDowngrade = async () => {
+            if (downgradeConfirmText !== "CONFIRM") return;
+            setShowDowngrade(null);
+            setDowngradeConfirmText("");
+            toast.info("Downgrade will take effect at your next billing date. Your current features remain active until then.");
+            // Save the target tier — actual Stripe change would be handled server-side
+            const updated = { ...profile, pendingDowngradeTier: showDowngrade };
+            setProfile(updated);
+            await saveProfileToSupabase(updated);
+          };
+
+          return (
+            <div style={{ display: "grid", gap: 24 }}>
+              {/* Current plan info */}
+              {currentTierData && (
+                <div style={{
+                  background: `${colours.purple}08`, border: `2px solid ${colours.purple}22`,
+                  borderRadius: 18, padding: 24, display: "grid", gap: 12,
+                }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 700, color: colours.muted, textTransform: "uppercase", letterSpacing: 0.5 }}>Current Plan</div>
+                      <div style={{ fontSize: 24, fontWeight: 900, color: colours.text }}>{currentTierData.label}</div>
+                    </div>
+                    <div style={{ textAlign: "right" }}>
+                      <div style={{ fontSize: 28, fontWeight: 900, color: colours.purple }}>${currentTierData.price}/mo</div>
+                      <div style={{ fontSize: 12, color: colours.muted }}>inc. GST</div>
+                    </div>
+                  </div>
+                  {profile.subscriptionEnd && (
+                    <div style={{ fontSize: 13, color: colours.muted }}>
+                      Next billing date: {new Date(profile.subscriptionEnd).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}
+                    </div>
+                  )}
+                  {profile.subscriptionStatus === "trialing" && (
+                    <div style={{
+                      background: "#DCFCE7", color: "#166534", borderRadius: 10,
+                      padding: "8px 14px", fontSize: 13, fontWeight: 700,
+                    }}>
+                      🎉 You're on your 14-day free trial
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Starter user dashboard banner */}
+              {(!userTier || userTier === "starter") && (
+                <div style={{
+                  background: `linear-gradient(135deg, ${colours.purple}0A, ${colours.teal || "#006D6D"}0A)`,
+                  border: `1px solid ${colours.border}`,
+                  borderRadius: 14, padding: "16px 20px",
+                  display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap",
+                }}>
+                  <span style={{ fontSize: 20 }}>⚡</span>
+                  <span style={{ fontSize: 14, color: colours.text, flex: 1 }}>
+                    You're on the <strong>Starter</strong> plan. Upgrade to <strong>Pro</strong> to unlock scheduling, properties and your full business toolkit.
+                  </span>
+                  <button
+                    onClick={() => handleTierSelect("pro")}
+                    style={{
+                      background: colours.purple, color: "#fff", border: "none",
+                      borderRadius: 10, padding: "10px 20px", fontWeight: 800,
+                      fontSize: 13, cursor: "pointer",
+                    }}
+                  >
+                    Upgrade now →
+                  </button>
+                </div>
+              )}
+
+              <PlanSelectionCards
+                currentTier={userTier}
+                onSelect={handleTierSelect}
+                loading={upgradeLoading}
+                mode="settings"
+                colours={colours}
+              />
+
+              {/* Upgrade confirmation modal */}
+              {showConfirm && (
+                <div style={{ position: "fixed", inset: 0, zIndex: 99998, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+                  <div style={{ background: "#fff", borderRadius: 20, padding: 32, maxWidth: 440, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", textAlign: "center" }}>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: colours.text, marginBottom: 12 }}>
+                      Upgrade to {TIERS[showConfirm].label}
+                    </div>
+                    <div style={{ fontSize: 14, color: colours.muted, lineHeight: 1.7, marginBottom: 24 }}>
+                      You are upgrading to <strong>{TIERS[showConfirm].label}</strong> at <strong>${TIERS[showConfirm].price}/month</strong>.
+                      {profile.subscriptionStatus === "trialing" && " Your 14-day free trial applies if still active. After your trial, your card will be charged."}
+                      {" "}No lock-in contracts. Cancel anytime.
+                    </div>
+                    <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+                      <button onClick={() => setShowConfirm(null)} style={{ background: "#fff", color: colours.text, border: `1px solid ${colours.border}`, borderRadius: 12, padding: "12px 24px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>Cancel</button>
+                      <button onClick={confirmUpgrade} style={{ background: colours.purple, color: "#fff", border: "none", borderRadius: 12, padding: "12px 24px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>Confirm upgrade</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Downgrade confirmation modal */}
+              {showDowngrade && (
+                <div style={{ position: "fixed", inset: 0, zIndex: 99998, background: "rgba(15,23,42,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+                  <div style={{ background: "#fff", borderRadius: 20, padding: 32, maxWidth: 480, width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+                    <div style={{ fontSize: 22, fontWeight: 900, color: "#EF4444", marginBottom: 12, textAlign: "center" }}>⚠️ Downgrade to {TIERS[showDowngrade].label}</div>
+                    <div style={{ fontSize: 14, color: colours.muted, lineHeight: 1.7, marginBottom: 16 }}>
+                      You will lose access to the following features at your next billing date:
+                    </div>
+                    <ul style={{ listStyle: "none", padding: 0, margin: "0 0 20px 0", display: "grid", gap: 6 }}>
+                      {(TIERS[showDowngrade].lockedFeatures || []).map((f) => (
+                        <li key={f} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#EF4444" }}>
+                          <span>✕</span> {f}
+                        </li>
+                      ))}
+                      {userTier === "premium" && showDowngrade === "starter" && (
+                        <>
+                          <li style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#EF4444" }}>
+                            <span>✕</span> Scheduling & calendar
+                          </li>
+                          <li style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#EF4444" }}>
+                            <span>✕</span> Properties & sub-locations
+                          </li>
+                          <li style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#EF4444" }}>
+                            <span>✕</span> Financial reports & BAS
+                          </li>
+                        </>
+                      )}
+                    </ul>
+                    <div style={{ fontSize: 14, color: colours.text, fontWeight: 700, marginBottom: 8 }}>
+                      Type CONFIRM to proceed:
+                    </div>
+                    <input
+                      value={downgradeConfirmText}
+                      onChange={(e) => setDowngradeConfirmText(e.target.value)}
+                      placeholder="Type CONFIRM"
+                      style={{ ...inputStyle, marginBottom: 16 }}
+                    />
+                    <div style={{ display: "flex", gap: 12, justifyContent: "flex-end" }}>
+                      <button onClick={() => { setShowDowngrade(null); setDowngradeConfirmText(""); }} style={{ background: "#fff", color: colours.text, border: `1px solid ${colours.border}`, borderRadius: 12, padding: "12px 24px", fontWeight: 700, cursor: "pointer", fontSize: 14 }}>Cancel</button>
+                      <button
+                        onClick={confirmDowngrade}
+                        disabled={downgradeConfirmText !== "CONFIRM"}
+                        style={{
+                          background: downgradeConfirmText === "CONFIRM" ? "#EF4444" : "#E2E8F0",
+                          color: downgradeConfirmText === "CONFIRM" ? "#fff" : "#9CA3AF",
+                          border: "none", borderRadius: 12, padding: "12px 24px", fontWeight: 700,
+                          cursor: downgradeConfirmText === "CONFIRM" ? "pointer" : "not-allowed", fontSize: 14,
+                        }}
+                      >
+                        Confirm downgrade
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })()}
+
         {activeSettingsTab === "Team" && (
           <div style={{ display: "grid", gap: 16 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 4 }}>Team Members</div>
