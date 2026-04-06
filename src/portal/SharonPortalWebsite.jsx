@@ -4228,7 +4228,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
           <div style={{ fontSize: 15, color: colours.muted, lineHeight: 1.7, marginBottom: 28 }}>
             Your account has been closed. Your data is safe and your account can be reactivated at any time.
           </div>
-          <a href="mailto:info@sharonogier.com" style={{ display: "inline-block", background: colours.purple, color: "#fff", borderRadius: 12, padding: "12px 28px", fontWeight: 700, textDecoration: "none", fontSize: 15, marginBottom: 16 }}>
+          <a href={`mailto:${profile?.email || ""}`} style={{ display: "inline-block", background: colours.purple, color: "#fff", borderRadius: 12, padding: "12px 28px", fontWeight: 700, textDecoration: "none", fontSize: 15, marginBottom: 16 }}>
             Contact us to reactivate
           </a>
           <div style={{ marginTop: 16 }}>
