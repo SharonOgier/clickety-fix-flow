@@ -395,8 +395,9 @@ export default function SetupWizardPage(props) {
 
   const canProceed = () => {
     if (step === 0) return canProceedFromType;
-    if (step === 1) return canProceedFromBusiness;
-    if (step === 2) return canProceedFromPersonal;
+    if (step === 1) return canProceedFromPlan;
+    if (step === 2) return canProceedFromBusiness;
+    if (step === 3) return canProceedFromPersonal;
     return true;
   };
 
