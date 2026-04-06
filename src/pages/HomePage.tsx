@@ -6,7 +6,6 @@ const pages = [
   { id: "services", label: "Services" },
   { id: "farm-equipment", label: "Farm Equipment" },
   { id: "about", label: "About" },
-  { id: "portal", label: "Portal" },
   { id: "mustered", label: "Mustered", badge: true },
   { id: "why", label: "Why Sharon" },
   { id: "contact", label: "Contact" },
