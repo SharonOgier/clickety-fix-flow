@@ -477,6 +477,15 @@ export default function SchedulingPage({
               </div>
             </>)}
 
+            {detailTab === "photos" && (
+              <JobPhotosPanel
+                job={detailJob}
+                onUpdate={async (updated) => { await saveJob(updated); setDetailJob(updated); }}
+                colours={colours} buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+                authUser={authUser}
+              />
+            )}
+
             {detailTab === "costs" && (
               <JobCostingPanel
                 job={detailJob}
