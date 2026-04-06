@@ -751,8 +751,46 @@ export default function SchedulingPage({
   const handleSave = async () => {
     if (!form.title.trim()) return;
     const payload = { ...form, id: editingJob?.id || Date.now() };
+    const wasCompleted = editingJob?.status === "Completed";
+    const isNowCompleted = payload.status === "Completed";
     await saveJob(payload);
+    // Auto-send review request when job first marked as Completed
+    if (isNowCompleted && !wasCompleted && !payload.reviewRequestSent && profile.autoSendReviewRequest !== false) {
+      sendReviewRequest(payload);
+    }
     closeForm();
+  };
+
+  const sendReviewRequest = async (job) => {
+    const client = clientMap[String(job.clientId)];
+    if (!client?.email) return; // silently skip if no email
+    setNotifSending("review-request");
+    try {
+      // Build portal URL if client has a portal token
+      const portalUrl = client.portalToken
+        ? `${window.location.origin}/client-portal?token=${encodeURIComponent(client.portalToken)}`
+        : "";
+      const { data, error } = await supabase.functions.invoke("send-job-notification", {
+        body: {
+          type: "review-request",
+          job,
+          profile,
+          client: { name: client.name, email: client.email },
+          googleReviewUrl: profile.googleReviewUrl || "",
+          portalUrl,
+        },
+      });
+      if (error) throw error;
+      if (data?.ok) {
+        const updated = { ...job, reviewRequestSent: new Date().toISOString() };
+        await saveJob(updated);
+        if (detailJob && String(detailJob.id) === String(job.id)) setDetailJob(updated);
+        alert(`⭐ Review request sent to ${client.email}`);
+      }
+    } catch (err) {
+      console.error("Review request error:", err);
+    }
+    setNotifSending(null);
   };
 
   const handleDelete = (job) => {
