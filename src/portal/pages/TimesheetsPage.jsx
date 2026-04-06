@@ -179,13 +179,22 @@ function LogTimeWizard({ jobs, clients, allStaff, colours, inputStyle, buttonPri
             </div>
           )}
 
-          {/* Step 1: Pick job */}
+          {/* Step 1: Pick job or admin category */}
           {step === 1 && (
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 12 }}>Which job?</div>
-              <div style={{ maxHeight: 300, overflowY: "auto" }}>
+              <div style={{ fontSize: 15, fontWeight: 700, color: colours.text, marginBottom: 12 }}>What was the time for?</div>
+              <div style={{ maxHeight: 340, overflowY: "auto" }}>
+                {/* Admin / overhead categories */}
+                <div style={{ fontSize: 11, fontWeight: 700, color: colours.muted, textTransform: "uppercase", marginBottom: 6, letterSpacing: 0.5 }}>Business Overheads</div>
+                {ADMIN_CATEGORIES.map(c => (
+                  <button key={c.id} style={optionBtn(selectedJobId === c.id)} onClick={() => setSelectedJobId(c.id)}>
+                    <span style={{ marginRight: 6 }}>🏢</span> {c.label}
+                  </button>
+                ))}
+
+                <div style={{ fontSize: 11, fontWeight: 700, color: colours.muted, textTransform: "uppercase", marginTop: 16, marginBottom: 6, letterSpacing: 0.5 }}>Jobs</div>
                 {jobs.length === 0 ? (
-                  <div style={{ textAlign: "center", padding: 30, color: colours.muted }}>No jobs found. Create a job first.</div>
+                  <div style={{ textAlign: "center", padding: 20, color: colours.muted, fontSize: 13 }}>No jobs found.</div>
                 ) : (
                   jobs.map(j => {
                     const client = clientMap[String(j.clientId)];
