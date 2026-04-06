@@ -913,8 +913,15 @@ export default function SchedulingPage({
               <div style={{ flex: 1, padding: "4px 8px", display: "flex", flexWrap: "wrap", gap: 4, alignItems: "flex-start" }}>
                 {slotJobs.map(j => (
                   <div key={j.id} onClick={() => setDetailJob(j)}
-                    style={{ background: j.colour || colours.purple, color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, fontWeight: 600, minWidth: 120 }}>
-                    <div>{j.title}</div>
+                    style={{ background: j.colour || colours.purple, color: "#fff", borderRadius: 8, padding: "6px 12px", cursor: "pointer", fontSize: 13, fontWeight: 600, minWidth: 120, position: "relative" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                      <div>{j.title}</div>
+                      {getJobAddress(j) && (
+                        <button onClick={(e) => { e.stopPropagation(); openNavigation(getJobAddress(j)); }}
+                          style={{ background: "rgba(255,255,255,0.25)", border: "none", borderRadius: 6, padding: "2px 6px", cursor: "pointer", color: "#fff", fontSize: 12, fontWeight: 700, marginLeft: 6, flexShrink: 0 }}
+                          title="Navigate to job site">📍</button>
+                      )}
+                    </div>
                     <div style={{ fontSize: 11, opacity: 0.85 }}>{fmtTime(j.startTime)} – {fmtTime(j.endTime)}</div>
                     {j.clientId && <div style={{ fontSize: 10, opacity: 0.7 }}>👤 {getClientName(j.clientId)}</div>}
                   </div>
