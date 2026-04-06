@@ -89,8 +89,8 @@ export default function LandingPage() {
           </Link>
         </div>
         <Link to="/auth?mode=signin" className="md:hidden text-sm font-bold text-primary bg-secondary border border-primary/20 rounded-md px-4 py-2.5">
-          Login
-        </Link>
+            Mustered Login
+          </Link>
       </nav>
 
       {/* HERO */}

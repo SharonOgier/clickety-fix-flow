@@ -76,7 +76,7 @@ export default function AuthPage(props) {
               boxShadow: "0 10px 24px rgba(106,27,154,0.18)",
             }}
           >
-            Login to Portal
+            Mustered Login
           </a>
         </div>
 
