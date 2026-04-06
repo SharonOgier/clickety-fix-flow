@@ -1019,11 +1019,11 @@ function JobNotesTasksPanel({ job, onUpdate, colours, buttonPrimary, buttonSecon
 
             {/* Tab bar */}
             <div style={{ display: "flex", gap: 2, background: "#F1F5F9", borderRadius: 10, padding: 3, marginBottom: 16, flexWrap: "wrap" }}>
-              {["info", "photos", "costs", "certificate"].map(t => (
+              {["info", "notes", "photos", "costs", "certificate"].map(t => (
                 <button key={t} onClick={() => setDetailTab(t)}
-                  style={{ padding: "6px 16px", borderRadius: 8, border: "none", fontWeight: 700, fontSize: 13, cursor: "pointer",
+                  style={{ padding: "6px 14px", borderRadius: 8, border: "none", fontWeight: 700, fontSize: 12, cursor: "pointer",
                     background: detailTab === t ? colours.purple : "transparent", color: detailTab === t ? "#fff" : colours.muted }}>
-                  {t === "info" ? "Details" : t === "photos" ? "📷 Photos" : t === "certificate" ? "📜 Certificate" : "Costs & Financials"}
+                  {t === "info" ? "Details" : t === "notes" ? "📋 Notes & Tasks" : t === "photos" ? "📷 Photos" : t === "certificate" ? "📜 Certificate" : "💰 Costs"}
                 </button>
               ))}
             </div>
