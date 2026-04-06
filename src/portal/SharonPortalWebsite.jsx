@@ -89,6 +89,7 @@ import ServicesPage         from "./pages/ServicesPage";
 import BillsPage            from "./pages/BillsPage";
 import ExpensesPage         from "./pages/ExpensesPage";
 import AssetsPage           from "./pages/AssetsPage";
+import PropertiesPage       from "./pages/PropertiesPage";
 import IncomeSourcesPage    from "./pages/IncomeSourcesPage";
 import DocumentsPage        from "./pages/DocumentsPage";
 import SetupWizardPage      from "./pages/SetupWizardPage";
