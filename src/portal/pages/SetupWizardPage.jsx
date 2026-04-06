@@ -76,7 +76,9 @@ export default function SetupWizardPage(props) {
 
   const selectedType = BUSINESS_TYPES.find((b) => b.key === wizardForm.businessType);
   const canProceedFromType = Boolean(wizardForm.businessType);
+  const canProceedFromPlan = Boolean(wizardForm.selectedTier);
   const canProceedFromBusiness = (wizardForm.businessName || "").trim().length > 0;
+  const canProceedFromPersonal = (wizardForm.firstName || "").trim().length > 0;
   const canProceedFromPersonal = (wizardForm.firstName || "").trim().length > 0;
 
   const purple = colours.purple || "#6A1B9A";
