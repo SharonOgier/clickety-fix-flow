@@ -2707,6 +2707,9 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       status: "Draft",
       paymentReference: makePaymentReference(invoiceNumber),
       stripeCheckoutUrl: "",
+      trackingId: crypto.randomUUID(),
+      jobId: invoiceForm.jobId || "",
+      viewStatus: "Draft",
     };
 
     setSavingInvoice(true);
