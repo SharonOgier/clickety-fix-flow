@@ -352,11 +352,11 @@ export default function ATOTaxFormPage({
             <div><label style={ss.lbl}>Date</label><input type="date" style={ss.inp} value={expF.date} onChange={e=>setExpF(p=>({...p,date:e.target.value}))} /></div>
             <div><label style={ss.lbl}>Type</label>
               <select style={ss.inp} value={expF.type} onChange={e=>setExpF(p=>({...p,type:e.target.value}))}>
-                {["Work-related","Capital item","Office supplies","Other"].map(o=><option key={o}>{o}</option>)}
+                {["Work-related","Car (cents/km)","Subcontractor","Capital item","Office supplies","Other"].map(o=><option key={o}>{o}</option>)}
               </select>
             </div>
             <div><label style={ss.lbl}>Supplier</label><input style={ss.inp} value={expF.supplier} onChange={e=>setExpF(p=>({...p,supplier:e.target.value}))} /></div>
-            <div><label style={ss.lbl}>Amount ($, incl GST)</label><input type="number" style={ss.inp} step="0.01" min="0" value={expF.amount} onChange={e=>setExpF(p=>({...p,amount:e.target.value}))} /></div>
+            <div><label style={ss.lbl}>Amount ($)</label><input type="number" style={ss.inp} step="0.01" min="0" value={expF.amount} onChange={e=>setExpF(p=>({...p,amount:e.target.value}))} /></div>
             <div><label style={ss.lbl}>GST included?</label>
               <select style={ss.inp} value={expF.gstIncl} onChange={e=>setExpF(p=>({...p,gstIncl:e.target.value}))}>
                 <option value="yes">Yes</option><option value="no">No</option>
