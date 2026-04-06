@@ -162,7 +162,7 @@ export default function HomePage() {
                       <div className="text-4xl mb-3">📊</div>
                       <p className="text-muted-foreground text-sm">Invoices, expenses, clients, documents and financial reports — all in one secure portal.</p>
                       <Link to="/landing" className="inline-flex mt-4 px-5 py-2 rounded-md font-bold bg-primary text-primary-foreground text-sm">
-                        Access Portal →
+                        Mustered →
                       </Link>
                     </div>
                   </div>
