@@ -208,7 +208,7 @@ function PropertyDetail({ property, clients, colours, cardStyle, buttonSecondary
 // ---------------------------------------------------------------------------
 // MAP VIEW (OpenStreetMap embeds for all properties with coords)
 // ---------------------------------------------------------------------------
-function MapView({ properties, colours, cardStyle, onSelect }) {
+function MapView({ properties, colours, cardStyle, onSelect, jobs = [] }) {
   const withCoords = properties.filter(p => p.gpsLat && p.gpsLng);
 
   if (withCoords.length === 0) {
