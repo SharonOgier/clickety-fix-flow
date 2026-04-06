@@ -57,7 +57,7 @@ export default function DocumentsPage(props) {
         <InsightChip label="File types" value={String(Object.keys(docTypes).length)} />
       </DashboardHero>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-        <MetricCard title="Total documents" value={String(documents.length)} subtitle="All files stored in the portal." accent={colours.purple} />
+        <MetricCard title="Total documents" value={String(safeDocuments.length)} subtitle="All files stored in the portal." accent={colours.purple} />
         <MetricCard title="Last uploaded" value={lastUploaded} subtitle="Most recently added document." accent={colours.teal} />
         <MetricCard title="File types" value={String(Object.keys(docTypes).length)} subtitle="Distinct file extensions stored." accent={colours.purple} />
         <div style={{ ...cardStyle, padding: 18 }}>
