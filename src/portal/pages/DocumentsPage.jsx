@@ -78,6 +78,11 @@ export default function DocumentsPage(props) {
           <DataTable
             columns={[
               { key: "name", label: "Document" },
+              { key: "jobId", label: "Linked Job", render: (v) => {
+                if (!v) return <span style={{ color: colours.muted }}>—</span>;
+                const job = jobs.find(j => String(j.id) === String(v));
+                return <EntityLink label={job ? job.title : `#${v}`} targetPage="scheduling" setActivePage={setActivePage} icon="📋" />;
+              }},
               { key: "uploadedAt", label: "Uploaded", render: (v) => formatDateAU(v) },
               { key: "actions", label: "", render: (_, row) => (
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
