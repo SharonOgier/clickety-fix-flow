@@ -261,6 +261,46 @@ export default function SchedulingPage({
   const openEdit = (job) => { setForm({ ...blankJob, ...job }); setEditingJob(job); setShowForm(true); setDetailJob(null); };
   const closeForm = () => { setShowForm(false); setEditingJob(null); setForm(blankJob); };
 
+  /* ── notification sending ────────────────────────────────── */
+  const [notifSending, setNotifSending] = useState(null); // "job-booked" | "job-completed" | null
+
+  const sendJobNotification = async (job, type, invoiceInfo = null) => {
+    const client = clientMap[String(job.clientId)];
+    if (!client?.email) {
+      alert("No email address on file for this contact. Please add one first.");
+      return;
+    }
+    const property = propertyMap[String(job.propertyId)];
+    setNotifSending(type);
+    try {
+      const { data, error } = await supabase.functions.invoke("send-job-notification", {
+        body: {
+          type,
+          job,
+          profile,
+          client: { name: client.name, email: client.email },
+          propertyAddress: property?.address || "",
+          invoiceInfo,
+        },
+      });
+      if (error) throw error;
+      if (data?.ok) {
+        alert(`✅ ${type === "job-booked" ? "Booking confirmation" : type === "day-before-reminder" ? "Reminder" : "Completion notification"} sent to ${client.email}`);
+        // Mark as sent on the job
+        const flag = type === "job-booked" ? "bookingConfirmationSent" : type === "job-completed" ? "completionNotificationSent" : "dayBeforeReminderSent";
+        const updated = { ...job, [flag]: new Date().toISOString() };
+        await saveJob(updated);
+        setDetailJob(updated);
+      } else {
+        alert("Failed to send notification. Please try again.");
+      }
+    } catch (err) {
+      console.error("Notification error:", err);
+      alert("Failed to send notification: " + (err.message || "Unknown error"));
+    }
+    setNotifSending(null);
+  };
+
   const handleSave = async () => {
     if (!form.title.trim()) return;
     const payload = { ...form, id: editingJob?.id || Date.now() };
