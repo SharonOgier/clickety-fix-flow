@@ -1146,9 +1146,14 @@ export default function SchedulingPage({
             </div>
 
             {detailTab === "info" && (<>
-              <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+              <div style={{ display: "flex", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
                 <StatusBadge status={detailJob.status} colours={colours} />
                 <PriorityBadge priority={detailJob.priority} />
+                {detailJob.recurs && detailJob.recurs !== "Never" && (
+                  <span style={{ padding: "2px 10px", borderRadius: 99, fontSize: 11, fontWeight: 700, background: colours.lightPurple || "#F3E5F5", color: colours.purple }}>
+                    🔄 {detailJob.recurs}
+                  </span>
+                )}
               </div>
 
               {/* Quick financial summary */}
