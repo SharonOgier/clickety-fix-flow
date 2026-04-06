@@ -4538,7 +4538,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               DashboardHero={DashboardHero} InsightChip={InsightChip} MetricCard={MetricCard}
               SectionCard={SectionCard} DataTable={DataTable} EmptyState={EmptyState}
               saveProperty={saveProperty} deleteProperty={deleteProperty} confirm={confirm}
-              setActivePage={setActivePage}
+               setActivePage={setActivePage} jobs={jobs}
             />}
             {activePage === "scheduling" && <SchedulingPage
               jobs={jobs} clients={clients} properties={properties}
