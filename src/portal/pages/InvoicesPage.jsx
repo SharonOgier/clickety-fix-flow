@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { exportToCSV } from "../PortalHelpers";
+import { computeJobFinancials } from "./JobCostingPanel";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell,
