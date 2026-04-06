@@ -907,6 +907,37 @@ export default function AccountingPortalPrototype() {
     }
   }, [authUser, profile?.setupComplete]);
 
+  // ── Recurring Jobs detection on login ──
+  useEffect(() => {
+    if (!hasLoadedUserProfile || recurringJobsShownRef.current || jobs.length === 0) return;
+    const todayStr = todayLocal();
+    const calcNextJobDate = (fromDate, freq) => {
+      const d = parseLocalDate(fromDate);
+      if (freq === "Weekly") d.setDate(d.getDate() + 7);
+      else if (freq === "Fortnightly") d.setDate(d.getDate() + 14);
+      else if (freq === "Monthly") d.setMonth(d.getMonth() + 1);
+      else return null;
+      return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+    };
+    const due = jobs
+      .filter(j => j.recurs && j.recurs !== "Never" && j.status === "Completed" && !j.nextRecurringCreated)
+      .filter(j => {
+        const next = calcNextJobDate(j.startDate, j.recurs);
+        return next && next <= todayStr;
+      })
+      .map(j => ({
+        ...j,
+        clientName: (clients.find(c => String(c.id) === String(j.clientId)) || {}).name || "—",
+        nextDate: calcNextJobDate(j.startDate, j.recurs),
+      }));
+    if (due.length > 0) {
+      setRecurringJobsDue(due);
+      setRecurringJobsSelected(due.map(j => j.id));
+      setShowRecurringJobsModal(true);
+      recurringJobsShownRef.current = true;
+    }
+  }, [hasLoadedUserProfile, jobs, clients]);
+
 
   const uploadReceiptToSupabase = async (file) => {
     if (!supabase) {
