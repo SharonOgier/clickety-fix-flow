@@ -93,7 +93,7 @@ export default function AssetsPage(props) {
   const typeCounts = assets.reduce((acc, a) => { const t = a.assetType || "Other"; acc[t] = (acc[t] || 0) + 1; return acc; }, {});
 
   const resetForm = () => {
-    setForm({ name: "", assetType: "Farm Equipment", purchaseDate: todayLocal(), purchasePrice: "", salvageValue: "0", effectiveLife: "", depreciationMethod: "prime_cost", status: "Active", notes: "", previousOwners: "", serialNumber: "", location: "" });
+    setForm({ name: "", assetType: "Farm Equipment", purchaseDate: todayLocal(), purchasePrice: "", salvageValue: "0", effectiveLife: "", depreciationMethod: "prime_cost", status: "Active", notes: "", previousOwners: "", serialNumber: "", location: "", linkedExpenseId: "" });
     setEditingId(null);
   };
 
