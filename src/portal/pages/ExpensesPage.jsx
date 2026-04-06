@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
+import EntityLink from "../EntityLink";
 import { exportToCSV } from "../PortalHelpers";
 import { supabase } from "@/integrations/supabase/client";
 import MileageSection from "./MileageSection";
@@ -347,7 +348,13 @@ export default function ExpensesPage(props) {
           columns={[
             { key: "date", label: "Date", render: (v) => formatDateAU(v) },
             { key: "dueDate", label: "Due Date", render: (v, row) => formatDateAU(v || row.date) },
-            { key: "supplier", label: "Supplier" },
+            { key: "supplier", label: "Supplier", render: (v, row) => {
+              if (row.contactId) {
+                const contact = clients.find(c => String(c.id) === String(row.contactId));
+                return <EntityLink label={contact?.name || v || "—"} targetPage="clients" setActivePage={setActivePage} />;
+              }
+              return v || <span style={{ color: colours.muted }}>—</span>;
+            }},
             { key: "category", label: "Category" },
             { key: "description", label: "Description" },
             { key: "amount", label: "Amount", render: (v) => currency(v) },
@@ -357,7 +364,7 @@ export default function ExpensesPage(props) {
             { key: "jobId", label: "Job", render: (v) => {
               if (!v) return <span style={{ color: colours.muted }}>—</span>;
               const job = jobs.find(j => String(j.id) === String(v));
-              return job ? job.title : `#${v}`;
+              return <EntityLink label={job ? job.title : `#${v}`} targetPage="scheduling" setActivePage={setActivePage} icon="📋" />;
             }},
             {
               key: "actions",

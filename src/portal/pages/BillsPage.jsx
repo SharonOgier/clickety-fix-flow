@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { exportToCSV } from "../PortalHelpers";
+import EntityLink from "../EntityLink";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -535,7 +536,13 @@ export default function BillsPage(props) {
           <DataTable
             emptyState={{ icon: "", title: "No bills yet", message: "Bills and payables you record will appear here. Use the form above to add your first bill." }}
             columns={[
-              { key: "supplier", label: "Supplier" },
+              { key: "supplier", label: "Supplier", render: (v, row) => {
+                if (row.contactId) {
+                  const contact = clients.find(c => String(c.id) === String(row.contactId));
+                  return <EntityLink label={contact?.name || v || "—"} targetPage="clients" setActivePage={setActivePage} />;
+                }
+                return v || <span style={{ color: colours.muted }}>—</span>;
+              }},
               { key: "category", label: "Category" },
               { key: "date", label: "Bill date", render: (value) => formatDateAU(value) },
               { key: "dueDate", label: "Due date", render: (value) => formatDateAU(value) },

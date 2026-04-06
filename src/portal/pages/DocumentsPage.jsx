@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import EntityLink from "../EntityLink";
 
 // -----------------------------------------------------------------------------
 // DocumentsPage
@@ -35,6 +36,9 @@ export default function DocumentsPage(props) {
     closeDocumentEditor,
     saveDocumentEdits,
     openDocumentFile = null,
+    jobs = [],
+    setActivePage = () => {},
+    getClientName = () => "Unknown",
   } = props;
 
     const recentDocs = [...documents].sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0)).slice(0, 1);
@@ -74,6 +78,11 @@ export default function DocumentsPage(props) {
           <DataTable
             columns={[
               { key: "name", label: "Document" },
+              { key: "jobId", label: "Linked Job", render: (v) => {
+                if (!v) return <span style={{ color: colours.muted }}>—</span>;
+                const job = jobs.find(j => String(j.id) === String(v));
+                return <EntityLink label={job ? job.title : `#${v}`} targetPage="scheduling" setActivePage={setActivePage} icon="📋" />;
+              }},
               { key: "uploadedAt", label: "Uploaded", render: (v) => formatDateAU(v) },
               { key: "actions", label: "", render: (_, row) => (
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -102,6 +111,13 @@ export default function DocumentsPage(props) {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
               <div><label style={labelStyle}>Document name</label><input style={inputStyle} value={documentEditorForm.name || ""} onChange={(e) => setDocumentEditorForm((prev) => ({ ...prev, name: e.target.value }))} /></div>
               <div><label style={labelStyle}>{documentEditorForm.filePath ? "Stored file path" : "URL"}</label><input style={inputStyle} value={documentEditorForm.filePath || documentEditorForm.url || ""} onChange={(e) => !documentEditorForm.filePath && setDocumentEditorForm((prev) => ({ ...prev, url: e.target.value }))} readOnly={Boolean(documentEditorForm.filePath)} /></div>
+              <div>
+                <label style={labelStyle}>Link to Job (optional)</label>
+                <select style={inputStyle} value={documentEditorForm.jobId || ""} onChange={(e) => setDocumentEditorForm((prev) => ({ ...prev, jobId: e.target.value }))}>
+                  <option value="">— none —</option>
+                  {jobs.map(j => <option key={j.id} value={j.id}>{j.title || `Job #${j.id}`}</option>)}
+                </select>
+              </div>
             </div>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 16 }}>
               <button style={buttonSecondary} onClick={closeDocumentEditor}>Cancel</button>

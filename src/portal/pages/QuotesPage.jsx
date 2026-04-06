@@ -1,4 +1,5 @@
 import React from "react";
+import EntityLink from "../EntityLink";
 import { exportToCSV } from "../PortalHelpers";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -575,7 +576,7 @@ function QuotesPageInner(props) {
             emptyState={{ icon: "", title: "No quotes yet", message: "Create your first quote using the form above. Quotes can be converted to invoices once accepted." }}
             columns={[
               { key: "quoteNumber", label: "Quote" },
-              { key: "clientId", label: "Client", render: (_, row) => getClientName(row.clientId) },
+              { key: "clientId", label: "Client", render: (_, row) => <EntityLink label={getClientName(row.clientId)} targetPage="clients" setActivePage={setActivePage} /> },
               { key: "quoteDate", label: "Date", render: (v) => formatDateAU(v) },
               { key: "expiryDate", label: "Expiry", render: (v) => formatDateAU(v) },
               { key: "total", label: "Total", render: (v, row) => formatCurrencyByCode(v, row.currencyCode || getClientCurrencyCode(getClientById(row.clientId))) },

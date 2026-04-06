@@ -4469,6 +4469,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               setClientEditorForm={setClientEditorForm} closeClientEditor={closeClientEditor}
               saveClientEdits={saveClientEdits} saveClient={saveClient} todayLocal={todayLocal}
                blankClient={blankClient} jobs={jobs}
+               quotes={quotes} expenses={expenses} formatDateAU={formatDateAU}
             />}
             {activePage === "services" && <ServicesPage
               services={services} serviceSearch={serviceSearch} setServiceSearch={setServiceSearch}
@@ -4627,6 +4628,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               uploadDocument={uploadDocument} deleteDocument={deleteDocument}
               openDocumentEditor={openDocumentEditor} closeDocumentEditor={closeDocumentEditor}
               saveDocumentEdits={saveDocumentEdits}
+              openDocumentFile={openDocumentFile}
+              jobs={jobs} setActivePage={setActivePage} getClientName={getClientName}
             />}
             {activePage === "bank reconciliation" && <BankReconciliationPage
               invoices={invoices} expenses={expenses} clients={clients}
