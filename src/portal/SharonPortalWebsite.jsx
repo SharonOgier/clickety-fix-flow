@@ -3743,7 +3743,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     const payInvoiceWithPayPal = (invoice) => {
       const amount = safeNumber(invoice?.total || 0).toFixed(2);
       const invoiceNumber = invoice?.invoiceNumber || "";
-      const paypalEmail = profile?.paypalEmail || "info@sharonogier.com";
+      const paypalEmail = profile?.paypalEmail || profile?.email || "";
       const url = `https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=${encodeURIComponent(paypalEmail)}&amount=${amount}&currency_code=AUD&item_name=${encodeURIComponent("Invoice " + invoiceNumber)}&invoice=${encodeURIComponent(invoiceNumber)}`;
       window.open(url, "_blank");
     };
