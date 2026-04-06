@@ -399,26 +399,29 @@ export default function TimesheetsPage({
   const timesheetData = useMemo(() => {
     const ownerName = profile.businessName || profile.name || "Owner";
     const data = [];
+    const ws = fmtDate(weekStart);
+    const we = fmtDate(weekEnd);
 
     const filteredJobs = selectedStaff === "all" ? weekJobs : weekJobs.filter(j => {
       const assigned = j.assignedTo || ownerName;
-      return assigned === selectedStaff;
+      const hasMatchingEntry = (j.timeEntries || []).some((t) => t.staff === selectedStaff);
+      return assigned === selectedStaff || hasMatchingEntry;
     });
 
     filteredJobs.forEach(j => {
-      const assigned = j.assignedTo || ownerName;
+      const assigned = selectedStaff !== "all"
+        ? selectedStaff
+        : ((j.timeEntries || []).find((t) => t.staff)?.staff || j.assignedTo || ownerName);
       const clientName = clientMap[String(j.clientId)]?.name || "—";
       const days = {};
       let totalHours = 0;
 
       weekDates.forEach(d => {
         const dateStr = fmtDate(d);
-        let hrs = 0;
+        const matchingEntries = (j.timeEntries || []).filter(t => t.date === dateStr && (selectedStaff === "all" || t.staff === selectedStaff));
+        let hrs = matchingEntries.reduce((sum, t) => sum + Number(t.hours || 0), 0);
 
-        const te = (j.timeEntries || []).find(t => t.date === dateStr && (!selectedStaff || selectedStaff === "all" || t.staff === selectedStaff));
-        if (te) {
-          hrs = Number(te.hours || 0);
-        } else if (j.startDate === dateStr || (j.startDate <= dateStr && (j.endDate || j.startDate) >= dateStr)) {
+        if (!hrs && (j.startDate === dateStr || (j.startDate <= dateStr && (j.endDate || j.startDate) >= dateStr))) {
           hrs = calcHours(j.startTime, j.endTime);
         }
 
@@ -431,8 +434,41 @@ export default function TimesheetsPage({
       }
     });
 
+    const filteredOverhead = overheadEntries.filter((entry) =>
+      entry?.date >= ws && entry?.date <= we && (selectedStaff === "all" || entry?.staff === selectedStaff)
+    );
+    const overheadMap = new Map();
+
+    filteredOverhead.forEach((entry) => {
+      const staff = entry?.staff || ownerName;
+      const category = entry?.category || "General / Admin";
+      const key = `${staff}__${category}`;
+      if (!overheadMap.has(key)) {
+        const days = {};
+        weekDates.forEach((d) => { days[fmtDate(d)] = 0; });
+        overheadMap.set(key, {
+          jobId: `overhead::${encodeURIComponent(staff)}::${encodeURIComponent(category)}`,
+          jobTitle: category,
+          clientName: "Non-billable",
+          assignedTo: staff,
+          days,
+          totalHours: 0,
+          hourlyRate: 0,
+        });
+      }
+      const row = overheadMap.get(key);
+      const dateStr = entry.date;
+      const hrs = Number(entry.hours || 0);
+      row.days[dateStr] = (row.days[dateStr] || 0) + hrs;
+      row.totalHours += hrs;
+    });
+
+    overheadMap.forEach((row) => {
+      if (row.totalHours > 0) data.push(row);
+    });
+
     return data;
-  }, [weekJobs, weekDates, selectedStaff, clientMap, profile]);
+  }, [weekJobs, weekDates, selectedStaff, clientMap, profile.businessName, profile.name, overheadEntries, weekStart, weekEnd]);
 
   const dayTotals = useMemo(() => {
     const totals = {};
