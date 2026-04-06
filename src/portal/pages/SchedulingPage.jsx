@@ -1,6 +1,6 @@
-import React, { useState, useMemo, useRef, useCallback } from "react";
+import React, { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import JobCostingPanel, { computeJobFinancials } from "./JobCostingPanel";
-import { writeJobSheetPreviewToWindow } from "../PortalDocumentBuilders";
+import { writeJobSheetPreviewToWindow, writeCertificatePreviewToWindow, buildCertificateHtml } from "../PortalDocumentBuilders";
 import { supabase } from "@/integrations/supabase/client";
 
 /* ─── helpers ──────────────────────────────────────────────────────────── */
@@ -179,7 +179,297 @@ function JobPhotosPanel({ job, onUpdate, colours, buttonPrimary, buttonSecondary
 }
 
 
-export default function SchedulingPage({
+/* ─── Signature Pad ────────────────────────────────────────────────────── */
+function SignaturePad({ onSave, existingSignature, colours, buttonPrimary, buttonSecondary }) {
+  const canvasRef = useRef(null);
+  const [drawing, setDrawing] = useState(false);
+  const [hasDrawn, setHasDrawn] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (existingSignature) {
+      const img = new Image();
+      img.onload = () => { ctx.drawImage(img, 0, 0, canvas.width, canvas.height); };
+      img.src = existingSignature;
+    }
+  }, [existingSignature]);
+
+  const getPos = (e) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if (e.touches) {
+      return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+    }
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+  };
+
+  const startDraw = (e) => {
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext("2d");
+    const pos = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#000";
+    setDrawing(true);
+    setHasDrawn(true);
+  };
+
+  const draw = (e) => {
+    if (!drawing) return;
+    e.preventDefault();
+    const ctx = canvasRef.current.getContext("2d");
+    const pos = getPos(e);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+  };
+
+  const endDraw = () => setDrawing(false);
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    setHasDrawn(false);
+  };
+
+  const saveSignature = () => {
+    if (!hasDrawn && !existingSignature) return;
+    const dataUrl = canvasRef.current.toDataURL("image/png");
+    onSave(dataUrl);
+  };
+
+  return (
+    <div>
+      <div style={{ border: `2px solid ${colours.border}`, borderRadius: 12, overflow: "hidden", background: "#fff", touchAction: "none" }}>
+        <canvas
+          ref={canvasRef}
+          width={500}
+          height={200}
+          style={{ width: "100%", height: 160, cursor: "crosshair", display: "block" }}
+          onMouseDown={startDraw}
+          onMouseMove={draw}
+          onMouseUp={endDraw}
+          onMouseLeave={endDraw}
+          onTouchStart={startDraw}
+          onTouchMove={draw}
+          onTouchEnd={endDraw}
+        />
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+        <button style={{ ...buttonSecondary, fontSize: 12, padding: "6px 14px" }} onClick={clearCanvas}>Clear</button>
+        <button style={{ ...buttonPrimary, fontSize: 12, padding: "6px 14px", opacity: (hasDrawn || existingSignature) ? 1 : 0.5 }}
+          onClick={saveSignature} disabled={!hasDrawn && !existingSignature}>
+          ✓ Save Signature
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Certificate of Completion Panel ──────────────────────────────────── */
+function CertificatePanel({ job, onUpdate, colours, buttonPrimary, buttonSecondary, inputStyle, labelStyle, profile, clients, properties, authUser }) {
+  const cert = job.certificate || {};
+  const [certNotes, setCertNotes] = useState(cert.notes || "");
+  const [signedByName, setSignedByName] = useState(cert.signedByName || "");
+  const [saving, setSaving] = useState(false);
+  const [generatingPdf, setGeneratingPdf] = useState(false);
+
+  const hasCert = !!cert.signatureDataUrl;
+  const certNumber = cert.certNumber || `COC-${String(job.id).slice(-6)}`;
+
+  const handleSignatureSave = async (dataUrl) => {
+    setSaving(true);
+    try {
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+      const updated = {
+        ...job,
+        certificate: {
+          ...cert,
+          signatureDataUrl: dataUrl,
+          signedByName: signedByName || cert.signedByName || "",
+          signedDate: dateStr,
+          completionDate: cert.completionDate || job.endDate || job.startDate || dateStr,
+          notes: certNotes,
+          certNumber,
+          generatedAt: now.toISOString(),
+        },
+      };
+      await onUpdate(updated);
+    } catch (err) {
+      console.error("Save signature error:", err);
+      alert("Failed to save signature. Please try again.");
+    }
+    setSaving(false);
+  };
+
+  const handleSaveNotes = async () => {
+    setSaving(true);
+    const updated = {
+      ...job,
+      certificate: {
+        ...cert,
+        notes: certNotes,
+        signedByName: signedByName || cert.signedByName || "",
+        certNumber,
+      },
+    };
+    await onUpdate(updated);
+    setSaving(false);
+  };
+
+  const handlePreview = () => {
+    const w = window.open("", "_blank");
+    if (w) writeCertificatePreviewToWindow(w, { ...job, certificate: { ...cert, notes: certNotes, signedByName: signedByName || cert.signedByName, certNumber } }, { profile, clients, properties });
+  };
+
+  const handleSavePdf = async () => {
+    setGeneratingPdf(true);
+    try {
+      const html = buildCertificateHtml(
+        { ...job, certificate: { ...cert, notes: certNotes, signedByName: signedByName || cert.signedByName, certNumber } },
+        { profile, clients, properties }
+      );
+      // Use html2pdf to generate
+      const { default: html2pdf } = await import("html2pdf.js");
+      const container = document.createElement("div");
+      container.innerHTML = html;
+      // Remove toolbar
+      const toolbar = container.querySelector(".print-toolbar");
+      if (toolbar) toolbar.remove();
+      document.body.appendChild(container);
+      const pdfBlob = await html2pdf()
+        .set({
+          margin: 0,
+          filename: `Certificate-${certNumber}.pdf`,
+          image: { type: "jpeg", quality: 0.95 },
+          html2canvas: { scale: 2, useCORS: true },
+          jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        })
+        .from(container.querySelector(".cert-border") || container)
+        .outputPdf("blob");
+      document.body.removeChild(container);
+
+      // Upload to storage
+      if (authUser?.id) {
+        const path = `${authUser.id}/${job.id}/certificate-${certNumber}.pdf`;
+        const { error: uploadError } = await supabase.storage.from("job-photos").upload(path, pdfBlob, { upsert: true, contentType: "application/pdf" });
+        if (uploadError) console.error("Upload error:", uploadError);
+        else {
+          const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+          const pdfUrl = `${SUPABASE_URL}/storage/v1/object/public/job-photos/${path}`;
+          const updated = {
+            ...job,
+            certificate: { ...job.certificate, pdfUrl, pdfPath: path, notes: certNotes, signedByName: signedByName || cert.signedByName, certNumber },
+          };
+          await onUpdate(updated);
+          alert("✅ Certificate PDF saved to job permanently!");
+        }
+      }
+
+      // Also trigger download
+      const url = URL.createObjectURL(pdfBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Certificate-${certNumber}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("PDF generation error:", err);
+      alert("Failed to generate PDF. Please try again.");
+    }
+    setGeneratingPdf(false);
+  };
+
+  return (
+    <div>
+      <p style={{ fontSize: 13, color: colours.muted, marginBottom: 16 }}>
+        Generate a Certificate of Completion for legal protection. Get the customer to sign on screen, then save as PDF to the job record.
+      </p>
+
+      {/* Status */}
+      {hasCert ? (
+        <div style={{ background: "#E8F5E9", border: "1px solid #A5D6A7", borderRadius: 12, padding: 14, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 20 }}>✅</span>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#2E7D32" }}>Certificate Signed</div>
+            <div style={{ fontSize: 12, color: "#388E3C" }}>
+              Signed by {cert.signedByName || "Customer"} on {cert.signedDate || "—"}
+              {cert.pdfUrl && <span> • <a href={cert.pdfUrl} target="_blank" rel="noreferrer" style={{ color: "#1565C0" }}>View PDF</a></span>}
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div style={{ background: "#FFF3E0", border: "1px solid #FFE0B2", borderRadius: 12, padding: 14, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+          <span style={{ fontSize: 20 }}>⚠️</span>
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#E65100" }}>Not Yet Signed</div>
+            <div style={{ fontSize: 12, color: "#EF6C00" }}>Get the customer to sign below to complete the certificate.</div>
+          </div>
+        </div>
+      )}
+
+      {/* Certificate number */}
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: colours.muted }}>Certificate No.</div>
+        <div style={{ fontSize: 15, fontWeight: 800, color: colours.purple }}>{certNumber}</div>
+      </div>
+
+      {/* Signed by name */}
+      <div style={{ marginBottom: 14 }}>
+        <label style={labelStyle}>Customer Name (Print)</label>
+        <input style={inputStyle} value={signedByName} onChange={e => setSignedByName(e.target.value)} placeholder="Customer's full name" />
+      </div>
+
+      {/* Notes */}
+      <div style={{ marginBottom: 14 }}>
+        <label style={labelStyle}>Completion Notes</label>
+        <textarea style={{ ...inputStyle, minHeight: 60 }} value={certNotes} onChange={e => setCertNotes(e.target.value)}
+          placeholder="e.g. All work completed as quoted. Minor touch-up scheduled for next week." />
+      </div>
+
+      <button style={{ ...buttonSecondary, fontSize: 12, padding: "6px 14px", marginBottom: 16 }}
+        onClick={handleSaveNotes} disabled={saving}>
+        {saving ? "Saving…" : "💾 Save Details"}
+      </button>
+
+      {/* Signature */}
+      <div style={{ marginBottom: 20 }}>
+        <label style={{ ...labelStyle, marginBottom: 8 }}>Customer Signature</label>
+        <SignaturePad
+          onSave={handleSignatureSave}
+          existingSignature={cert.signatureDataUrl}
+          colours={colours}
+          buttonPrimary={buttonPrimary}
+          buttonSecondary={buttonSecondary}
+        />
+        {saving && <div style={{ fontSize: 12, color: colours.muted, marginTop: 4 }}>Saving…</div>}
+      </div>
+
+      {/* Actions */}
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <button style={{ ...buttonSecondary, color: "#6A1B9A", borderColor: "#6A1B9A" }} onClick={handlePreview}>
+          👁️ Preview Certificate
+        </button>
+        <button style={{ ...buttonPrimary, opacity: generatingPdf ? 0.6 : 1 }} onClick={handleSavePdf} disabled={generatingPdf}>
+          {generatingPdf ? "Generating…" : "📄 Save PDF to Job"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+
   jobs = [], clients = [], properties = [], quotes = [], invoices = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
   inputStyle, labelStyle, DashboardHero, InsightChip, MetricCard, SectionCard, DataTable, EmptyState,
   saveJob, deleteJob, confirm, setActivePage, currency = (v) => `$${Number(v||0).toFixed(2)}`,
@@ -590,12 +880,12 @@ export default function SchedulingPage({
             </div>
 
             {/* Tab bar */}
-            <div style={{ display: "flex", gap: 2, background: "#F1F5F9", borderRadius: 10, padding: 3, marginBottom: 16 }}>
-              {["info", "photos", "costs"].map(t => (
+            <div style={{ display: "flex", gap: 2, background: "#F1F5F9", borderRadius: 10, padding: 3, marginBottom: 16, flexWrap: "wrap" }}>
+              {["info", "photos", "costs", "certificate"].map(t => (
                 <button key={t} onClick={() => setDetailTab(t)}
                   style={{ padding: "6px 16px", borderRadius: 8, border: "none", fontWeight: 700, fontSize: 13, cursor: "pointer",
                     background: detailTab === t ? colours.purple : "transparent", color: detailTab === t ? "#fff" : colours.muted }}>
-                  {t === "info" ? "Details" : t === "photos" ? "📷 Photos" : "Costs & Financials"}
+                  {t === "info" ? "Details" : t === "photos" ? "📷 Photos" : t === "certificate" ? "📜 Certificate" : "Costs & Financials"}
                 </button>
               ))}
             </div>
@@ -700,6 +990,17 @@ export default function SchedulingPage({
                 colours={colours} cardStyle={cardStyle} inputStyle={inputStyle} labelStyle={labelStyle}
                 buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
                 currency={currency} quotes={quotes} invoices={invoices}
+                authUser={authUser}
+              />
+            )}
+
+            {detailTab === "certificate" && (
+              <CertificatePanel
+                job={detailJob}
+                onUpdate={async (updated) => { await saveJob(updated); setDetailJob(updated); }}
+                colours={colours} buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+                inputStyle={inputStyle} labelStyle={labelStyle}
+                profile={profile} clients={clients} properties={properties}
                 authUser={authUser}
               />
             )}

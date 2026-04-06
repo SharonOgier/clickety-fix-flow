@@ -1328,3 +1328,195 @@ export function writeJobSheetPreviewToWindow(w, job, ctx = {}) {
   openBlobUrlInWindow(w, blob);
 }
 
+// ── Certificate of Completion Builder ─────────────────────────────────────
+export function buildCertificateHtml(job, ctx = {}) {
+  const { profile = {}, clients = [], properties = [] } = ctx;
+  const getClientById = (id) => clients.find((c) => String(c.id) === String(id) || c.id === safeNumber(id));
+  const getPropertyById = (id) => properties.find((p) => String(p.id) === String(id) || p.id === safeNumber(id));
+  const getDocumentBusinessName = () => profile.hideLegalNameOnDocs || !profile.legalBusinessName ? profile.businessName : profile.legalBusinessName;
+  const getDocumentAddress = () => profile.hideAddressOnDocs ? "" : profile.address || "";
+
+  const client = getClientById(job.clientId);
+  const property = getPropertyById(job.propertyId);
+  const subLocation = job.subLocationId && property?.subLocations
+    ? (property.subLocations || []).find((s) => String(s.id) === String(job.subLocationId))
+    : null;
+
+  const businessName = escapeHtml(getDocumentBusinessName() || "");
+  const businessAddress = escapeHtml(getDocumentAddress());
+  const businessEmail = escapeHtml(profile.email || "");
+  const businessPhone = escapeHtml(profile.phone || "");
+  const businessAbn = escapeHtml(profile.abn || "");
+  const logoSrc = safeLogoDataUrl(profile.logo || "");
+  const clientName = escapeHtml(client?.name || "");
+  const propertyName = escapeHtml(property?.name || "");
+  const propertyAddress = escapeHtml(property?.address || "");
+  const subLocName = escapeHtml(subLocation?.name || "");
+
+  const fmtDate = (iso) => { if (!iso) return "—"; const p = iso.split("-"); return `${p[2]}/${p[1]}/${p[0]}`; };
+
+  const completionDate = job.certificate?.completionDate || job.endDate || job.startDate || "";
+  const signatureDataUrl = job.certificate?.signatureDataUrl || "";
+  const signedByName = escapeHtml(job.certificate?.signedByName || clientName || "");
+  const signedDate = job.certificate?.signedDate || "";
+  const certNotes = escapeHtml(job.certificate?.notes || "");
+  const certNumber = escapeHtml(job.certificate?.certNumber || `COC-${String(job.id).slice(-6)}`);
+
+  // Photos
+  const photos = job.photos || { before: [], after: [] };
+  const hasBefore = (photos.before || []).length > 0;
+  const hasAfter = (photos.after || []).length > 0;
+
+  const photoGrid = (items) => items.slice(0, 4).map((p) => `
+    <div style="border-radius:8px; overflow:hidden; border:1px solid #E2E8F0;">
+      <img src="${escapeHtml(p.url || "")}" alt="Photo" style="width:100%; height:140px; object-fit:cover; display:block;" />
+    </div>
+  `).join("");
+
+  return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Certificate of Completion - ${escapeHtml(job.title || "")}</title>
+<style>
+  @page { margin: 20mm; }
+  body { font-family: Arial, Helvetica, sans-serif; padding: 40px; color: #14202B; max-width: 800px; margin: 0 auto; }
+  .cert-border { border: 3px solid #6A1B9A; border-radius: 16px; padding: 36px; position: relative; }
+  .cert-border::before { content: ""; position: absolute; inset: 6px; border: 1px solid #D1C4E9; border-radius: 12px; pointer-events: none; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+  .logo-area { max-width: 200px; }
+  .logo-area img { max-height: 80px; max-width: 200px; }
+  .cert-title { text-align: center; margin-bottom: 28px; }
+  .cert-title h1 { font-size: 26px; font-weight: 900; color: #6A1B9A; margin: 0 0 4px; letter-spacing: 1px; text-transform: uppercase; }
+  .cert-title .cert-num { font-size: 12px; color: #64748B; font-weight: 600; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .info-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px; }
+  .info-label { font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .info-value { font-size: 14px; font-weight: 600; color: #14202B; }
+  .section { margin-bottom: 20px; }
+  .section-title { font-size: 14px; font-weight: 800; color: #6A1B9A; margin-bottom: 10px; border-bottom: 2px solid #F3E5F5; padding-bottom: 4px; }
+  .work-desc { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 16px; font-size: 14px; line-height: 1.6; }
+  .declaration { background: #F3E5F5; border-radius: 10px; padding: 16px; margin: 24px 0; font-size: 13px; line-height: 1.6; color: #4A148C; }
+  .sig-section { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .sig-block { border-top: 2px solid #14202B; padding-top: 8px; }
+  .sig-block.customer { border-top-color: #6A1B9A; }
+  .sig-label { font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; margin-bottom: 2px; }
+  .sig-name { font-size: 14px; font-weight: 700; }
+  .sig-date { font-size: 12px; color: #64748B; margin-top: 2px; }
+  .sig-image { max-height: 60px; margin-bottom: 4px; }
+  .footer { text-align: center; font-size: 11px; color: #94A3B8; margin-top: 28px; padding-top: 12px; border-top: 1px solid #E2E8F0; }
+  .photos-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-top: 8px; }
+  .print-toolbar { margin-bottom: 24px; display: flex !important; gap: 10px; }
+  .print-button { background: #6A1B9A; color: #fff; border: none; border-radius: 10px; padding: 10px 16px; font-weight: 700; cursor: pointer; }
+  .download-button { background: #006D6D; color: #fff; border: none; border-radius: 10px; padding: 10px 16px; font-weight: 700; cursor: pointer; }
+  @media print { .print-toolbar { display: none !important; } body { padding: 0; } }
+</style>
+</head>
+<body>
+
+<div class="print-toolbar">
+  <button class="print-button" onclick="window.print()">🖨️ Print / Save as PDF</button>
+</div>
+
+<div class="cert-border">
+
+  <div class="header">
+    ${logoSrc ? `<div class="logo-area"><img src="${logoSrc}" alt="Logo" /></div>` : `<div class="logo-area"><div style="font-size:18px; font-weight:900; color:#6A1B9A;">${businessName}</div></div>`}
+    <div style="text-align:right; font-size:12px; color:#64748B;">
+      ${businessAddress ? `<div>${businessAddress}</div>` : ""}
+      ${businessPhone ? `<div>${businessPhone}</div>` : ""}
+      ${businessEmail ? `<div>${businessEmail}</div>` : ""}
+      ${businessAbn ? `<div>ABN: ${businessAbn}</div>` : ""}
+    </div>
+  </div>
+
+  <div class="cert-title">
+    <h1>Certificate of Completion</h1>
+    <div class="cert-num">Certificate No: ${certNumber}</div>
+  </div>
+
+  <div class="info-grid">
+    <div class="info-box">
+      <div class="info-label">Job Title</div>
+      <div class="info-value">${escapeHtml(job.title || "")}</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Date Completed</div>
+      <div class="info-value">${fmtDate(completionDate)}</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Customer</div>
+      <div class="info-value">${clientName || "—"}</div>
+    </div>
+    <div class="info-box">
+      <div class="info-label">Property / Location</div>
+      <div class="info-value">${propertyName || propertyAddress || "—"}${subLocName ? ` › ${subLocName}` : ""}</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Work Performed</div>
+    <div class="work-desc">${escapeHtml(job.description || job.title || "Work completed as per agreement.")}</div>
+  </div>
+
+  ${certNotes ? `
+  <div class="section">
+    <div class="section-title">Additional Notes</div>
+    <div class="work-desc">${certNotes}</div>
+  </div>
+  ` : ""}
+
+  ${(hasBefore || hasAfter) ? `
+  <div class="section">
+    <div class="section-title">Site Photos</div>
+    ${hasBefore ? `<div style="margin-bottom:12px;"><div style="font-size:12px; font-weight:700; color:#64748B; margin-bottom:4px;">Before</div><div class="photos-grid">${photoGrid(photos.before)}</div></div>` : ""}
+    ${hasAfter ? `<div><div style="font-size:12px; font-weight:700; color:#64748B; margin-bottom:4px;">After</div><div class="photos-grid">${photoGrid(photos.after)}</div></div>` : ""}
+  </div>
+  ` : ""}
+
+  <div class="declaration">
+    <strong>Declaration:</strong> I, the undersigned customer, hereby acknowledge and confirm that the work described above has been completed to my satisfaction. 
+    I accept the work as complete and release ${businessName || "the contractor"} from further obligations regarding this specific scope of work, 
+    subject to any applicable statutory warranties and guarantees under Australian Consumer Law.
+  </div>
+
+  <div class="sig-section">
+    <div>
+      <div class="sig-label">Contractor</div>
+      <div style="height:60px; display:flex; align-items:flex-end;">
+        <div class="sig-name">${businessName}</div>
+      </div>
+      <div class="sig-block">
+        <div class="sig-label">Authorised Representative</div>
+        <div class="sig-date">${fmtDate(completionDate)}</div>
+      </div>
+    </div>
+    <div>
+      <div class="sig-label">Customer</div>
+      <div style="height:60px; display:flex; align-items:flex-end;">
+        ${signatureDataUrl ? `<img class="sig-image" src="${signatureDataUrl}" alt="Customer Signature" />` : `<div style="color:#94A3B8; font-style:italic; font-size:13px;">Awaiting signature</div>`}
+      </div>
+      <div class="sig-block customer">
+        <div class="sig-name">${signedByName}</div>
+        <div class="sig-date">${signedDate ? fmtDate(signedDate) : "Not yet signed"}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    This certificate was generated by ${businessName} using Mustered. ${businessAbn ? `ABN: ${businessAbn}` : ""}
+    <br/>Certificate No: ${certNumber} | This document may be used as evidence of work completion.
+  </div>
+
+</div>
+
+</body>
+</html>`;
+}
+
+export function writeCertificatePreviewToWindow(w, job, ctx = {}) {
+  const html = buildCertificateHtml(job, ctx);
+  const blob = new Blob([html], { type: "text/html" });
+  openBlobUrlInWindow(w, blob);
+}
+
