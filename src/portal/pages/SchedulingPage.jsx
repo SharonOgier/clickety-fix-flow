@@ -608,11 +608,22 @@ function JobNotesTasksPanel({ job, onUpdate, colours, buttonPrimary, buttonSecon
 }
 
 
+const RECURRENCE_OPTIONS = ["Never", "Weekly", "Fortnightly", "Monthly"];
+
+const calcNextDate = (fromDate, freq) => {
+  const d = new Date(fromDate + "T00:00:00");
+  if (freq === "Weekly") d.setDate(d.getDate() + 7);
+  else if (freq === "Fortnightly") d.setDate(d.getDate() + 14);
+  else if (freq === "Monthly") d.setMonth(d.getMonth() + 1);
+  else return null;
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+};
+
 export default function SchedulingPage({
   jobs = [], clients = [], properties = [], quotes = [], invoices = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
   inputStyle, labelStyle, DashboardHero, InsightChip, MetricCard, SectionCard, DataTable, EmptyState,
   saveJob, deleteJob, confirm, setActivePage, currency = (v) => `$${Number(v||0).toFixed(2)}`,
-  authUser, profile = {},
+  authUser, profile = {}, createInvoiceFromJob,
 }) {
   const colours = c;
   const today = new Date();
@@ -629,6 +640,7 @@ export default function SchedulingPage({
     title: "", description: "", status: "Scheduled", priority: "Medium",
     startDate: fmtDate(today), startTime: "09:00", endDate: fmtDate(today), endTime: "17:00",
     clientId: "", propertyId: "", subLocationId: "", assignedTo: "", colour: "#6A1B9A", notes: "",
+    recurs: "Never",
   };
   const [form, setForm] = useState(blankJob);
 
