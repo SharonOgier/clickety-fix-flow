@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-// ─────────────────────────────────────────────────────────────────────────────
+import PlanSelectionCards from "../components/PlanSelectionCards";
+import { getUserTier, TIERS, TIER_ORDER } from "../tierConfig";
 // SettingsPage
 // All state and handlers come from SharonPortalWebsite via props.
 // ─────────────────────────────────────────────────────────────────────────────
