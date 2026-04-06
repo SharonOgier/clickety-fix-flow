@@ -4229,7 +4229,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
                     const iconMap = {
                       "dashboard": "⬡", "financial insights": "📊", "invoices": "📄", "quotes": "📋",
                       "clients": "👥", "services": "⚙", "expenses": "💳", "bills / payables": "🧾",
-                      "income sources": "💰", "documents": "📁", "properties": "🏠", "bank reconciliation": "🏦",
+                      "income sources": "💰", "documents": "📁", "properties": "🏠", "scheduling": "📅", "bank reconciliation": "🏦",
                       "bas report": "📑", "ato tax form": "🏛", "tax estimator": "🧮", "settings": "⚙",
                     };
                     return (
