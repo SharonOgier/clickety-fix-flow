@@ -26,8 +26,11 @@ export function computeJobFinancials(job) {
   return { labour, materials, subcontractor, misc, totalCost, quotedTotal, grossMargin, grossMarginPct, subUnpaid, subPaid };
 }
 
-export default function JobCostingPanel({ job, onUpdate, colours, cardStyle, inputStyle, labelStyle, buttonPrimary, buttonSecondary, currency, quotes = [], invoices = [] }) {
+export default function JobCostingPanel({ job, onUpdate, colours, cardStyle, inputStyle, labelStyle, buttonPrimary, buttonSecondary, currency, quotes = [], invoices = [], authUser }) {
   const [tab, setTab] = useState("Labour");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [inviteMsg, setInviteMsg] = useState("");
   const costs = job?.costs || { labour: [], materials: [], subcontractor: [], misc: [] };
 
   const updateCosts = (key, items) => {
