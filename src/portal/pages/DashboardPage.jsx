@@ -129,9 +129,41 @@ export default function DashboardPage(props) {
           </div>
         </div>
       )}
+
+      {/* ── Business-type adapted quick view ─────────────────── */}
+      {businessType === "tradie" && (
+        <SectionCard title="🪖 Today's Dispatch" right={<button style={{ fontSize: 12, color: colours.purple, fontWeight: 700, background: "none", border: "none", cursor: "pointer" }} onClick={() => setActivePage("scheduling")}>View {t("schedule")} →</button>}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+            <ActionHubCard icon="📅" title={`Today's ${t("jobs")}`} description={`${invoices.filter(i => i.invoiceDate === new Date().toISOString().slice(0, 10)).length} scheduled`} buttonLabel={`View ${t("schedule")}`} onClick={() => setActivePage("scheduling")} tone={colours.purple} />
+            <ActionHubCard icon="⚠️" title={`Unscheduled ${t("jobs")}`} description="Don't let anything slip" buttonLabel="Check now" onClick={() => setActivePage("scheduling")} tone="#EA580C" />
+            <ActionHubCard icon="👥" title="Who's where" description={`${clients.filter(c => (c.roles || []).includes("staff")).length} staff, ${clients.filter(c => (c.roles || []).includes("subcontractor")).length} ${t("subcontractors").toLowerCase()}`} buttonLabel="View contacts" onClick={() => setActivePage("clients")} tone={colours.teal} />
+          </div>
+        </SectionCard>
+      )}
+
+      {businessType === "farmer" && (
+        <SectionCard title="🚜 Property Overview" right={<button style={{ fontSize: 12, color: colours.purple, fontWeight: 700, background: "none", border: "none", cursor: "pointer" }} onClick={() => setActivePage("properties")}>View {t("properties")} →</button>}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+            <ActionHubCard icon="🏡" title={t("properties")} description={`${(props.properties || []).length || 0} registered`} buttonLabel={`View ${t("properties").toLowerCase()}`} onClick={() => setActivePage("properties")} tone={colours.teal} />
+            <ActionHubCard icon="📋" title={`Active ${t("jobs")}`} description="Seasonal tasks and ongoing work" buttonLabel={`View ${t("workPlanner")}`} onClick={() => setActivePage("scheduling")} tone={colours.purple} />
+            <ActionHubCard icon="🤝" title={t("subcontractors")} description={`${clients.filter(c => (c.roles || []).includes("subcontractor")).length} active`} buttonLabel={`View ${t("subcontractors").toLowerCase()}`} onClick={() => setActivePage("clients")} tone="#EA580C" />
+          </div>
+        </SectionCard>
+      )}
+
+      {businessType === "smallbusiness" && (
+        <SectionCard title="🏪 Today's Overview" right={<button style={{ fontSize: 12, color: colours.purple, fontWeight: 700, background: "none", border: "none", cursor: "pointer" }} onClick={() => setActivePage("scheduling")}>View {t("schedule")} →</button>}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14 }}>
+            <ActionHubCard icon="📅" title={`Today's ${t("bookings")}`} description="Check your schedule" buttonLabel={`View ${t("schedule").toLowerCase()}`} onClick={() => setActivePage("scheduling")} tone={colours.purple} />
+            <ActionHubCard icon="👥" title="Staff roster" description={`${clients.filter(c => (c.roles || []).includes("staff")).length} team members`} buttonLabel="View roster" onClick={() => setActivePage("clients")} tone={colours.teal} />
+            <ActionHubCard icon="💰" title="Outstanding invoices" description={`${invoices.filter(i => i.status !== "Paid").length} unpaid`} buttonLabel="View invoices" onClick={() => setActivePage("invoices")} tone="#EA580C" />
+          </div>
+        </SectionCard>
+      )}
+
       <DashboardHero
         title={profile.businessName || "My Portal"}
-        subtitle="Start with the actions you use most. This home view keeps invoices, quotes, expenses and financial performance in one place so you can move quickly without hunting through the portal."
+        subtitle="Your financial overview — invoices, quotes, expenses and performance in one place."
         highlight={currency(totals.safeToSpend)}
       >
         <InsightChip label="Collection rate" value={`${resolvedDashboardInsights.collectionRate.toFixed(1)}%`} />
