@@ -4332,7 +4332,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
               Log out
             </button>
             <div style={{ fontSize: 10, color: colours.muted, textAlign: "center", marginTop: 10, opacity: 0.6 }}>
-              Sharon's Accounting Service
+              Mustered
             </div>
           </div>
         </aside>
