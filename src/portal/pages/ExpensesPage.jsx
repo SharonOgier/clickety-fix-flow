@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from "react";
 import { exportToCSV } from "../PortalHelpers";
 import { supabase } from "@/integrations/supabase/client";
+import MileageSection from "./MileageSection";
 
 // -----------------------------------------------------------------------------
 // ExpensesPage
