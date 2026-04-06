@@ -287,8 +287,8 @@ export default function SetupWizardPage(props) {
           </div>
         );
 
-      /* ── Step 2: Personal Details ─────────────────────────────── */
-      case 2:
+      /* ── Step 3: Personal Details ─────────────────────────────── */
+      case 3:
         return (
           <div style={{ display: "grid", gap: 20 }}>
             <div>
