@@ -204,7 +204,12 @@ export default function ATOTaxFormPage({
   const totInc = sumKey(allInc,"gross");
   const totWH  = sumKey(allInc,"withheld");
   const totFC  = sumKey(allInc,"franking");
-  const deduct = allExp.filter(x=>(x.type||"").toLowerCase()!=="capital item").reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
+  const isCarExp = x => {const t=(x.type||"").toLowerCase(); return t.includes("car")||t.includes("mileage");};
+  const isSubExp = x => (x.type||"").toLowerCase().includes("subcontractor");
+  const deductCar = allExp.filter(isCarExp).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
+  const deductSub = allExp.filter(isSubExp).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0);
+  const deductWork = allExp.filter(x=>{const t=(x.type||"").toLowerCase();return t!=="capital item"&&!isCarExp(x)&&!isSubExp(x);}).reduce((s,x)=>s+netOfGST(x.amount,x.gstIncl),0) + totalDepreciation;
+  const deduct = deductWork + deductCar + deductSub;
   const taxableSum = Math.max(0,totInc-deduct);
   const capitalG10 = g10 + capitalPurchases; // Capital purchases including assets
 
