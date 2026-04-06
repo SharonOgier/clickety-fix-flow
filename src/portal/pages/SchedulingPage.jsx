@@ -469,6 +469,144 @@ function CertificatePanel({ job, onUpdate, colours, buttonPrimary, buttonSeconda
   );
 }
 
+/* ─── Job Notes & Tasks Panel ──────────────────────────────────────────── */
+function JobNotesTasksPanel({ job, onUpdate, colours, buttonPrimary, buttonSecondary, inputStyle, labelStyle }) {
+  const internalNotes = job.internalNotes || [];
+  const checklist = job.checklist || [];
+
+  const [newNote, setNewNote] = useState("");
+  const [newTask, setNewTask] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const save = async (updates) => {
+    setSaving(true);
+    await onUpdate({ ...job, ...updates });
+    setSaving(false);
+  };
+
+  const addNote = async () => {
+    if (!newNote.trim()) return;
+    const note = { id: Date.now(), text: newNote.trim(), createdAt: new Date().toISOString(), author: "Staff" };
+    await save({ internalNotes: [...internalNotes, note] });
+    setNewNote("");
+  };
+
+  const deleteNote = async (id) => {
+    await save({ internalNotes: internalNotes.filter(n => n.id !== id) });
+  };
+
+  const addTask = async () => {
+    if (!newTask.trim()) return;
+    const task = { id: Date.now(), text: newTask.trim(), done: false, createdAt: new Date().toISOString(), completedAt: null, completedBy: null };
+    await save({ checklist: [...checklist, task] });
+    setNewTask("");
+  };
+
+  const toggleTask = async (id) => {
+    const updated = checklist.map(t =>
+      t.id === id ? { ...t, done: !t.done, completedAt: !t.done ? new Date().toISOString() : null, completedBy: !t.done ? "Staff" : null } : t
+    );
+    await save({ checklist: updated });
+  };
+
+  const deleteTask = async (id) => {
+    await save({ checklist: checklist.filter(t => t.id !== id) });
+  };
+
+  const completedCount = checklist.filter(t => t.done).length;
+  const totalTasks = checklist.length;
+  const progressPct = totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
+
+  const fmtTs = (iso) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,"0")}`;
+  };
+
+  return (
+    <div>
+      {/* ── Task Checklist ── */}
+      <div style={{ marginBottom: 28 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+          <h3 style={{ fontSize: 15, fontWeight: 800, color: colours.text, margin: 0 }}>✅ Job Tasks</h3>
+          {totalTasks > 0 && (
+            <span style={{ fontSize: 12, fontWeight: 700, color: progressPct === 100 ? "#2E7D32" : colours.purple }}>
+              {completedCount}/{totalTasks} ({progressPct}%)
+            </span>
+          )}
+        </div>
+
+        {totalTasks > 0 && (
+          <div style={{ height: 6, background: "#F1F5F9", borderRadius: 99, marginBottom: 12, overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${progressPct}%`, background: progressPct === 100 ? "#2E7D32" : colours.purple, borderRadius: 99, transition: "width 0.3s ease" }} />
+          </div>
+        )}
+
+        <div style={{ display: "grid", gap: 4 }}>
+          {checklist.map(task => (
+            <div key={task.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, padding: "10px 12px", background: task.done ? "#F0FDF4" : "#fff", border: `1px solid ${task.done ? "#BBF7D0" : colours.border}`, borderRadius: 10, transition: "all 0.2s" }}>
+              <div onClick={() => toggleTask(task.id)}
+                style={{ width: 22, height: 22, borderRadius: 6, border: `2px solid ${task.done ? "#2E7D32" : colours.border}`, background: task.done ? "#2E7D32" : "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 1, transition: "all 0.15s" }}>
+                {task.done && <span style={{ color: "#fff", fontSize: 13, fontWeight: 900 }}>✓</span>}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, color: task.done ? "#64748B" : colours.text, textDecoration: task.done ? "line-through" : "none" }}>{task.text}</div>
+                {task.done && task.completedAt && (
+                  <div style={{ fontSize: 11, color: "#2E7D32", marginTop: 2 }}>✓ Completed {fmtTs(task.completedAt)}{task.completedBy ? ` by ${task.completedBy}` : ""}</div>
+                )}
+              </div>
+              <button onClick={() => deleteTask(task.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#CBD5E1", fontSize: 16, padding: "0 4px", flexShrink: 0 }} title="Delete task">✕</button>
+            </div>
+          ))}
+        </div>
+
+        {checklist.length === 0 && (
+          <div style={{ background: "#F8FAFC", border: "2px dashed #E2E8F0", borderRadius: 12, padding: 20, textAlign: "center", color: colours.muted, fontSize: 13 }}>
+            No tasks yet. Add tasks below for staff to tick off as they work.
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+          <input style={{ ...inputStyle, flex: 1 }} value={newTask} onChange={e => setNewTask(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") addTask(); }} placeholder="Add a task… e.g. Install new gate hinges" />
+          <button style={{ ...buttonPrimary, whiteSpace: "nowrap" }} onClick={addTask} disabled={saving || !newTask.trim()}>+ Add</button>
+        </div>
+      </div>
+
+      {/* ── Internal Notes ── */}
+      <div>
+        <h3 style={{ fontSize: 15, fontWeight: 800, color: colours.text, margin: "0 0 12px" }}>🔒 Internal Notes</h3>
+        <p style={{ fontSize: 12, color: colours.muted, marginBottom: 12, marginTop: 0 }}>Private notes only visible to staff — never shown to customers.</p>
+
+        <div style={{ display: "grid", gap: 6, marginBottom: 12 }}>
+          {internalNotes.map(note => (
+            <div key={note.id} style={{ background: "#FFFBEB", border: "1px solid #FDE68A", borderRadius: 10, padding: "10px 14px", position: "relative" }}>
+              <div style={{ fontSize: 14, color: colours.text, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{note.text}</div>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 6 }}>
+                <div style={{ fontSize: 11, color: "#92400E" }}>
+                  {note.author && <span style={{ fontWeight: 600 }}>{note.author} • </span>}{fmtTs(note.createdAt)}
+                </div>
+                <button onClick={() => deleteNote(note.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "#D97706", fontSize: 13, padding: "0 4px" }} title="Delete note">✕</button>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {internalNotes.length === 0 && (
+          <div style={{ background: "#F8FAFC", border: "2px dashed #E2E8F0", borderRadius: 12, padding: 20, textAlign: "center", color: colours.muted, fontSize: 13, marginBottom: 12 }}>
+            No internal notes yet.
+          </div>
+        )}
+
+        <div style={{ display: "flex", gap: 8 }}>
+          <textarea style={{ ...inputStyle, flex: 1, minHeight: 50 }} value={newNote} onChange={e => setNewNote(e.target.value)} placeholder="Add a private note…" />
+          <button style={{ ...buttonPrimary, alignSelf: "flex-end", whiteSpace: "nowrap" }} onClick={addNote} disabled={saving || !newNote.trim()}>+ Add</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 
   jobs = [], clients = [], properties = [], quotes = [], invoices = [], colours: c, cardStyle, buttonPrimary, buttonSecondary,
   inputStyle, labelStyle, DashboardHero, InsightChip, MetricCard, SectionCard, DataTable, EmptyState,
@@ -881,11 +1019,11 @@ function CertificatePanel({ job, onUpdate, colours, buttonPrimary, buttonSeconda
 
             {/* Tab bar */}
             <div style={{ display: "flex", gap: 2, background: "#F1F5F9", borderRadius: 10, padding: 3, marginBottom: 16, flexWrap: "wrap" }}>
-              {["info", "photos", "costs", "certificate"].map(t => (
+              {["info", "notes", "photos", "costs", "certificate"].map(t => (
                 <button key={t} onClick={() => setDetailTab(t)}
-                  style={{ padding: "6px 16px", borderRadius: 8, border: "none", fontWeight: 700, fontSize: 13, cursor: "pointer",
+                  style={{ padding: "6px 14px", borderRadius: 8, border: "none", fontWeight: 700, fontSize: 12, cursor: "pointer",
                     background: detailTab === t ? colours.purple : "transparent", color: detailTab === t ? "#fff" : colours.muted }}>
-                  {t === "info" ? "Details" : t === "photos" ? "📷 Photos" : t === "certificate" ? "📜 Certificate" : "Costs & Financials"}
+                  {t === "info" ? "Details" : t === "notes" ? "📋 Notes & Tasks" : t === "photos" ? "📷 Photos" : t === "certificate" ? "📜 Certificate" : "💰 Costs"}
                 </button>
               ))}
             </div>
@@ -916,6 +1054,20 @@ function CertificatePanel({ job, onUpdate, colours, buttonPrimary, buttonSeconda
                 {detailJob.assignedTo && <div><span style={{ color: colours.muted, fontWeight: 600 }}>👷 Assigned to</span><br/>{detailJob.assignedTo}</div>}
                 {detailJob.description && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📝 Description</span><br/>{detailJob.description}</div>}
                 {detailJob.notes && <div><span style={{ color: colours.muted, fontWeight: 600 }}>📌 Notes</span><br/>{detailJob.notes}</div>}
+                {/* Task progress summary */}
+                {(detailJob.checklist || []).length > 0 && (() => {
+                  const tasks = detailJob.checklist || [];
+                  const done = tasks.filter(t => t.done).length;
+                  return (
+                    <div onClick={() => setDetailTab("notes")} style={{ cursor: "pointer" }}>
+                      <span style={{ color: colours.muted, fontWeight: 600 }}>✅ Tasks</span><br/>
+                      <span style={{ fontWeight: 700, color: done === tasks.length ? "#2E7D32" : colours.text }}>{done}/{tasks.length} completed</span>
+                      <div style={{ height: 4, background: "#F1F5F9", borderRadius: 99, marginTop: 4, width: 120 }}>
+                        <div style={{ height: "100%", width: `${Math.round((done/tasks.length)*100)}%`, background: done === tasks.length ? "#2E7D32" : colours.purple, borderRadius: 99 }} />
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               <div style={{ display: "flex", gap: 10, marginTop: 28, flexWrap: "wrap" }}>
@@ -973,6 +1125,15 @@ function CertificatePanel({ job, onUpdate, colours, buttonPrimary, buttonSeconda
                 </div>
               )}
             </>)}
+
+            {detailTab === "notes" && (
+              <JobNotesTasksPanel
+                job={detailJob}
+                onUpdate={async (updated) => { await saveJob(updated); setDetailJob(updated); }}
+                colours={colours} buttonPrimary={buttonPrimary} buttonSecondary={buttonSecondary}
+                inputStyle={inputStyle} labelStyle={labelStyle}
+              />
+            )}
 
             {detailTab === "photos" && (
               <JobPhotosPanel
