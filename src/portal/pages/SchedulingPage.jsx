@@ -67,6 +67,7 @@ export default function SchedulingPage({
   const [showForm, setShowForm] = useState(false);
   const [editingJob, setEditingJob] = useState(null);
   const [detailJob, setDetailJob] = useState(null);
+  const [detailTab, setDetailTab] = useState("info");
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
