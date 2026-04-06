@@ -59,6 +59,7 @@ export const navLabels = {
   assets: "Assets & Depreciation",
   properties: "Properties",
   scheduling: "Scheduling",
+  timesheets: "Timesheets",
   "bank reconciliation": "Bank Reconciliation",
   "jobs report": "Jobs Report",
   "bas report": "BAS Report",
