@@ -693,6 +693,7 @@ export default function TimesheetsPage({
                         >🗑️</button>
                       )}
                     </td>
+                  </tr>
                 ))}
                 {/* Totals row */}
                 <tr style={{ borderTop: `3px solid ${colours.purple || "#6A1B9A"}` }}>
