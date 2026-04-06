@@ -36,6 +36,9 @@ export default function DocumentsPage(props) {
     closeDocumentEditor,
     saveDocumentEdits,
     openDocumentFile = null,
+    jobs = [],
+    setActivePage = () => {},
+    getClientName = () => "Unknown",
   } = props;
 
     const recentDocs = [...documents].sort((a, b) => new Date(b.uploadedAt || 0) - new Date(a.uploadedAt || 0)).slice(0, 1);
