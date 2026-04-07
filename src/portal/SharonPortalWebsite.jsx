@@ -259,6 +259,10 @@ export default function AccountingPortalPrototype() {
   const [supabaseSyncStatus, setSupabaseSyncStatus] = useState(
     supabase ? "Ready to sync to database" : "Supabase not connected"
   );
+  const [isOffline, setIsOffline] = useState(() => typeof navigator !== "undefined" ? !navigator.onLine : false);
+  const [showBackOnline, setShowBackOnline] = useState(false);
+  const [realtimePulse, setRealtimePulse] = useState(null); // table name that just updated
+  const realtimeChannelRef = useRef(null);
   const [profile, setProfile] = useState(initialProfile);
   const [clients, setClients] = useState(initialClients);
   const [invoices, setInvoices] = useState(initialInvoices);
@@ -1959,6 +1963,132 @@ export default function AccountingPortalPrototype() {
       setIsSupabaseRestoring(false);
     }
   };
+
+  // ─── Offline / Online detection ─────────────────────────────────────
+  useEffect(() => {
+    const goOffline = () => { setIsOffline(true); setShowBackOnline(false); };
+    const goOnline = () => {
+      setIsOffline(false);
+      setShowBackOnline(true);
+      // Auto-resync data when coming back online
+      if (authUser && hasHydratedSupabaseState.current) {
+        restorePortalStateFromSupabase();
+      }
+      setTimeout(() => setShowBackOnline(false), 4000);
+    };
+    window.addEventListener("offline", goOffline);
+    window.addEventListener("online", goOnline);
+    return () => { window.removeEventListener("offline", goOffline); window.removeEventListener("online", goOnline); };
+  }, [authUser]);
+
+  // ─── Supabase Realtime subscriptions ────────────────────────────────
+  useEffect(() => {
+    if (!supabase || !authUser?.id || !hasHydratedSupabaseState.current) return;
+    const uid = viewingAsUserId || authUser.id;
+
+    // Cleanup previous channel
+    if (realtimeChannelRef.current) {
+      supabase.removeChannel(realtimeChannelRef.current);
+      realtimeChannelRef.current = null;
+    }
+
+    const TABLE_SETTER_MAP = {
+      sas_jobs:            { setter: setJobs,           key: "jobs" },
+      sas_clients:         { setter: setClients,        key: "clients" },
+      sas_invoices:        { setter: setInvoices,       key: "invoices" },
+      sas_quotes:          { setter: setQuotes,         key: "quotes" },
+      sas_expenses:        { setter: setExpenses,       key: "expenses" },
+      sas_income_sources:  { setter: setIncomeSources,  key: "incomeSources" },
+      sas_services:        { setter: setServices,       key: "services" },
+      sas_documents:       { setter: setDocuments,      key: "documents" },
+      sas_suppliers:       { setter: setSuppliers,      key: "suppliers" },
+      sas_assets:          { setter: setAssets,          key: "assets" },
+      sas_properties:      { setter: setProperties,     key: "properties" },
+      sas_profile:         { setter: null,               key: "profile" },
+    };
+
+    const parseRow = (row) => {
+      const d = row.data && typeof row.data === "object" && !Array.isArray(row.data) ? row.data : {};
+      return { ...d, id: row.id, user_id: row.user_id, updated_at: row.updated_at };
+    };
+
+    const handleChange = (payload) => {
+      const table = payload.table;
+      const entry = TABLE_SETTER_MAP[table];
+      if (!entry) return;
+
+      // Only process rows belonging to this user session
+      const row = payload.new || payload.old;
+      if (!row || row.user_id !== uid) return;
+
+      // Show subtle pulse on the section
+      setRealtimePulse(entry.key);
+      setTimeout(() => setRealtimePulse(null), 1200);
+
+      if (table === "sas_profile") {
+        // Profile is special — single record
+        if (payload.eventType === "UPDATE" || payload.eventType === "INSERT") {
+          const parsed = parseRow(payload.new);
+          setProfile(prev => {
+            // Don't overwrite if we just saved (avoid echo)
+            const prevStr = lastSavedProfileRef.current;
+            const newStr = JSON.stringify({ ...initialProfile, ...parsed, id: parsed.id });
+            if (prevStr === newStr) return prev;
+            return { ...initialProfile, ...parsed, id: parsed.id };
+          });
+        }
+        return;
+      }
+
+      const { setter } = entry;
+      if (!setter) return;
+
+      if (payload.eventType === "INSERT") {
+        const parsed = parseRow(payload.new);
+        setter(prev => {
+          if (prev.some(r => r.id === parsed.id)) return prev; // dedupe
+          return [...prev, parsed];
+        });
+      } else if (payload.eventType === "UPDATE") {
+        const parsed = parseRow(payload.new);
+        setter(prev => prev.map(r => r.id === parsed.id ? parsed : r));
+      } else if (payload.eventType === "DELETE") {
+        const oldId = payload.old?.id;
+        if (oldId) setter(prev => prev.filter(r => r.id !== oldId));
+      }
+    };
+
+    const channel = supabase
+      .channel(`portal-realtime-${uid}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_jobs",           filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_clients",        filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_invoices",       filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_quotes",         filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_expenses",       filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_income_sources", filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_services",       filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_documents",      filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_suppliers",      filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_assets",         filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_properties",     filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_profile",        filter: `user_id=eq.${uid}` }, handleChange)
+      .subscribe();
+
+    realtimeChannelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+      realtimeChannelRef.current = null;
+    };
+  }, [authUser?.id, viewingAsUserId, hasHydratedSupabaseState.current]);
+
+  // Clean up realtime on sign-out
+  useEffect(() => {
+    if (!authUser && realtimeChannelRef.current) {
+      supabase.removeChannel(realtimeChannelRef.current);
+      realtimeChannelRef.current = null;
+    }
+  }, [authUser]);
 
   const uploadDocument = async () => {
     try {
@@ -4324,6 +4454,12 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         }
         .sas-section-card { overflow: hidden; }
         .sas-summary-box { min-height: 124px; }
+        @keyframes sas-realtime-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(106,27,154,0.3); }
+          70% { box-shadow: 0 0 0 8px rgba(106,27,154,0); }
+          100% { box-shadow: 0 0 0 0 rgba(106,27,154,0); }
+        }
+        .sas-realtime-pulse { animation: sas-realtime-pulse 1s ease-out; }
         .sas-dashboard-hero .sas-hero-title { word-break: break-word; overflow-wrap: anywhere; font-family: "Playfair Display", serif; }
         .sas-dashboard-hero .sas-hero-subtitle { word-break: break-word; font-family: "DM Sans", sans-serif; }
         .sas-dashboard-hero .sas-insight-chip { backdrop-filter: blur(6px); }
@@ -4472,7 +4608,19 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
 
       {sidebarOpen && <div className="sas-overlay" onClick={() => setSidebarOpen(false)} />}
 
-      <div className="sas-layout">
+      {/* Offline / Online banner */}
+      {isOffline && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999, background: "#991B1B", color: "#fff", padding: "10px 20px", textAlign: "center", fontSize: 14, fontWeight: 700, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
+          ⚠️ You are offline. Some features may be unavailable.
+        </div>
+      )}
+      {showBackOnline && !isOffline && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999, background: "#065F46", color: "#fff", padding: "10px 20px", textAlign: "center", fontSize: 14, fontWeight: 700, boxShadow: "0 2px 8px rgba(0,0,0,0.1)", transition: "opacity 0.5s ease" }}>
+          ✅ Back online — data synced
+        </div>
+      )}
+
+      <div className="sas-layout" style={{ marginTop: isOffline || showBackOnline ? 40 : 0, transition: "margin-top 0.3s ease" }}>
         <aside className={`sas-sidebar${sidebarOpen ? " open" : ""}`}>
           <div style={{ fontSize: 20, fontWeight: 800, color: colours.purple, marginBottom: 6, fontFamily: '"Playfair Display", serif' }}>
             {profile.businessName || "My Portal"}
