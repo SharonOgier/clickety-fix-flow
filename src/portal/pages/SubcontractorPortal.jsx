@@ -243,7 +243,7 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
             </div>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: selectedJob ? "300px 1fr" : "1fr", gap: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: selectedJob ? "300px 1fr" : "1fr", gap: 20 }} className="subcon-grid">
             {/* Jobs List */}
             <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: colours.text, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>
