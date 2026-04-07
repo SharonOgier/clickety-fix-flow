@@ -262,6 +262,7 @@ export default function AccountingPortalPrototype() {
   const [isOffline, setIsOffline] = useState(() => typeof navigator !== "undefined" ? !navigator.onLine : false);
   const [showBackOnline, setShowBackOnline] = useState(false);
   const [realtimePulse, setRealtimePulse] = useState(null); // table name that just updated
+  const [realtimeStatusByKey, setRealtimeStatusByKey] = useState({});
   const realtimeChannelRef = useRef(null);
   const [profile, setProfile] = useState(initialProfile);
   const [clients, setClients] = useState(initialClients);
@@ -354,6 +355,8 @@ export default function AccountingPortalPrototype() {
       status: invoice?.status || "Draft",
       paymentReference: invoice?.paymentReference || makePaymentReference(invoice?.invoiceNumber || ""),
       stripeCheckoutUrl: invoice?.stripeCheckoutUrl || "",
+      jobId: invoice?.jobId || "",
+      jobSearch: "",
     };
   };
 
@@ -406,6 +409,21 @@ export default function AccountingPortalPrototype() {
 
   const [quoteEditorOpen, setQuoteEditorOpen] = useState(false);
   const [quoteEditorForm, setQuoteEditorForm] = useState(null);
+
+  const syncSingleLineEditorToLineItems = (form) => {
+    const baseLines = Array.isArray(form?.lineItems) && form.lineItems.length > 0
+      ? [...form.lineItems]
+      : [{ id: Date.now(), description: "", quantity: 1, unitPrice: "", gstType: form?.gstType || "GST on Income (10%)" }];
+    const firstLine = baseLines[0] || {};
+    baseLines[0] = {
+      ...firstLine,
+      description: form?.description || firstLine.description || "",
+      quantity: form?.quantity || firstLine.quantity || 1,
+      unitPrice: form?.subtotal || firstLine.unitPrice || "",
+      gstType: clientIsGstExempt(form?.clientId) ? "GST Free" : (form?.gstType || firstLine.gstType || "GST on Income (10%)"),
+    };
+    return baseLines;
+  };
 
   const [clientEditorOpen, setClientEditorOpen] = useState(false);
   const [clientEditorForm, setClientEditorForm] = useState(null);
@@ -791,12 +809,25 @@ export default function AccountingPortalPrototype() {
           })));
         }
         // Load team members and invitations
-        const { data: members } = await supabase.from("sas_team_members").select("*").eq("owner_user_id", authUser.id);
+        const { data: members, error: membersError } = await supabase
+          .from("sas_team_members")
+          .select("*")
+          .eq("owner_user_id", authUser.id);
+        if (membersError && membersError.code !== "42501") throw membersError;
         setTeamMembers(members || []);
-        const { data: invites } = await supabase.from("sas_team_invitations").select("*").eq("inviter_user_id", authUser.id);
+        const { data: invites, error: invitesError } = await supabase
+          .from("sas_team_invitations")
+          .select("*")
+          .eq("inviter_user_id", authUser.id);
+        if (invitesError && invitesError.code !== "42501") throw invitesError;
         setTeamInvitations(invites || []);
         // Check for pending invitations for this user and auto-accept
-        const { data: pendingInvites } = await supabase.from("sas_team_invitations").select("*").eq("email", authUser.email).eq("status", "pending");
+        const { data: pendingInvites, error: pendingInvitesError } = await supabase
+          .from("sas_team_invitations")
+          .select("*")
+          .eq("email", authUser.email)
+          .eq("status", "pending");
+        if (pendingInvitesError && pendingInvitesError.code !== "42501") throw pendingInvitesError;
         if (pendingInvites?.length) {
           for (const inv of pendingInvites) {
             await supabase.from("sas_team_members").insert({ owner_user_id: inv.inviter_user_id, member_user_id: authUser.id, permission: inv.permission }).select();
@@ -1993,7 +2024,7 @@ export default function AccountingPortalPrototype() {
     }
 
     const TABLE_SETTER_MAP = {
-      sas_jobs:            { setter: setJobs,           key: "jobs" },
+      sas_jobs:            { setter: setJobs,           key: "scheduling" },
       sas_clients:         { setter: setClients,        key: "clients" },
       sas_invoices:        { setter: setInvoices,       key: "invoices" },
       sas_quotes:          { setter: setQuotes,         key: "quotes" },
@@ -2005,10 +2036,14 @@ export default function AccountingPortalPrototype() {
       sas_assets:          { setter: setAssets,          key: "assets" },
       sas_properties:      { setter: setProperties,     key: "properties" },
       sas_profile:         { setter: null,               key: "profile" },
+      sas_team_members:    { setter: setTeamMembers,     key: "settings" },
+      sas_team_invitations:{ setter: setTeamInvitations, key: "settings" },
+      sas_subcontractor_costs: { setter: setSubcontractorCosts, key: "jobs report" },
     };
 
     const parseRow = (row) => {
-      const d = row.data && typeof row.data === "object" && !Array.isArray(row.data) ? row.data : {};
+      const hasStructuredData = row.data && typeof row.data === "object" && !Array.isArray(row.data);
+      const d = hasStructuredData ? row.data : row;
       return { ...d, id: row.id, user_id: row.user_id, updated_at: row.updated_at };
     };
 
@@ -2023,6 +2058,14 @@ export default function AccountingPortalPrototype() {
 
       // Show subtle pulse on the section
       setRealtimePulse(entry.key);
+      setRealtimeStatusByKey((prev) => ({
+        ...prev,
+        [entry.key]: {
+          table,
+          eventType: payload.eventType,
+          updatedAt: new Date().toISOString(),
+        },
+      }));
       setTimeout(() => setRealtimePulse(null), 1200);
 
       if (table === "sas_profile") {
@@ -2072,6 +2115,9 @@ export default function AccountingPortalPrototype() {
       .on("postgres_changes", { event: "*", schema: "public", table: "sas_assets",         filter: `user_id=eq.${uid}` }, handleChange)
       .on("postgres_changes", { event: "*", schema: "public", table: "sas_properties",     filter: `user_id=eq.${uid}` }, handleChange)
       .on("postgres_changes", { event: "*", schema: "public", table: "sas_profile",        filter: `user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_team_members",   filter: `owner_user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_team_invitations", filter: `inviter_user_id=eq.${uid}` }, handleChange)
+      .on("postgres_changes", { event: "*", schema: "public", table: "sas_subcontractor_costs", filter: `job_owner_user_id=eq.${uid}` }, handleChange)
       .subscribe();
 
     realtimeChannelRef.current = channel;
@@ -2358,18 +2404,24 @@ export default function AccountingPortalPrototype() {
   let emailDocumentRecord = { ...(documentRecord || {}) };
   let stripeCheckoutUrl = emailDocumentRecord?.stripeCheckoutUrl || "";
 
-  // ── Generate publicToken for quotes so clients can accept/decline online ──
-  if (documentType === "quote" && !emailDocumentRecord.publicToken) {
-    const publicToken = crypto.randomUUID();
-    emailDocumentRecord.publicToken = publicToken;
-    emailDocumentRecord.status = emailDocumentRecord.status === "Draft" ? "Sent" : emailDocumentRecord.status;
-    // Save the token to the quote immediately
+  // ── Persist publicToken for quotes before emailing so the acceptance link can resolve ──
+  if (documentType === "quote") {
+    const persistedToken = emailDocumentRecord.publicToken || crypto.randomUUID();
+    emailDocumentRecord = {
+      ...emailDocumentRecord,
+      publicToken: persistedToken,
+      status: emailDocumentRecord.status === "Draft" ? "Sent" : emailDocumentRecord.status,
+    };
     try {
       const saved = await upsertRecordInDatabase(SUPABASE_TABLES.quotes, emailDocumentRecord);
+      if (!saved?.publicToken) {
+        throw new Error("Quote link could not be prepared. Please save the quote and try again.");
+      }
       setQuotes((prev) => prev.map((q) => q.id === emailDocumentRecord.id ? saved : q));
       emailDocumentRecord = { ...saved };
     } catch (e) {
       console.error("Failed to save publicToken to quote:", e);
+      throw new Error(e?.message || "Quote link could not be prepared. Please try again.");
     }
   }
 
@@ -2398,9 +2450,13 @@ export default function AccountingPortalPrototype() {
 
   const serverBaseUrl = getApiBaseUrl(profile?.stripeServerUrl);
 
-  if (
+  const shouldAttemptAutomaticStripeCheckout =
     documentType === "invoice" &&
     !stripeCheckoutUrl &&
+    Boolean(profile?.stripePaymentLink);
+
+  if (
+    shouldAttemptAutomaticStripeCheckout &&
     typeof resolveInvoiceStripeAmount === "function" &&
     resolveInvoiceStripeAmount(emailDocumentRecord) > 0
   ) {
@@ -2497,7 +2553,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
 
   // ── Inject "View & Accept Quote" button into quote emails ──
   if (documentType === "quote" && emailDocumentRecord.publicToken) {
-    const quoteViewUrl = `${window.location.origin}/quote/view?token=${encodeURIComponent(emailDocumentRecord.publicToken)}`;
+    const quoteViewUrl = `${window.location.origin}/?quote_token=${encodeURIComponent(emailDocumentRecord.publicToken)}`;
     const acceptanceBanner = `
       <div style="margin:24px auto 0; max-width:760px; text-align:center; padding:24px; background:#FAFBFF; border:2px solid #E2E8F0; border-radius:16px;">
         <div style="font-size:16px; font-weight:700; color:#14202B; margin-bottom:12px;">Ready to proceed?</div>
@@ -3121,7 +3177,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     };
     const saveInvoiceEdits = async () => {
     if (!invoiceEditorForm?.id || !invoiceEditorForm.clientId) return;
-    const computedLines = computeLineItemTotals(invoiceEditorForm.lineItems || [], invoiceEditorForm.clientId);
+    const syncedLines = syncSingleLineEditorToLineItems(invoiceEditorForm);
+    const computedLines = computeLineItemTotals(syncedLines || [], invoiceEditorForm.clientId);
     const subtotal = computedLines.reduce((s, l) => s + l.rowSubtotal, 0);
     const gst = computedLines.reduce((s, l) => s + l.rowGst, 0);
     const total = subtotal + gst;
@@ -3162,6 +3219,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       status: invoiceEditorForm.status || "Draft",
       paymentReference: invoiceEditorForm.paymentReference || "",
       stripeCheckoutUrl: invoiceEditorForm.stripeCheckoutUrl || "",
+      jobId: invoiceEditorForm.jobId || "",
     };
 
     setSavingInvoiceEdits(true);
@@ -3255,7 +3313,8 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     };
     const saveQuoteEdits = async () => {
     if (!quoteEditorForm?.id || !quoteEditorForm.clientId) return;
-    const computedLines = computeLineItemTotals(quoteEditorForm.lineItems || [], quoteEditorForm.clientId);
+    const syncedLines = syncSingleLineEditorToLineItems(quoteEditorForm);
+    const computedLines = computeLineItemTotals(syncedLines || [], quoteEditorForm.clientId);
     const subtotal = computedLines.reduce((s, l) => s + l.rowSubtotal, 0);
     const gst = computedLines.reduce((s, l) => s + l.rowGst, 0);
     const total = subtotal + gst;
@@ -3303,11 +3362,23 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
     } finally {
       setSavingQuoteEdits(false);
     }
-    };   const convertQuoteToInvoice = async (quote) => {
+    };
+    const convertQuoteToInvoice = async (quote) => {
     if (!quote?.id) return;
     try {
+      const existingInvoice = invoices.find((invoice) => String(invoice.convertedFromQuoteId) === String(quote.id));
+      if (existingInvoice) {
+        toast.success(`Quote already linked to invoice ${existingInvoice.invoiceNumber || existingInvoice.id}.`);
+        setActivePage("invoices");
+        return existingInvoice;
+      }
+
       // 1. Mark the quote as Accepted and save
-      const acceptedQuote = { ...quote, status: "Accepted" };
+      const acceptedQuote = {
+        ...quote,
+        status: "Accepted",
+        acceptedDate: quote.acceptedDate || new Date().toISOString(),
+      };
       const savedQuote = await upsertRecordInDatabase(SUPABASE_TABLES.quotes, acceptedQuote);
       setQuotes((prev) => prev.map((q) => q.id === quote.id ? savedQuote : q));
 
@@ -3340,6 +3411,7 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         stripeCheckoutUrl: "",
         convertedFromQuoteId: quote.id,
         convertedFromQuoteNumber: quote.quoteNumber || "",
+        jobId: quote.jobId || quote.convertedToJobId || "",
       };
       const savedInvoice = await upsertRecordInDatabase(SUPABASE_TABLES.invoices, invoicePayload);
       setInvoices((prev) => [...prev, savedInvoice]);
@@ -3348,17 +3420,38 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
       setSupabaseSyncStatus("Quote converted to invoice");
       closeQuoteEditor();
       setActivePage("invoices");
+      return savedInvoice;
     } catch (error) {
       console.error("CONVERT QUOTE TO INVOICE ERROR:", error);
       toast.error(error.message || "Could not convert quote to invoice");
+      return null;
     }
     };
 
     const convertQuoteToJob = async (quote) => {
       if (!quote?.id) return;
       try {
+        const existingJob = jobs.find((job) => String(job.quoteId) === String(quote.id) || String(job.id) === String(quote.convertedToJobId || quote.jobId));
+        if (existingJob) {
+          const savedQuoteWithExistingJob = await upsertRecordInDatabase(SUPABASE_TABLES.quotes, {
+            ...quote,
+            status: "Accepted",
+            acceptedDate: quote.acceptedDate || new Date().toISOString(),
+            convertedToJobId: String(existingJob.id),
+            jobId: String(existingJob.id),
+          });
+          setQuotes((prev) => prev.map((q) => q.id === quote.id ? savedQuoteWithExistingJob : q));
+          toast.success(`Quote already linked to job ${existingJob.title || existingJob.id}.`);
+          setActivePage("scheduling");
+          return existingJob;
+        }
+
         // Mark quote as Accepted
-        const acceptedQuote = { ...quote, status: "Accepted" };
+        const acceptedQuote = {
+          ...quote,
+          status: "Accepted",
+          acceptedDate: quote.acceptedDate || new Date().toISOString(),
+        };
         const savedQuote = await upsertRecordInDatabase(SUPABASE_TABLES.quotes, acceptedQuote);
         setQuotes((prev) => prev.map((q) => q.id === quote.id ? savedQuote : q));
 
@@ -3382,11 +3475,20 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         const savedJob = await upsertRecordInDatabase(SUPABASE_TABLES.jobs, jobPayload);
         setJobs((prev) => [...prev, savedJob]);
 
+        const linkedQuote = await upsertRecordInDatabase(SUPABASE_TABLES.quotes, {
+          ...savedQuote,
+          convertedToJobId: String(savedJob.id),
+          jobId: String(savedJob.id),
+        });
+        setQuotes((prev) => prev.map((q) => q.id === quote.id ? linkedQuote : q));
+
         toast.success(`Job created from Quote #${quote.quoteNumber || quote.id}!`);
         setActivePage("scheduling");
+        return savedJob;
       } catch (error) {
         console.error("CONVERT QUOTE TO JOB ERROR:", error);
         toast.error(error.message || "Could not convert quote to job");
+        return null;
       }
     };
     const sendInvoiceFromPreview = async (invoiceId, previewWindow) => {
@@ -3562,13 +3664,20 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         gst,
         isPaid: isMileage ? true : false,
         paidAt: isMileage ? expenseForm.date : "",
-        receiptFileName,
-        receiptUrl,
+        receiptFileName: receiptFileName || expenseForm.receiptFileName || "",
+        receiptUrl: receiptUrl || expenseForm.receiptUrl || "",
       };
       const savedExpense = await upsertRecordInDatabase(SUPABASE_TABLES.expenses, payload);
 
-      setExpenses((prev) => [...prev, savedExpense]);
+      setExpenses((prev) => {
+        const existing = prev.some((item) => String(item.id) === String(savedExpense.id));
+        if (existing) {
+          return prev.map((item) => (String(item.id) === String(savedExpense.id) ? savedExpense : item));
+        }
+        return [...prev, savedExpense];
+      });
       setExpenseForm({
+        id: "",
         date: todayLocal(),
         dueDate: addDaysEOM(todayLocal()),
         supplier: "",
@@ -4727,6 +4836,31 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         <main className="sas-main">
           <div className="sas-page-wrap">
             <div className="sas-page-inner sas-page-panel" style={{ maxWidth: 1480, margin: "0 auto" }}>
+            {(() => {
+              const activeSync = realtimeStatusByKey[activePage];
+              const syncLabel = isOffline
+                ? "Offline"
+                : isSupabaseRestoring
+                  ? "Syncing"
+                  : realtimePulse === activePage
+                    ? "Live update received"
+                    : activeSync?.updatedAt
+                      ? `Last synced ${new Date(activeSync.updatedAt).toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" })}`
+                      : "Live sync ready";
+              const syncTone = isOffline
+                ? { bg: "#FEF2F2", border: "#FECACA", color: "#991B1B" }
+                : realtimePulse === activePage
+                  ? { bg: "#ECFDF5", border: "#A7F3D0", color: "#065F46" }
+                  : { bg: "#F8FAFC", border: colours.border, color: colours.muted };
+              return (
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 12px", borderRadius: 999, border: `1px solid ${syncTone.border}`, background: syncTone.bg, color: syncTone.color, fontSize: 12, fontWeight: 700 }}>
+                    <span>{realtimePulse === activePage ? "●" : "○"}</span>
+                    <span>{syncLabel}</span>
+                  </div>
+                </div>
+              );
+            })()}
             {(() => {
               const userTier = getUserTier(profile);
               const pageAccess = isPageAllowed(activePage, userTier);
