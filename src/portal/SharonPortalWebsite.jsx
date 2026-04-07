@@ -259,6 +259,10 @@ export default function AccountingPortalPrototype() {
   const [supabaseSyncStatus, setSupabaseSyncStatus] = useState(
     supabase ? "Ready to sync to database" : "Supabase not connected"
   );
+  const [isOffline, setIsOffline] = useState(() => typeof navigator !== "undefined" ? !navigator.onLine : false);
+  const [showBackOnline, setShowBackOnline] = useState(false);
+  const [realtimePulse, setRealtimePulse] = useState(null); // table name that just updated
+  const realtimeChannelRef = useRef(null);
   const [profile, setProfile] = useState(initialProfile);
   const [clients, setClients] = useState(initialClients);
   const [invoices, setInvoices] = useState(initialInvoices);
