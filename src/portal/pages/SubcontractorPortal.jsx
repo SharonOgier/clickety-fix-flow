@@ -347,8 +347,8 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
                     <div style={{ fontSize: 13, fontWeight: 800, color: colours.muted, textTransform: "uppercase", marginBottom: 10 }}>💳 Your Payment Status</div>
                     <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                       {(() => {
-                        // Find subcontractor entry in job costs matching this user
-                        const subEntries = (selectedJobData.costs?.subcontractor || []);
+                        const myTotal = jobSubmissions.reduce((s, c) => s + safe(c.amount), 0);
+                        const approvedTotal = jobSubmissions.filter(c => c.status === "approved").reduce((s, c) => s + safe(c.amount), 0);
                         const myTotal = jobSubmissions.reduce((s, c) => s + safe(c.amount), 0);
                         const approvedTotal = jobSubmissions.filter(c => c.status === "approved").reduce((s, c) => s + safe(c.amount), 0);
                         return (
