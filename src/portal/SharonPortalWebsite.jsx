@@ -4454,6 +4454,12 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
         }
         .sas-section-card { overflow: hidden; }
         .sas-summary-box { min-height: 124px; }
+        @keyframes sas-realtime-pulse {
+          0% { box-shadow: 0 0 0 0 rgba(106,27,154,0.3); }
+          70% { box-shadow: 0 0 0 8px rgba(106,27,154,0); }
+          100% { box-shadow: 0 0 0 0 rgba(106,27,154,0); }
+        }
+        .sas-realtime-pulse { animation: sas-realtime-pulse 1s ease-out; }
         .sas-dashboard-hero .sas-hero-title { word-break: break-word; overflow-wrap: anywhere; font-family: "Playfair Display", serif; }
         .sas-dashboard-hero .sas-hero-subtitle { word-break: break-word; font-family: "DM Sans", sans-serif; }
         .sas-dashboard-hero .sas-insight-chip { backdrop-filter: blur(6px); }
