@@ -66,11 +66,22 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
           if (jobsData) allJobs.push(...jobsData);
         }
         
-        // Filter to only assigned jobs
+        // Filter to only assigned jobs and strip financial data
+        const SAFE_FIELDS = [
+          "id", "title", "name", "client", "clientId", "location", "siteAddress",
+          "startDate", "endDate", "startTime", "endTime", "status", "priority",
+          "description", "notes", "colour", "photos", "assignedStaff",
+        ];
         const assignedJobs = allJobs
           .map(j => {
             const data = j.data || {};
-            return { ...data, _dbId: j.id, _userId: j.user_id };
+            const safe = {};
+            for (const k of SAFE_FIELDS) {
+              if (data[k] !== undefined) safe[k] = data[k];
+            }
+            safe._dbId = j.id;
+            safe._userId = j.user_id;
+            return safe;
           })
           .filter(j => jobIds.includes(String(j.id || j._dbId)));
 
@@ -188,6 +199,12 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
 
   return (
     <div style={{ minHeight: "100vh", background: colours.bg, fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .subcon-grid { grid-template-columns: 1fr !important; }
+          .subcon-job-detail-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Header */}
       <div style={{ background: colours.white, borderBottom: `1px solid ${colours.border}`, padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -232,7 +249,7 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
             </div>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: selectedJob ? "300px 1fr" : "1fr", gap: 20 }}>
+          <div style={{ display: "grid", gridTemplateColumns: selectedJob ? "300px 1fr" : "1fr", gap: 20 }} className="subcon-grid">
             {/* Jobs List */}
             <div style={{ display: "grid", gap: 8, alignContent: "start" }}>
               <div style={{ fontSize: 13, fontWeight: 800, color: colours.text, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 4 }}>
@@ -274,12 +291,12 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
                   <div style={{ fontSize: 18, fontWeight: 800, color: colours.text, marginBottom: 8 }}>
                     {selectedJobData.title || selectedJobData.name || `Job #${selectedJob}`}
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }} className="subcon-job-detail-grid">
                     {selectedJobData.client && (
                       <div><span style={{ fontWeight: 700, color: colours.muted }}>Client:</span> <span style={{ color: colours.text }}>{selectedJobData.client}</span></div>
                     )}
-                    {selectedJobData.location && (
-                      <div><span style={{ fontWeight: 700, color: colours.muted }}>Location:</span> <span style={{ color: colours.text }}>{selectedJobData.location}</span></div>
+                    {(selectedJobData.location || selectedJobData.siteAddress) && (
+                      <div><span style={{ fontWeight: 700, color: colours.muted }}>Site Address:</span> <span style={{ color: colours.text }}>{selectedJobData.siteAddress || selectedJobData.location}</span></div>
                     )}
                     {selectedJobData.startDate && (
                       <div><span style={{ fontWeight: 700, color: colours.muted }}>Start:</span> <span style={{ color: colours.text }}>{formatDate(selectedJobData.startDate)}</span></div>
@@ -290,10 +307,36 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
                     {selectedJobData.status && (
                       <div><span style={{ fontWeight: 700, color: colours.muted }}>Status:</span> <span style={{ color: colours.text }}>{selectedJobData.status}</span></div>
                     )}
+                    {selectedJobData.priority && (
+                      <div><span style={{ fontWeight: 700, color: colours.muted }}>Priority:</span> <span style={{ color: colours.text }}>{selectedJobData.priority}</span></div>
+                    )}
                   </div>
+                  {selectedJobData.notes && (
+                    <div style={{ fontSize: 13, color: colours.text, lineHeight: 1.6, marginTop: 12, padding: 12, background: "#FFFDE7", borderRadius: 10, border: "1px solid #FFF9C4", whiteSpace: "pre-wrap" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: colours.muted, marginBottom: 4 }}>📝 Notes</div>
+                      {selectedJobData.notes}
+                    </div>
+                  )}
                   {selectedJobData.description && (
-                    <div style={{ fontSize: 13, color: colours.muted, lineHeight: 1.6, marginTop: 12, padding: 12, background: colours.bg, borderRadius: 10 }}>
+                    <div style={{ fontSize: 13, color: colours.muted, lineHeight: 1.6, marginTop: 8, padding: 12, background: colours.bg, borderRadius: 10 }}>
                       {selectedJobData.description}
+                    </div>
+                  )}
+                  {/* Job Photos */}
+                  {selectedJobData.photos?.length > 0 && (
+                    <div style={{ marginTop: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: colours.muted, marginBottom: 8 }}>📸 Job Photos</div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {selectedJobData.photos.map((photo, pi) => (
+                          <a key={pi} href={photo.url || photo} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={photo.url || photo}
+                              alt={photo.caption || `Photo ${pi + 1}`}
+                              style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 8, border: `1px solid ${colours.border}` }}
+                            />
+                          </a>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -304,8 +347,6 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
                     <div style={{ fontSize: 13, fontWeight: 800, color: colours.muted, textTransform: "uppercase", marginBottom: 10 }}>💳 Your Payment Status</div>
                     <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                       {(() => {
-                        // Find subcontractor entry in job costs matching this user
-                        const subEntries = (selectedJobData.costs?.subcontractor || []);
                         const myTotal = jobSubmissions.reduce((s, c) => s + safe(c.amount), 0);
                         const approvedTotal = jobSubmissions.filter(c => c.status === "approved").reduce((s, c) => s + safe(c.amount), 0);
                         return (
