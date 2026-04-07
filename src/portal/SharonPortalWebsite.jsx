@@ -4602,7 +4602,19 @@ body { font-family: Arial, sans-serif; padding: 40px; color: #14202B; }
 
       {sidebarOpen && <div className="sas-overlay" onClick={() => setSidebarOpen(false)} />}
 
-      <div className="sas-layout">
+      {/* Offline / Online banner */}
+      {isOffline && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999, background: "#991B1B", color: "#fff", padding: "10px 20px", textAlign: "center", fontSize: 14, fontWeight: 700, boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
+          ⚠️ You are offline. Some features may be unavailable.
+        </div>
+      )}
+      {showBackOnline && !isOffline && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 9999, background: "#065F46", color: "#fff", padding: "10px 20px", textAlign: "center", fontSize: 14, fontWeight: 700, boxShadow: "0 2px 8px rgba(0,0,0,0.1)", transition: "opacity 0.5s ease" }}>
+          ✅ Back online — data synced
+        </div>
+      )}
+
+      <div className="sas-layout" style={{ marginTop: isOffline || showBackOnline ? 40 : 0, transition: "margin-top 0.3s ease" }}>
         <aside className={`sas-sidebar${sidebarOpen ? " open" : ""}`}>
           <div style={{ fontSize: 20, fontWeight: 800, color: colours.purple, marginBottom: 6, fontFamily: '"Playfair Display", serif' }}>
             {profile.businessName || "My Portal"}
