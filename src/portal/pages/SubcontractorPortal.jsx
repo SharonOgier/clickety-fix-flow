@@ -66,11 +66,22 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
           if (jobsData) allJobs.push(...jobsData);
         }
         
-        // Filter to only assigned jobs
+        // Filter to only assigned jobs and strip financial data
+        const SAFE_FIELDS = [
+          "id", "title", "name", "client", "clientId", "location", "siteAddress",
+          "startDate", "endDate", "startTime", "endTime", "status", "priority",
+          "description", "notes", "colour", "photos", "assignedStaff",
+        ];
         const assignedJobs = allJobs
           .map(j => {
             const data = j.data || {};
-            return { ...data, _dbId: j.id, _userId: j.user_id };
+            const safe = {};
+            for (const k of SAFE_FIELDS) {
+              if (data[k] !== undefined) safe[k] = data[k];
+            }
+            safe._dbId = j.id;
+            safe._userId = j.user_id;
+            return safe;
           })
           .filter(j => jobIds.includes(String(j.id || j._dbId)));
 
