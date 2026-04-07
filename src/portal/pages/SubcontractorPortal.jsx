@@ -199,6 +199,12 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
 
   return (
     <div style={{ minHeight: "100vh", background: colours.bg, fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .subcon-grid { grid-template-columns: 1fr !important; }
+          .subcon-job-detail-grid { grid-template-columns: 1fr !important; }
+        }
+      `}</style>
       {/* Header */}
       <div style={{ background: colours.white, borderBottom: `1px solid ${colours.border}`, padding: "14px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
