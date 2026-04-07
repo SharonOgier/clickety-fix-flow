@@ -349,8 +349,6 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
                       {(() => {
                         const myTotal = jobSubmissions.reduce((s, c) => s + safe(c.amount), 0);
                         const approvedTotal = jobSubmissions.filter(c => c.status === "approved").reduce((s, c) => s + safe(c.amount), 0);
-                        const myTotal = jobSubmissions.reduce((s, c) => s + safe(c.amount), 0);
-                        const approvedTotal = jobSubmissions.filter(c => c.status === "approved").reduce((s, c) => s + safe(c.amount), 0);
                         return (
                           <>
                             <div style={{ textAlign: "center", flex: 1 }}>
