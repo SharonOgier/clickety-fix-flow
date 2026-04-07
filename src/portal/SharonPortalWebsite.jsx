@@ -2090,7 +2090,7 @@ export default function AccountingPortalPrototype() {
     }
   }, [authUser]);
 
-
+  const uploadDocument = async () => {
     try {
       if (!documentFile) {
         toast.warning("Please select a file first");
