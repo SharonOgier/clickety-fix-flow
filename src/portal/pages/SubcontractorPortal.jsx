@@ -291,12 +291,12 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
                   <div style={{ fontSize: 18, fontWeight: 800, color: colours.text, marginBottom: 8 }}>
                     {selectedJobData.title || selectedJobData.name || `Job #${selectedJob}`}
                   </div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 13 }} className="subcon-job-detail-grid">
                     {selectedJobData.client && (
                       <div><span style={{ fontWeight: 700, color: colours.muted }}>Client:</span> <span style={{ color: colours.text }}>{selectedJobData.client}</span></div>
                     )}
-                    {selectedJobData.location && (
-                      <div><span style={{ fontWeight: 700, color: colours.muted }}>Location:</span> <span style={{ color: colours.text }}>{selectedJobData.location}</span></div>
+                    {(selectedJobData.location || selectedJobData.siteAddress) && (
+                      <div><span style={{ fontWeight: 700, color: colours.muted }}>Site Address:</span> <span style={{ color: colours.text }}>{selectedJobData.siteAddress || selectedJobData.location}</span></div>
                     )}
                     {selectedJobData.startDate && (
                       <div><span style={{ fontWeight: 700, color: colours.muted }}>Start:</span> <span style={{ color: colours.text }}>{formatDate(selectedJobData.startDate)}</span></div>
@@ -307,10 +307,36 @@ export default function SubcontractorPortal({ authUser, onSignOut }) {
                     {selectedJobData.status && (
                       <div><span style={{ fontWeight: 700, color: colours.muted }}>Status:</span> <span style={{ color: colours.text }}>{selectedJobData.status}</span></div>
                     )}
+                    {selectedJobData.priority && (
+                      <div><span style={{ fontWeight: 700, color: colours.muted }}>Priority:</span> <span style={{ color: colours.text }}>{selectedJobData.priority}</span></div>
+                    )}
                   </div>
+                  {selectedJobData.notes && (
+                    <div style={{ fontSize: 13, color: colours.text, lineHeight: 1.6, marginTop: 12, padding: 12, background: "#FFFDE7", borderRadius: 10, border: "1px solid #FFF9C4", whiteSpace: "pre-wrap" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: colours.muted, marginBottom: 4 }}>📝 Notes</div>
+                      {selectedJobData.notes}
+                    </div>
+                  )}
                   {selectedJobData.description && (
-                    <div style={{ fontSize: 13, color: colours.muted, lineHeight: 1.6, marginTop: 12, padding: 12, background: colours.bg, borderRadius: 10 }}>
+                    <div style={{ fontSize: 13, color: colours.muted, lineHeight: 1.6, marginTop: 8, padding: 12, background: colours.bg, borderRadius: 10 }}>
                       {selectedJobData.description}
+                    </div>
+                  )}
+                  {/* Job Photos */}
+                  {selectedJobData.photos?.length > 0 && (
+                    <div style={{ marginTop: 12 }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: colours.muted, marginBottom: 8 }}>📸 Job Photos</div>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {selectedJobData.photos.map((photo, pi) => (
+                          <a key={pi} href={photo.url || photo} target="_blank" rel="noopener noreferrer">
+                            <img
+                              src={photo.url || photo}
+                              alt={photo.caption || `Photo ${pi + 1}`}
+                              style={{ width: 80, height: 80, objectFit: "cover", borderRadius: 8, border: `1px solid ${colours.border}` }}
+                            />
+                          </a>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
